@@ -8,6 +8,11 @@
   --naranja: #D9772B;
   --crema: #F3E9D8;
   --tinta: #2A1A1A;
+  /* Nombres por uso */
+  --terracota: var(--oxido);
+  --verde: var(--oliva-oscuro);
+  --verde-claro: var(--oliva);
+  --fondo: var(--crema);
 }
 
 body {
@@ -116,7 +121,8 @@ button:hover, .boton:hover { background: var(--naranja); }
     padding: 0.75rem 1rem;
   }
   .cabecera .logo { white-space: nowrap; }
-  .cabecera nav a { margin: 0 1.25rem 0 0; }
+  .cabecera nav { display: flex; flex-wrap: wrap; row-gap: 0.25rem; }
+  .cabecera nav a { margin: 0 1.1rem 0 0; }
 }
 
 /* Toques oliva */

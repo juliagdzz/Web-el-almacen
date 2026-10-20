@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Medidas · El Almacén</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="medidas.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="inspiracion.html">Miembros</a>
+      <a href="medidas.html">Medidas</a>
+    </nav>
+  </header>
+
+  <main class="contenedor medidas">
+    <h1>Medidas y contracción</h1>
+    <p class="entradilla">La pasta encoge al secarse y otra vez al cocerse. Elige tu pasta y te digo a qué tamaño tienes que modelar la pieza para que salga del horno con la medida que quieres.</p>
+
+    <section class="bloque">
+      <h2>1. Tu pasta</h2>
+      <label for="pasta" class="etiqueta">Pasta SIO-2</label>
+      <select id="pasta"></select>
+      <div id="temperaturas" class="temperaturas" hidden></div>
+      <dl id="ficha" class="ficha"></dl>
+    </section>
+
+    <section class="bloque">
+      <h2>2. Tu pieza</h2>
+      <div class="modo" role="radiogroup" aria-label="Qué medida tienes">
+        <label><input type="radio" name="modo" value="cocida" checked> Quiero que cocida mida…</label>
+        <label><input type="radio" name="modo" value="cruda"> Modelada en húmedo mide…</label>
+      </div>
+      <div class="medidas-pieza">
+        <label><span class="nombre">Alto</span> <span><input id="alto" type="number" inputmode="decimal" min="0" step="0.1" placeholder="10"> cm</span></label>
+        <label><span class="nombre">Ancho o diámetro</span> <span><input id="ancho" type="number" inputmode="decimal" min="0" step="0.1" placeholder="8"> cm</span></label>
+        <label><span class="nombre">Fondo <small>opcional</small></span> <span><input id="fondo" type="number" inputmode="decimal" min="0" step="0.1"> cm</span></label>
+        <label><span class="nombre">Capacidad o volumen <small>opcional</small></span> <span><input id="capacidad" type="number" inputmode="decimal" min="0" step="1"> ml</span></label>
+      </div>
+    </section>
+
+    <section class="bloque resultado" aria-live="polite">
+      <h2>3. Medidas</h2>
+      <p id="resumen" class="resumen"></p>
+      <div class="tabla-medidas">
+        <table>
+          <thead>
+            <tr><th></th><th>Al modelar</th><th>Seca</th><th>Cocida</th></tr>
+          </thead>
+          <tbody id="tabla"></tbody>
+        </table>
+      </div>
+      <div class="regla" aria-hidden="true">
+        <div class="tramo humedo"><span>Húmeda 100 %</span></div>
+        <div class="tramo seco" id="barra-seca"><span></span></div>
+        <div class="tramo cocido" id="barra-cocida"><span></span></div>
+      </div>
+      <p class="nota">Datos de laboratorio de SIO-2. La contracción real cambia con el grosor, el secado y la curva de tu horno: si la medida es importante, haz antes una probeta con una raya de 10 cm y mídela al sacarla.</p>
+    </section>
+  </main>
+
+  <script src="medidas.js"></script>
+</body>
+</html>

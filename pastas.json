@@ -1,0 +1,766 @@
+[
+  {
+    "id": 1670,
+    "nombre": "PF",
+    "descripcion": "Arcilla roja tradicional baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "970-1055 ºC",
+    "secado": 5.5,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 0.6
+      }
+    ],
+    "porosidad": 13.5,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1670-pf-roja-125kg-8422830101016.html"
+  },
+  {
+    "id": 1672,
+    "nombre": "PF/CHF",
+    "descripcion": "Arcilla roja chamotada baja temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Baja temperatura",
+    "coccion": "970-1055 ºC",
+    "secado": 5.1,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 0.3
+      }
+    ],
+    "porosidad": 14.2,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1672-pfchf-roja-chamota-0-05mm-125kg-8422830101023.html"
+  },
+  {
+    "id": 1674,
+    "nombre": "PA",
+    "descripcion": "Arcilla blanca baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "1050-1080 ºC",
+    "secado": 6.2,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": -0.2
+      }
+    ],
+    "porosidad": 12.6,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1674-pa-blanca-125kg-8422830104017.html"
+  },
+  {
+    "id": 1675,
+    "nombre": "PA/CHF",
+    "descripcion": "Arcilla blanca chamotada baja temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Baja temperatura",
+    "coccion": "1050-1080 ºC",
+    "secado": 5.6,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": -0.1
+      }
+    ],
+    "porosidad": 11.2,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1675-pachf-blanca-chamota-0-05mm-125kg-8422830104031.html"
+  },
+  {
+    "id": 1681,
+    "nombre": "PB",
+    "descripcion": "Arcilla de loza tradicional baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "1050-1080 ºC",
+    "secado": 6.2,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": 0.6
+      }
+    ],
+    "porosidad": 14.4,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1681-pb-loza-tradicional-125kg-8422830109012.html"
+  },
+  {
+    "id": 1676,
+    "nombre": "PLV",
+    "descripcion": "Arcilla verde baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "1050-1080 ºC",
+    "secado": 5.1,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": -0.1
+      }
+    ],
+    "porosidad": 12.8,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1676-plv-loza-verde-5kg-8422830105021.html"
+  },
+  {
+    "id": 1677,
+    "nombre": "PLA",
+    "descripcion": "Arcilla azul baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "1050-1080 ºC",
+    "secado": 5,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": -0.3
+      }
+    ],
+    "porosidad": 12.4,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1677-pla-loza-azul-5kg-8422830106028.html"
+  },
+  {
+    "id": 1678,
+    "nombre": "PT",
+    "descripcion": "Arcilla terracota tradicional baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "1020-1085 ºC",
+    "secado": 7.8,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": 0.8
+      }
+    ],
+    "porosidad": 14.5,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1678-pt-terracota-125kg-8422830107018.html"
+  },
+  {
+    "id": 1679,
+    "nombre": "PT/CHF",
+    "descripcion": "Arcilla terracota chamotada baja temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Baja temperatura",
+    "coccion": "1020-1085 ºC",
+    "secado": 7.2,
+    "cocciones": [
+      {
+        "temperatura": 1050,
+        "contraccion": 0.3
+      }
+    ],
+    "porosidad": 16.2,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1679-ptchf-terracota-chamota-0-05mm-125kg-8422830107025.html"
+  },
+  {
+    "id": 1680,
+    "nombre": "PM",
+    "descripcion": "Arcilla negra baja temperatura",
+    "chamota": null,
+    "tipo": "Baja temperatura",
+    "coccion": "970-1040 ºC",
+    "secado": 5.4,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 0.9
+      }
+    ],
+    "porosidad": 15.8,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-baja-temperatura/1680-pm-negra-125kg-8422830108015.html"
+  },
+  {
+    "id": 1687,
+    "nombre": "PRAI",
+    "descripcion": "Arcilla blanca alta temperatura",
+    "chamota": "0-0,2 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 5.9,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 7
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1687-prai-refractaria-blanca-0-02mm-125kg-8422830133031.html"
+  },
+  {
+    "id": 1688,
+    "nombre": "PRAF",
+    "descripcion": "Arcilla blanca alta temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 5.4,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 4.6
+      }
+    ],
+    "porosidad": 4.1,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1688-praf-refractaria-blanca-0-05mm-125kg-8422830133017.html"
+  },
+  {
+    "id": 1689,
+    "nombre": "PRAM",
+    "descripcion": "Arcilla blanca alta temperatura",
+    "chamota": "0-1,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 5.3,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 4.5
+      }
+    ],
+    "porosidad": 4.4,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1689-pram-refractaria-blanca-0-15mm-125kg-8422830133024.html"
+  },
+  {
+    "id": 1684,
+    "nombre": "PRGI",
+    "descripcion": "Arcilla marrón dorado alta temperatura",
+    "chamota": "0-0,2 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 7.2,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 5.8
+      }
+    ],
+    "porosidad": 3.5,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1684-prgi-refractaria-marron-dorado-0-02mm-8422830113019.html"
+  },
+  {
+    "id": 1685,
+    "nombre": "PRGF",
+    "descripcion": "Arcilla marrón dorado alta temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 7,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 5.3
+      }
+    ],
+    "porosidad": 8.4,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1685-prgf-refractaria-marron-dorado-0-05mm-8422830113026.html"
+  },
+  {
+    "id": 1686,
+    "nombre": "PRGM",
+    "descripcion": "Arcilla marrón dorado alta temperatura",
+    "chamota": "0-1,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1240-1300 ºC",
+    "secado": 6.8,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 5.7
+      }
+    ],
+    "porosidad": 8.7,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1686-prgm-refractaria-marron-dorado-0-15mm-8422830113033.html"
+  },
+  {
+    "id": 2099,
+    "nombre": "MARTE",
+    "descripcion": "Refractaria roja",
+    "chamota": "0-0,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1100-1260 ºC",
+    "secado": 6.6,
+    "cocciones": [
+      {
+        "temperatura": 1260,
+        "contraccion": 3.8
+      }
+    ],
+    "porosidad": 8.6,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/2099-marte-refractaria-roja-0-05mm-12-5kg-8422830139019.html"
+  },
+  {
+    "id": 1694,
+    "nombre": "BERLIN",
+    "descripcion": "Arcilla gris alta temperatura",
+    "chamota": "0-0,2 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1300 ºC",
+    "secado": 5.7,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 6.4
+      }
+    ],
+    "porosidad": 0.1,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1694-berlin-refractaria-gris-0-02mm-125kg-8422830145034.html"
+  },
+  {
+    "id": 1695,
+    "nombre": "ZUMAIA",
+    "descripcion": "Arcilla gris alta temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1300 ºC",
+    "secado": 5.3,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 4.3
+      }
+    ],
+    "porosidad": 4.5,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1695-zumaia-refractaria-gris-0-05mm-125kg-8422830145010.html"
+  },
+  {
+    "id": 1696,
+    "nombre": "BARCINO",
+    "descripcion": "Arcilla gris alta temperatura",
+    "chamota": "0-1,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1300 ºC",
+    "secado": 5.1,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 3.9
+      }
+    ],
+    "porosidad": 4.8,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1696-barcino-refractaria-gris-0-15mm-125kg-8422830145027.html"
+  },
+  {
+    "id": 1926,
+    "nombre": "TOFFEE",
+    "descripcion": "Arcilla caramelo alta temperatura",
+    "chamota": "0-0,2 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1300 ºC",
+    "secado": 6.2,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 5.6
+      }
+    ],
+    "porosidad": 0.1,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1926-toffee-refractaria-caramelo-0-02mm-12-5kg-8422830146017.html"
+  },
+  {
+    "id": 1690,
+    "nombre": "PRNI",
+    "descripcion": "Arcilla negra alta temperatura",
+    "chamota": "0-0,2 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1240 ºC",
+    "secado": 8.2,
+    "cocciones": [
+      {
+        "temperatura": 1240,
+        "contraccion": 5.4
+      }
+    ],
+    "porosidad": 4,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1690-prni-refractaria-negra-0-02mm-125kg-8422830136032.html"
+  },
+  {
+    "id": 1691,
+    "nombre": "PRNF",
+    "descripcion": "Arcilla negra alta temperatura",
+    "chamota": "0-0,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1260 ºC",
+    "secado": 8.1,
+    "cocciones": [
+      {
+        "temperatura": 1260,
+        "contraccion": 3.7
+      }
+    ],
+    "porosidad": 8.8,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1691-prnf-refractaria-negra-0-05mm-125kg-8422830136018.html"
+  },
+  {
+    "id": 1692,
+    "nombre": "PRNM",
+    "descripcion": "Arcilla negra alta temperatura",
+    "chamota": "0-1,5 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1260 ºC",
+    "secado": 8,
+    "cocciones": [
+      {
+        "temperatura": 1260,
+        "contraccion": 3.8
+      }
+    ],
+    "porosidad": 8.3,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1692-prnm-refractaria-negra-0-15mm-125kg-8422830136025.html"
+  },
+  {
+    "id": 1693,
+    "nombre": "PRNG",
+    "descripcion": "Arcilla negra alta temperatura",
+    "chamota": "1-3 mm",
+    "tipo": "Gres y refractarias",
+    "coccion": "1200-1260 ºC",
+    "secado": 7.6,
+    "cocciones": [
+      {
+        "temperatura": 1260,
+        "contraccion": 2.5
+      }
+    ],
+    "porosidad": 9.3,
+    "url": "https://www.sio-2.com/es/pastas-refractarias-y-gres/1693-prng-refractaria-negra-1-3mm-125kg-8422830136049.html"
+  },
+  {
+    "id": 1700,
+    "nombre": "ANETO",
+    "descripcion": "Porcelana blanca",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1230-1270 ºC",
+    "secado": 5.8,
+    "cocciones": [
+      {
+        "temperatura": 1250,
+        "contraccion": 11.2
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1700-aneto-porcelana-blanca-5kg-8422830160013.html"
+  },
+  {
+    "id": 2092,
+    "nombre": "ANETO SLIP",
+    "descripcion": "Porcelana blanca",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1230-1270 ºC",
+    "secado": 5.8,
+    "cocciones": [
+      {
+        "temperatura": 1250,
+        "contraccion": 11.2
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/2092-aneto-slip-porcelana-blanca-35-lt-8422830160037.html"
+  },
+  {
+    "id": 1701,
+    "nombre": "BLACK ICE",
+    "descripcion": "Porcelana negra",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1200-1240 ºC",
+    "secado": 5.7,
+    "cocciones": [
+      {
+        "temperatura": 1220,
+        "contraccion": 10.3
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1701-black-ice-porcelana-negra-5kg-8422830161010.html"
+  },
+  {
+    "id": 1702,
+    "nombre": "UPSALA",
+    "descripcion": "Porcelana azul",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1200-1240 ºC",
+    "secado": 6,
+    "cocciones": [
+      {
+        "temperatura": 1220,
+        "contraccion": 10.4
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1702-upsala-porcelana-azul-5kg-8422830162017.html"
+  },
+  {
+    "id": 1981,
+    "nombre": "LAGOON",
+    "descripcion": "Porcelana azul turquesa",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1200-1240 ºC",
+    "secado": 5.6,
+    "cocciones": [
+      {
+        "temperatura": 1240,
+        "contraccion": 10.6
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1981-lagoon-porcelana-azul-turquesa-5kg-8422830167012.html"
+  },
+  {
+    "id": 2266,
+    "nombre": "BEGUR",
+    "descripcion": "Porcelana rosada",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1200-1240 ºC",
+    "secado": 6,
+    "cocciones": [
+      {
+        "temperatura": 1240,
+        "contraccion": 10.5
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/2266-begur-porcelana-rosada-5kg-8422830168019.html"
+  },
+  {
+    "id": 1703,
+    "nombre": "CELLULAIN",
+    "descripcion": "Porcelana con fibra de papel",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1230-1270 ºC",
+    "secado": 5.1,
+    "cocciones": [
+      {
+        "temperatura": 1250,
+        "contraccion": 11.4
+      }
+    ],
+    "porosidad": 2.8,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1703-cellulain-porcelana-con-fibra-de-papel-5kg-8422830163014.html"
+  },
+  {
+    "id": 1705,
+    "nombre": "LOTUS",
+    "descripcion": "Porcelana imperial extra blanca",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1260-1290 ºC",
+    "secado": 6.3,
+    "cocciones": [
+      {
+        "temperatura": 1270,
+        "contraccion": 10.3
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1705-lotus-porcelana-imperial-extra-blanca-5kg-8422830165018.html"
+  },
+  {
+    "id": 1706,
+    "nombre": "JADE",
+    "descripcion": "Porcelana imperial translúcida",
+    "chamota": null,
+    "tipo": "Porcelana",
+    "coccion": "1260-1290 ºC",
+    "secado": 5.9,
+    "cocciones": [
+      {
+        "temperatura": 1270,
+        "contraccion": 12.6
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-porcelana/1706-jade-porcelana-imperial-translucida-5kg-8422830166015.html"
+  },
+  {
+    "id": 1699,
+    "nombre": "PCLI",
+    "descripcion": "Pasta de gres con fibra de papel",
+    "chamota": null,
+    "tipo": "Especiales",
+    "coccion": "1100-1260 ºC",
+    "secado": 6.7,
+    "cocciones": [
+      {
+        "temperatura": 1200,
+        "contraccion": 5.8
+      }
+    ],
+    "porosidad": 5.6,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-especiales/1699-pcli-gres-con-fibra-de-papel-125kg-8422830142019.html"
+  },
+  {
+    "id": 1698,
+    "nombre": "PGV",
+    "descripcion": "Pasta de gres culinario",
+    "chamota": null,
+    "tipo": "Especiales",
+    "coccion": "1150-1180 ºC",
+    "secado": 6.3,
+    "cocciones": [
+      {
+        "temperatura": 1180,
+        "contraccion": 6.5
+      }
+    ],
+    "porosidad": 0.1,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-especiales/1698-pgv-gres-culinario-125kg-8422830118014.html"
+  },
+  {
+    "id": 1980,
+    "nombre": "LUNA",
+    "descripcion": "Gres moteado",
+    "chamota": null,
+    "tipo": "Especiales",
+    "coccion": "1200-1260 ºC",
+    "secado": 5.8,
+    "cocciones": [
+      {
+        "temperatura": 1260,
+        "contraccion": 5.3
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-especiales/1980-luna-gres-moteado-12-5kg-8422830149018.html"
+  },
+  {
+    "id": 1697,
+    "nombre": "APACHE",
+    "descripcion": "Pasta micácea",
+    "chamota": null,
+    "tipo": "Especiales",
+    "coccion": "920-1000 ºC",
+    "secado": 4.5,
+    "cocciones": [
+      {
+        "temperatura": 950,
+        "contraccion": -0.3
+      }
+    ],
+    "porosidad": 17,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-especiales/1697-apache-pasta-micacea-125kg-8422830102013.html"
+  },
+  {
+    "id": 1708,
+    "nombre": "PRAI 3D",
+    "descripcion": "Gres para impresión 3D",
+    "chamota": null,
+    "tipo": "Impresión 3D",
+    "coccion": "1240-1300 ºC",
+    "secado": 8,
+    "cocciones": [
+      {
+        "temperatura": 1300,
+        "contraccion": 7
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-impresion-3d/1708-prai-3d-5kg-8422830133079.html"
+  },
+  {
+    "id": 1709,
+    "nombre": "ANETO 3D",
+    "descripcion": "Porcelana para impresión 3D",
+    "chamota": null,
+    "tipo": "Impresión 3D",
+    "coccion": "1230-1270 ºC",
+    "secado": 7,
+    "cocciones": [
+      {
+        "temperatura": 1250,
+        "contraccion": 11.2
+      }
+    ],
+    "porosidad": 0,
+    "url": "https://www.sio-2.com/es/pastas-ceramicas-impresion-3d/1709-aneto-3d-5kg-8422830160020.html"
+  },
+  {
+    "id": 1711,
+    "nombre": "ZAMORA",
+    "descripcion": "Arcilla Blanca Hobby Cerámico",
+    "chamota": null,
+    "tipo": "Hobby cerámico",
+    "coccion": "1000 / 1300 ºC",
+    "secado": 5.9,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 0.5
+      },
+      {
+        "temperatura": 1300,
+        "contraccion": 7
+      }
+    ],
+    "porosidad": null,
+    "url": "https://www.sio-2.com/es/pasta-para-modelar/1711-gres-zamora-5kg-8422830133055.html"
+  },
+  {
+    "id": 1712,
+    "nombre": "GRANADA",
+    "descripcion": "Arcilla Blanca Hobby Cerámico",
+    "chamota": null,
+    "tipo": "Hobby cerámico",
+    "coccion": "1000 / 1300 ºC",
+    "secado": 5.4,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 0.5
+      },
+      {
+        "temperatura": 1300,
+        "contraccion": 4.6
+      }
+    ],
+    "porosidad": null,
+    "url": "https://www.sio-2.com/es/pasta-para-modelar/1712-gres-granada-5kg-8422830133062.html"
+  },
+  {
+    "id": 2093,
+    "nombre": "TEIDE",
+    "descripcion": "Arcilla Marrón Hobby Cerámico",
+    "chamota": null,
+    "tipo": "Hobby cerámico",
+    "coccion": "1000 / 1300 ºC",
+    "secado": 7,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 1.2
+      },
+      {
+        "temperatura": 1300,
+        "contraccion": 5.3
+      }
+    ],
+    "porosidad": null,
+    "url": "https://www.sio-2.com/es/pasta-para-modelar/2093-teide-arcilla-hobby-ceramico-5kg-8422830112067.html"
+  },
+  {
+    "id": 1713,
+    "nombre": "LANZAROTE",
+    "descripcion": "Arcilla Negra Hobby Cerámico",
+    "chamota": null,
+    "tipo": "Hobby cerámico",
+    "coccion": "1000 / 1260 ºC",
+    "secado": 8.1,
+    "cocciones": [
+      {
+        "temperatura": 1000,
+        "contraccion": 2
+      },
+      {
+        "temperatura": 1260,
+        "contraccion": 3.7
+      }
+    ],
+    "porosidad": null,
+    "url": "https://www.sio-2.com/es/pasta-para-modelar/1713-gres-lanzarote-5kg-8422830136063.html"
+  }
+]
