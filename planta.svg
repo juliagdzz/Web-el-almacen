@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -12 90 432" width="90" height="432">
+  <!-- Maranta que cuelga por el marco del corcho -->
+  <defs>
+    <clipPath id="forma">
+      <path d="M6 0 C 11 -13, 34 -15, 50 0 C 34 15, 11 13, 6 0 Z"/>
+    </clipPath>
+    <symbol id="hoja" overflow="visible">
+      <path d="M0 0 L7 0" stroke="#4a5a23" stroke-width="1.6" stroke-linecap="round"/>
+      <g clip-path="url(#forma)">
+        <rect x="0" y="-16" width="52" height="32" fill="#3c4a1a"/>
+        <ellipse cx="27" cy="0" rx="21" ry="5.5" fill="#8f9a45" opacity="0.75"/>
+        <ellipse cx="27" cy="0" rx="17" ry="2.6" fill="#b8bd6a" opacity="0.6"/>
+        <g fill="#232c0c">
+          <ellipse cx="16" cy="-6.5" rx="3" ry="1.8"/><ellipse cx="16" cy="6.5" rx="3" ry="1.8"/>
+          <ellipse cx="26" cy="-7.5" rx="3.2" ry="2"/><ellipse cx="26" cy="7.5" rx="3.2" ry="2"/>
+          <ellipse cx="36" cy="-6" rx="2.6" ry="1.6"/><ellipse cx="36" cy="6" rx="2.6" ry="1.6"/>
+        </g>
+        <g stroke="#a3343f" fill="none" stroke-linecap="round">
+          <path d="M7 0 L49 0" stroke-width="1.1"/>
+          <path d="M12 0 Q 17 -6, 22 -11 M12 0 Q 17 6, 22 11 M20 0 Q 26 -6, 31 -11 M20 0 Q 26 6, 31 11 M28 0 Q 34 -5, 39 -9 M28 0 Q 34 5, 39 9 M36 0 Q 41 -4, 45 -6 M36 0 Q 41 4, 45 6" stroke-width="0.6" opacity="0.85"/>
+        </g>
+      </g>
+    </symbol>
+    <symbol id="enves" overflow="visible">
+      <path d="M0 0 L7 0" stroke="#4a5a23" stroke-width="1.6" stroke-linecap="round"/>
+      <g clip-path="url(#forma)">
+        <rect x="0" y="-16" width="52" height="32" fill="#6a2636"/>
+        <ellipse cx="27" cy="0" rx="20" ry="4" fill="#8a3a4b" opacity="0.7"/>
+        <path d="M7 0 L49 0" stroke="#c07a85" stroke-width="0.9"/>
+      </g>
+    </symbol>
+  </defs>
+  <path d="M34 2 C 20 20, 14 48, 19 82 S 26 150, 18 200 S 12 270, 20 318 S 22 370, 18 400" fill="none" stroke="#4a5a23" stroke-width="2" stroke-linecap="round"/>
+  <use href="#hoja" transform="translate(36 3) rotate(-12) scale(0.7)"/>
+  <use href="#hoja" transform="translate(26 12) rotate(40) scale(0.8)"/>
+  <use href="#hoja" transform="translate(17 44) rotate(118) scale(0.85)"/>
+  <use href="#hoja" transform="translate(17 66) rotate(55) scale(0.95)"/>
+  <use href="#enves" transform="translate(20 104) rotate(112) scale(0.8)"/>
+  <use href="#hoja" transform="translate(22 128) rotate(62) scale(0.9)"/>
+  <use href="#hoja" transform="translate(22 178) rotate(118) scale(0.8)"/>
+  <use href="#enves" transform="translate(19 214) rotate(70) scale(0.85)"/>
+  <use href="#hoja" transform="translate(15 262) rotate(105) scale(0.75)"/>
+  <use href="#hoja" transform="translate(18 300) rotate(65) scale(0.7)"/>
+  <use href="#enves" transform="translate(20 344) rotate(100) scale(0.55)"/>
+  <use href="#hoja" transform="translate(18 384) rotate(80) scale(0.45)"/>
+</svg>
