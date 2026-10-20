@@ -39,3 +39,22 @@
   .opcion-creacion strong { font-size: 1.05rem; }
   .opcion-creacion small { font-size: 0.8rem; }
 }
+
+/* Barra de la cuenta */
+.cuenta-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.cuenta-barra[hidden], .cuenta-barra [hidden] { display: none; }
+.cuenta-barra p { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+.cuenta-barra small { display: block; color: var(--verde); }
+.cuenta-barra .boton { padding: 0.45rem 1rem; font-size: 0.9rem; }
+.cuenta-barra.invitado { border-left: 4px solid var(--terracota); }

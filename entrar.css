@@ -1,0 +1,60 @@
+.entrar { max-width: 28rem; }
+.entrar [hidden] { display: none !important; }
+.tarjeta-entrar { display: grid; gap: 0.75rem; margin: 1rem 0 3rem; }
+.tarjeta-entrar h1 { margin: 0; }
+.tarjeta-entrar p { margin: 0; }
+.entradilla { margin-bottom: 0.5rem !important; }
+.ancho { width: 100%; text-align: center; box-sizing: border-box; padding: 0.8rem 1.2rem; }
+.cargando { text-align: center; opacity: 0.7; }
+
+.boton-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid #dadce0;
+  background: white;
+  color: #1f1f1f;
+  font-weight: 500;
+}
+.boton-google:hover { background: #f8f8f8; }
+.boton-google svg { width: 1.25rem; height: 1.25rem; }
+
+.separador { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0 !important; color: var(--verde); font-size: 0.85rem; }
+.separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: rgb(74 90 35 / 0.25); }
+
+.form-correo { display: grid; gap: 0.75rem; }
+.form-correo label { display: grid; gap: 0.25rem; font-size: 0.9rem; font-weight: 500; }
+.form-correo input {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #d9c3b4;
+  border-radius: 12px;
+  background: white;
+  font: inherit;
+}
+.form-correo input:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
+.form-correo button[type="submit"] { padding: 0.8rem 1.2rem; }
+
+.pestanas-entrar { display: grid; grid-template-columns: 1fr 1fr; padding: 0.25rem; border-radius: 999px; background: white; }
+.pestanas-entrar button { padding: 0.5rem; background: transparent; color: var(--verde); }
+.pestanas-entrar button:hover { background: rgb(74 90 35 / 0.08); }
+.pestanas-entrar button[aria-selected="true"] { background: var(--verde); color: var(--crema); }
+
+.enlace { justify-self: center; padding: 0.25rem; background: none; color: var(--verde); font-size: 0.85rem; text-decoration: underline; }
+.enlace:hover { background: none; color: var(--terracota); }
+.error { padding: 0.6rem 0.8rem; border-radius: 10px; background: #fbe4df; color: #8a2414; font-size: 0.9rem; }
+.nota-invitado { text-align: center; font-size: 0.85rem; opacity: 0.75; }
+
+.aviso-invitado {
+  max-width: min(26rem, calc(100% - 2rem));
+  padding: 1.5rem;
+  border: none;
+  border-radius: 18px;
+  background: var(--fondo);
+  color: var(--tinta);
+}
+.aviso-invitado::backdrop { background: rgb(42 26 26 / 0.45); }
+.aviso-invitado h2 { margin-top: 0; }
+.acciones-aviso { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.25rem; }

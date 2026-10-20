@@ -32,17 +32,31 @@ async function operacion(almacen, modo, fn) {
   });
 }
 
+// Cada cambio se avisa a nube.js, que lo sube a la cuenta si hay sesión
+const avisarNube = (tipo, almacen, x) => window.nube?.[tipo]?.(almacen, x);
+
 const db = {
   tableros: () => operacion("tableros", "readonly", (s) => s.getAll()),
   tablero: (id) => operacion("tableros", "readonly", (s) => s.get(id)),
-  guardarTablero: (t) => operacion("tableros", "readwrite", (s) => s.put(t)),
+  async guardarTablero(t) {
+    await operacion("tableros", "readwrite", (s) => s.put(t));
+    avisarNube("guardado", "tableros", t);
+  },
   pins: (tableroId) => operacion("pins", "readonly", (s) => s.index("tablero").getAll(tableroId)),
-  guardarPin: (p) => operacion("pins", "readwrite", (s) => s.put(p)),
-  borrarPin: (id) => operacion("pins", "readwrite", (s) => s.delete(id)),
+  async guardarPin(p) {
+    await operacion("pins", "readwrite", (s) => s.put(p));
+    avisarNube("guardado", "pins", p);
+  },
+  async borrarPin(id) {
+    await operacion("pins", "readwrite", (s) => s.delete(id));
+    avisarNube("borrado", "pins", id);
+  },
   async borrarTablero(id) {
     const pins = await db.pins(id);
     await operacion("pins", "readwrite", (s) => pins.forEach((p) => s.delete(p.id)));
     await operacion("tableros", "readwrite", (s) => s.delete(id));
+    pins.forEach((p) => avisarNube("borrado", "pins", p.id));
+    avisarNube("borrado", "tableros", id);
   },
 };
 
@@ -1208,4 +1222,7 @@ function leerUltimo() {
 window.addEventListener("hashchange", enrutar);
 navigator.storage?.persist?.(); // pide al navegador que no borre los datos
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
-recibirCompartido().then((compartido) => compartido || enrutar());
+// Con cuenta, se espera a tener los datos de la nube antes de pintar
+Promise.resolve(window.nube?.listo).then(recibirCompartido).then((compartido) => compartido || enrutar());
+// Si llegan cambios de otro móvil, se repinta la lista (en el corcho no, por si estás moviendo algo)
+window.addEventListener("nube:actualizado", () => !location.hash.startsWith("#/t/") && enrutar());

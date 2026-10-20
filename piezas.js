@@ -89,8 +89,15 @@ async function operacion(almacen, modo, fn) {
 const datos = {
   todos: (almacen) => operacion(almacen, "readonly", (s) => s.getAll()),
   uno: (almacen, id) => operacion(almacen, "readonly", (s) => s.get(id)),
-  guardar: (almacen, obj) => operacion(almacen, "readwrite", (s) => s.put(obj)),
-  borrar: (almacen, id) => operacion(almacen, "readwrite", (s) => s.delete(id)),
+  // Cada cambio se avisa a nube.js, que lo sube a la cuenta si hay sesión
+  async guardar(almacen, obj) {
+    await operacion(almacen, "readwrite", (s) => s.put(obj));
+    window.nube?.guardado(almacen, obj);
+  },
+  async borrar(almacen, id) {
+    await operacion(almacen, "readwrite", (s) => s.delete(id));
+    window.nube?.borrado(almacen, id);
+  },
 };
 
 const nuevoId = () => crypto.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -877,4 +884,7 @@ window.addEventListener("hashchange", enrutar);
 window.addEventListener("pagehide", guardarYa);
 document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && guardarYa());
 navigator.storage?.persist?.();
-enrutar();
+// Con cuenta, se espera a tener los datos de la nube antes de pintar
+Promise.resolve(window.nube?.listo).then(enrutar);
+// Si llegan cambios de otro móvil, se repintan las listas (en una ficha a medio escribir no)
+window.addEventListener("nube:actualizado", () => /^#?\/?(esmaltes)?$/.test(location.hash) && enrutar());

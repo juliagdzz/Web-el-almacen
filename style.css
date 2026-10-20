@@ -324,7 +324,7 @@ body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
   left: 0;
   right: 0;
   top: calc(100% - 4px); /* solapado: sin costura clara si el borde cae entre dos píxeles */
-  height: 100vh;
+  height: 40vh;
   background: var(--granate);
 }
 /* En el corcho no: necesita toda la pantalla */

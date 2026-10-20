@@ -34,11 +34,48 @@ function escribir(id, n, uno, varios) {
   document.getElementById(id).textContent = n ? `${n} ${n === 1 ? uno : varios}` : "";
 }
 
-contar("elalmacen", ["tableros"]).then((c) => c && escribir("cuenta-tableros", c.tableros, "tablero", "tableros")).catch(() => {});
-contar("elalmacen-piezas", ["piezas", "recetas"]).then((c) => {
-  if (!c) return;
-  escribir("cuenta-piezas", c.piezas, "pieza", "piezas");
-  escribir("cuenta-esmaltes", c.recetas, "receta", "recetas");
-}).catch(() => {});
+function pintarCuentas() {
+  contar("elalmacen", ["tableros"]).then((c) => c && escribir("cuenta-tableros", c.tableros, "tablero", "tableros")).catch(() => {});
+  contar("elalmacen-piezas", ["piezas", "recetas"]).then((c) => {
+    if (!c) return;
+    escribir("cuenta-piezas", c.piezas, "pieza", "piezas");
+    escribir("cuenta-esmaltes", c.recetas, "receta", "recetas");
+  }).catch(() => {});
+}
+
+// ---------- Cuenta ----------
+
+const nube = window.nube;
+const ESTADOS = {
+  sincronizando: "Sincronizando…",
+  "al-dia": "Todo guardado en tu cuenta ✓",
+  pendiente: "Hay cambios esperando para subir",
+  "sin-conexion": "Sin conexión: se subirá cuando vuelva internet",
+};
+
+function pintarCuenta() {
+  if (!nube?.activa) return;
+  const caja = document.getElementById("cuenta");
+  caja.hidden = false;
+  const conCuenta = Boolean(nube.usuario);
+  caja.classList.toggle("invitado", !conCuenta);
+  document.getElementById("cuenta-texto").textContent = conCuenta
+    ? `Has entrado como ${nube.usuario.email}.`
+    : "Estás como invitado: lo que guardas está solo en este móvil.";
+  document.getElementById("cuenta-estado").textContent = conCuenta ? ESTADOS[nube.estado] ?? "" : "Crea una cuenta para no perderlo y verlo en otros móviles.";
+  document.getElementById("cuenta-crear").hidden = conCuenta;
+  document.getElementById("cuenta-salir").hidden = !conCuenta;
+}
+
+document.getElementById("cuenta-salir").addEventListener("click", async () => {
+  if (await nube.salir()) location.replace("entrar.html");
+});
+window.addEventListener("nube:estado", pintarCuenta);
+window.addEventListener("nube:actualizado", pintarCuentas);
+
+Promise.resolve(nube?.listo).then(() => {
+  pintarCuenta();
+  pintarCuentas();
+});
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

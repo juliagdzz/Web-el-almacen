@@ -28,7 +28,14 @@
 
   <main class="contenedor creaciones">
     <h1>Mis creaciones</h1>
-    <p class="entradilla">Tu rincón del taller: guarda ideas, apunta tus piezas y esmaltes y calcula medidas. Todo se queda guardado en este móvil.</p>
+    <p class="entradilla">Tu rincón del taller: guarda ideas, apunta tus piezas y esmaltes y calcula medidas.</p>
+
+    <!-- Con cuenta o como invitado (lo rellena creaciones.js) -->
+    <div id="cuenta" class="cuenta-barra" hidden>
+      <p><span id="cuenta-texto"></span> <small id="cuenta-estado"></small></p>
+      <a id="cuenta-crear" href="entrar.html" class="boton" hidden>Crear cuenta</a>
+      <button id="cuenta-salir" type="button" class="boton secundario" hidden>Cerrar sesión</button>
+    </div>
 
     <div class="opciones-creaciones">
       <a href="inspiracion.html" class="opcion-creacion">
@@ -65,6 +72,9 @@
     </div>
   </main>
 
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
   <script src="creaciones.js"></script>
   <script src="cabecera.js"></script>
 </body>

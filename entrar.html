@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Entrar · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="entrar.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor entrar">
+    <!-- Elegir: Google, correo o invitado -->
+    <section id="vista-entrar" class="tarjeta-entrar" hidden>
+      <h1>Mis creaciones</h1>
+      <p class="entradilla">Crea tu cuenta para guardar tus tableros, piezas y esmaltes en la nube y verlos en cualquier móvil u ordenador.</p>
+
+      <button id="con-google" type="button" class="boton-google">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuar con Google
+      </button>
+
+      <p class="separador"><span>o con tu correo</span></p>
+
+      <form id="form-correo" class="form-correo">
+        <div class="pestanas-entrar" role="tablist">
+          <button type="button" role="tab" data-modo="entrar" aria-selected="true">Entrar</button>
+          <button type="button" role="tab" data-modo="crear" aria-selected="false">Crear cuenta</button>
+        </div>
+        <label>Correo
+          <input id="correo" type="email" autocomplete="email" required>
+        </label>
+        <label>Contraseña
+          <input id="clave" type="password" autocomplete="current-password" minlength="6" required>
+        </label>
+        <p id="error-entrar" class="error" role="alert" hidden></p>
+        <button id="enviar-correo" type="submit">Entrar</button>
+        <button id="olvide" type="button" class="enlace">He olvidado mi contraseña</button>
+      </form>
+
+      <p class="separador"><span>o sin cuenta</span></p>
+      <button id="invitado" type="button" class="boton secundario ancho">Entrar como invitado</button>
+      <p class="nota-invitado">Lo que guardes se queda solo en este móvil.</p>
+    </section>
+
+    <!-- Mensaje (correo enviado, etc.) -->
+    <section id="vista-mensaje" class="tarjeta-entrar" hidden>
+      <h1 id="mensaje-titulo"></h1>
+      <p id="mensaje-texto"></p>
+      <button id="mensaje-volver" type="button" class="boton secundario ancho">Volver</button>
+    </section>
+
+    <!-- Hay cosas de invitado en este móvil -->
+    <section id="vista-subir" class="tarjeta-entrar" hidden>
+      <h1>¿Te traes lo de este móvil?</h1>
+      <p id="texto-subir"></p>
+      <button id="subir-local" type="button" class="ancho">Sí, subirlo a mi cuenta</button>
+      <button id="descartar-local" type="button" class="boton secundario ancho">No, borrarlo de este móvil</button>
+    </section>
+
+    <!-- Ya has entrado -->
+    <section id="vista-dentro" class="tarjeta-entrar" hidden>
+      <h1>Ya has entrado</h1>
+      <p>Estás en tu cuenta como <strong id="correo-dentro"></strong>.</p>
+      <a href="creaciones.html" class="boton ancho">Ir a Mis creaciones</a>
+      <button id="salir" type="button" class="boton secundario ancho">Cerrar sesión</button>
+    </section>
+
+    <!-- Nueva contraseña (desde el enlace del correo) -->
+    <section id="vista-nueva-clave" class="tarjeta-entrar" hidden>
+      <h1>Nueva contraseña</h1>
+      <form id="form-nueva-clave" class="form-correo">
+        <label>Escribe tu nueva contraseña
+          <input id="nueva-clave" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <p id="error-nueva" class="error" role="alert" hidden></p>
+        <button type="submit">Guardar y entrar</button>
+      </form>
+    </section>
+
+    <!-- Sin configurar todavía -->
+    <section id="vista-sin-nube" class="tarjeta-entrar" hidden>
+      <h1>Mis creaciones</h1>
+      <p>Las cuentas todavía no están activadas. De momento todo lo que guardes se queda en este móvil.</p>
+      <a href="creaciones.html" class="boton ancho">Ir a Mis creaciones</a>
+    </section>
+
+    <p id="cargando" class="cargando">Un momento…</p>
+  </main>
+
+  <dialog id="aviso-invitado" class="aviso-invitado">
+    <h2>Entrar como invitado</h2>
+    <p>Sin cuenta, todo lo que guardes (tableros, fotos, piezas y esmaltes) se queda <strong>solo en este móvil</strong>.</p>
+    <p>Si borras los datos del navegador, desinstalas la app o cambias de móvil, <strong>lo pierdes</strong>.</p>
+    <p>Puedes crear una cuenta más adelante y subir lo que tengas.</p>
+    <div class="acciones-aviso">
+      <button id="cancelar-invitado" type="button" class="boton secundario">Volver</button>
+      <button id="confirmar-invitado" type="button">Entendido, entrar</button>
+    </div>
+  </dialog>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="entrar.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>
