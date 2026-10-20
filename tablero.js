@@ -118,26 +118,22 @@ async function mostrarLista() {
   lista.append(nuevo);
 
   for (const t of tableros) {
-    const pins = (await db.pins(t.id)).sort(porOrden);
+    const pins = await db.pins(t.id);
+    await colocarSinPosicion(pins);
     const tarjeta = document.createElement("a");
     tarjeta.className = "tarjeta-tablero";
     tarjeta.href = `#/t/${t.id}`;
-
-    const collage = document.createElement("div");
-    collage.className = "collage";
-    for (const p of pins.slice(0, 4)) {
-      const img = document.createElement("img");
-      img.src = urlDe(p.imagen);
-      img.alt = "";
-      collage.append(img);
-    }
+    const collage = miniatura(pins);
 
     const info = document.createElement("div");
     info.className = "info";
     const nombre = document.createElement("strong");
     nombre.textContent = t.nombre;
     const cuenta = document.createElement("small");
-    cuenta.textContent = pins.length === 1 ? "1 foto" : `${pins.length} fotos`;
+    const fotos = pins.filter((p) => !p.esmalte).length;
+    const esmaltes = pins.length - fotos;
+    cuenta.textContent = [fotos && (fotos === 1 ? "1 foto" : `${fotos} fotos`), esmaltes && (esmaltes === 1 ? "1 esmalte" : `${esmaltes} esmaltes`)]
+      .filter(Boolean).join(" · ") || "Vacío";
     info.append(nombre, cuenta);
 
     tarjeta.append(collage, info);
@@ -229,6 +225,67 @@ function crearPin(p) {
 
   el.addEventListener("keydown", (e) => e.key === "Enter" && e.target === el && abrirDetalle(p.id));
   return el;
+}
+
+// ---------- Miniatura del tablero para la lista ----------
+// Un SVG con el corcho y cada foto o chapa en su sitio, con su tamaño y su giro,
+// a partir de lo guardado (x, y y ancho en «pantallas»)
+
+const SVG = "http://www.w3.org/2000/svg";
+function svg(etiqueta, atributos = {}, ...hijos) {
+  const el = document.createElementNS(SVG, etiqueta);
+  for (const [k, v] of Object.entries(atributos)) el.setAttribute(k, v);
+  el.append(...hijos);
+  return el;
+}
+
+const MARCO = 6 / 390;         // borde blanco de la polaroid, en pantallas (6 px en un móvil)
+const MARCO_ABAJO = 10 / 390;
+
+function miniatura(pins) {
+  const caja = document.createElement("div");
+  caja.className = "collage";
+  if (!pins.length) {
+    caja.append(Object.assign(document.createElement("span"), { className: "collage-vacio", textContent: "Tablero vacío" }));
+    return caja;
+  }
+  const alto = (p) => (p.esmalte ? p.ancho : p.ancho * p.proporcion + MARCO + MARCO_ABAJO);
+  const margen = 0.06;
+  const izquierda = Math.min(...pins.map((p) => p.x)) - margen;
+  const arriba = Math.min(...pins.map((p) => p.y)) - margen;
+  const ancho = Math.max(...pins.map((p) => p.x + p.ancho)) + margen - izquierda;
+  const altoTotal = Math.max(...pins.map((p) => p.y + alto(p))) + margen - arriba;
+
+  const dibujo = svg("svg", { viewBox: `${izquierda} ${arriba} ${ancho} ${altoTotal}`, preserveAspectRatio: "xMidYMid meet", "aria-hidden": "true" });
+  const defs = svg("defs", {},
+    svg("filter", { id: "sombra-mini", x: "-20%", y: "-20%", width: "140%", height: "140%" },
+      svg("feDropShadow", { dx: 0, dy: 0.008, stdDeviation: 0.008, "flood-color": "#281400", "flood-opacity": 0.35 })));
+  dibujo.append(defs);
+
+  for (const p of [...pins].sort((a, b) => a.orden - b.orden)) {
+    const imagen = urlDe(p.imagen);
+    if (p.esmalte) {
+      const r = p.ancho / 2;
+      const cx = p.x + r;
+      const cy = p.y + r;
+      const recorte = `mini-${p.id}`;
+      const lado = (r * 2 - 0.016) * 1.25; // igual que el recorte de la chapa en el corcho
+      defs.append(svg("clipPath", { id: recorte }, svg("circle", { cx, cy, r: r - 0.008 })));
+      dibujo.append(
+        svg("circle", { cx, cy, r, fill: "#fffdf7", filter: "url(#sombra-mini)" }),
+        svg("image", { href: imagen, x: cx - lado / 2, y: cy - lado / 2, width: lado, height: lado, "clip-path": `url(#${recorte})`, preserveAspectRatio: "xMidYMid slice" }));
+    } else {
+      const h = alto(p);
+      const anchoFoto = p.ancho - 2 * MARCO;
+      const grupo = svg("g", { transform: `rotate(${parseFloat(giro(p.id))} ${p.x + p.ancho / 2} ${p.y + h / 2})` },
+        svg("rect", { x: p.x, y: p.y, width: p.ancho, height: h, fill: "#fffdf7", filter: "url(#sombra-mini)" }),
+        svg("image", { href: imagen, x: p.x + MARCO, y: p.y + MARCO, width: anchoFoto, height: anchoFoto * p.proporcion, preserveAspectRatio: "xMidYMid slice" }),
+        svg("circle", { cx: p.x + p.ancho / 2, cy: p.y + 0.004, r: 0.018, fill: huella(p.id) % 2 === 0 ? "#9b9a3a" : "#b85a2b" }));
+      dibujo.append(grupo);
+    }
+  }
+  caja.append(dibujo);
+  return caja;
 }
 
 function enrutar() {

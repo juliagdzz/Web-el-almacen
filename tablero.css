@@ -40,20 +40,21 @@
   overflow: hidden;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
+/* Miniatura: el corcho con la composición, como en el tablero */
 .tarjeta-tablero .collage {
-  aspect-ratio: 1;
-  background: #c49a64;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 2px;
+  place-items: center;
+  aspect-ratio: 1;
   overflow: hidden;
+  background-color: #c49a64;
+  background-image:
+    radial-gradient(rgb(90 55 20 / 0.25) 1px, transparent 1.5px),
+    radial-gradient(rgb(255 240 210 / 0.25) 1px, transparent 1.5px);
+  background-size: 5px 5px, 8px 8px;
+  background-position: 0 0, 2px 3px;
 }
-.tarjeta-tablero .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tarjeta-tablero .collage img:only-child { grid-column: span 2; grid-row: span 2; }
-.tarjeta-tablero .collage img:nth-child(1):nth-last-child(2),
-.tarjeta-tablero .collage img:nth-child(2):nth-last-child(1) { grid-row: span 2; }
-.tarjeta-tablero .collage img:nth-child(1):nth-last-child(3) { grid-row: span 2; }
+.tarjeta-tablero .collage svg { width: 100%; height: 100%; display: block; }
+.collage-vacio { font-size: 0.8rem; color: #fffdf7; opacity: 0.85; }
 .tarjeta-tablero .info { padding: 0.5rem 0.75rem 0.75rem; }
 .tarjeta-tablero strong { display: block; font-size: 1rem; }
 .tarjeta-tablero small { color: var(--t-oliva); }
