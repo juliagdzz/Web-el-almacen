@@ -279,10 +279,14 @@ body.en-tablero .subnav { display: none; }
 body.en-tablero .cabecera { position: static; }
 
 /* Sello: «El Almacén» en granate pegado al fondo de la pantalla, siempre a la
-   vista al deslizar, como la marca de Dr. Martens (lo pone cabecera.js) */
+   vista al deslizar, como la marca de Dr. Martens (lo pone cabecera.js).
+   Las letras rozan los bordes y apoyan en una franja granate */
 :root {
-  --tam-sello: min(calc((100vw - 2rem) / 6.95), 6.5rem); /* el texto mide 6,9 em: llena el ancho del móvil */
-  --alto-sello: calc(var(--tam-sello) * 0.84); /* letras de 0,76 em más un respiro arriba */
+  /* el dibujo de las letras mide 6,877 em de ancho: así rozan los dos bordes */
+  --tam-sello: calc(100vw / 6.877);
+  --franja-sello: calc(var(--tam-sello) * 0.12);
+  /* letras (0,76 em) + un respiro arriba + la franja */
+  --alto-sello: calc(var(--tam-sello) * 0.84 + var(--franja-sello));
 }
 body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
 .sello {
@@ -296,8 +300,9 @@ body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
   padding-bottom: env(safe-area-inset-bottom); /* la barrita de inicio del iPhone */
   overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgb(246 231 220 / 0), var(--fondo) 22%);
-  text-align: center;
+  background:
+    linear-gradient(var(--granate), var(--granate)) bottom / 100% calc(var(--franja-sello) + env(safe-area-inset-bottom)) no-repeat,
+    linear-gradient(to bottom, rgb(246 231 220 / 0), var(--fondo) 22%);
 }
 .sello span {
   display: block;
@@ -306,9 +311,10 @@ body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
   line-height: 1;
   color: var(--granate);
   white-space: nowrap;
-  /* con line-height 1 la línea base cae a 0,87 em: la bajamos para que las
-     letras apoyen justo en el borde de la pantalla */
-  transform: translateY(-0.06em);
+  /* la primera letra empieza 0,02 em a la derecha de su caja: al borde.
+     Con line-height 1 la línea base cae a 0,87 em, un poco dentro de la
+     franja, así las letras se funden con ella sin rayita entre medias */
+  margin-left: -0.02em;
 }
 /* En el corcho no: necesita toda la pantalla */
 body.en-tablero { --alto-sello: 0px; padding-bottom: 0; }
