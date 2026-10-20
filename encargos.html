@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Encargos · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="encargos.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html" aria-current="page">Encargos</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor encargos">
+    <h1>Piezas por encargo</h1>
+    <p class="entradilla">¿Tienes una idea y no la encuentras en ninguna tienda? Cuéntamela: una vajilla para tu casa, tazas para regalar, una maceta con un tamaño concreto… Te preparo el presupuesto y te digo el plazo, que depende de la pieza y de las hornadas.</p>
+
+    <ol class="pasos-encargo">
+      <li><span><strong>Me cuentas tu idea</strong> con fotos o un tablero de inspiración.</span></li>
+      <li><span><strong>Te mando presupuesto y plazo</strong> por correo o WhatsApp.</span></li>
+      <li><span><strong>Si te encaja, la hago</strong> y te aviso cuando salga del horno.</span></li>
+    </ol>
+
+    <form id="form-encargo" class="form-encargo" novalidate>
+      <section class="bloque">
+        <h2>1. Tu pieza</h2>
+        <fieldset class="tipos">
+          <legend>¿Qué te gustaría?</legend>
+          <div id="tipos" class="chips-tipo"></div>
+        </fieldset>
+        <div class="fila-campos">
+          <label class="campo corto">Cuántas
+            <input id="cantidad" name="cantidad" type="number" inputmode="numeric" min="1" max="500" value="1">
+          </label>
+          <label class="campo">Tamaño aproximado <small>opcional</small>
+            <input id="medidas" name="medidas" type="text" maxlength="300" placeholder="Unos 9 cm de alto y 8 de diámetro">
+          </label>
+        </div>
+        <label class="campo">Colores y acabado <small>opcional</small>
+          <input id="colores" name="colores" type="text" maxlength="300" placeholder="Verde oliva brillante por dentro, barro visto por fuera">
+        </label>
+        <fieldset class="usos">
+          <legend>¿Para qué la vas a usar?</legend>
+          <label><input type="radio" name="uso" value="Para comer o beber" checked> Para comer o beber</label>
+          <label><input type="radio" name="uso" value="Decorativa"> Decorativa</label>
+          <label><input type="radio" name="uso" value="Para exterior"> Para exterior o plantas</label>
+        </fieldset>
+        <label class="campo">Cuéntame tu idea
+          <textarea id="idea" name="idea" rows="5" maxlength="5000" required placeholder="Para qué es, a quién va dirigida, qué te gusta de las fotos que adjuntas…"></textarea>
+        </label>
+      </section>
+
+      <section class="bloque">
+        <h2>2. Inspiración</h2>
+        <p class="ayuda">Fotos de piezas que te gusten, un boceto o la mesa donde irá. Hasta 6.</p>
+        <div id="fotos-encargo" class="fotos-encargo"></div>
+        <label class="boton secundario subir-fotos">＋ Añadir fotos
+          <input id="input-fotos-encargo" type="file" accept="image/*" multiple hidden>
+        </label>
+
+        <div class="adjuntar-tablero">
+          <h3>Adjuntar uno de tus tableros</h3>
+          <div id="lista-tableros-encargo" class="lista-tableros-encargo"></div>
+          <figure id="vista-tablero-encargo" class="vista-tablero-encargo" hidden>
+            <img id="imagen-tablero-encargo" alt="Tablero adjunto">
+            <figcaption><span id="nombre-tablero-encargo"></span> <button id="quitar-tablero" type="button" class="enlace">Quitar</button></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2>3. Plazo y presupuesto</h2>
+        <div class="fila-campos">
+          <label class="campo">¿Para cuándo la necesitas? <small>opcional</small>
+            <input id="para-cuando" name="para_cuando" type="date">
+          </label>
+          <label class="campo">¿Cuánto te gustaría gastar? <small>opcional</small>
+            <select id="presupuesto-cliente" name="presupuesto_cliente">
+              <option value="">Aún no lo sé</option>
+              <option>Menos de 30 €</option>
+              <option>Entre 30 y 60 €</option>
+              <option>Entre 60 y 120 €</option>
+              <option>Más de 120 €</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2>4. Tus datos</h2>
+        <label class="campo">Tu nombre
+          <input id="nombre" name="nombre" type="text" maxlength="120" autocomplete="name" required>
+        </label>
+        <div class="fila-campos">
+          <label class="campo">Correo
+            <input id="correo-encargo" name="correo" type="email" maxlength="200" autocomplete="email">
+          </label>
+          <label class="campo">Teléfono o WhatsApp
+            <input id="telefono" name="telefono" type="tel" maxlength="40" autocomplete="tel">
+          </label>
+        </div>
+        <fieldset class="usos">
+          <legend>¿Cómo prefieres que te conteste?</legend>
+          <label><input type="radio" name="contestar_por" value="whatsapp" checked> WhatsApp</label>
+          <label><input type="radio" name="contestar_por" value="correo"> Correo</label>
+        </fieldset>
+        <label class="acepto"><input id="acepto" type="checkbox" required> Acepto que El Almacén guarde estos datos para prepararme el presupuesto. No se usan para nada más.</label>
+      </section>
+
+      <p id="error-encargo" class="error" role="alert" hidden></p>
+      <button id="enviar-encargo" type="submit" class="enviar">Enviar mi idea</button>
+    </form>
+
+    <section id="encargo-enviado" class="enviado" hidden>
+      <h2>¡Recibido!</h2>
+      <p id="texto-enviado"></p>
+      <a href="encargos.html" class="boton secundario">Encargar otra pieza</a>
+    </section>
+  </main>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="compartir.js"></script>
+  <script src="encargos.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

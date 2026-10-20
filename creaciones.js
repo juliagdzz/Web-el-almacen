@@ -73,9 +73,23 @@ document.getElementById("cuenta-salir").addEventListener("click", async () => {
 window.addEventListener("nube:estado", pintarCuenta);
 window.addEventListener("nube:actualizado", pintarCuentas);
 
+// Para el taller: enlace al panel de encargos con los nuevos
+async function pintarEncargos() {
+  if (!nube?.usuario) return;
+  try {
+    const { data: esAdmin } = await nube.cliente.rpc("es_admin");
+    if (!esAdmin) return;
+    const { data } = await nube.cliente.from("encargos").select("id").eq("estado", "nuevo");
+    const n = data?.length ?? 0;
+    document.getElementById("nuevos-encargos").textContent = n ? (n === 1 ? "1 nuevo" : `${n} nuevos`) : "Ninguno nuevo";
+    document.getElementById("enlace-encargos").hidden = false;
+  } catch {}
+}
+
 Promise.resolve(nube?.listo).then(() => {
   pintarCuenta();
   pintarCuentas();
+  pintarEncargos();
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
