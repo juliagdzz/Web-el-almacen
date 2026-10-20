@@ -232,6 +232,8 @@ function crearPin(p) {
 }
 
 function enrutar() {
+  // Al cambiar de pantalla (también con «atrás» del móvil) se cierra cualquier hoja abierta
+  document.querySelectorAll("dialog[open]").forEach((d) => d.close());
   const coincide = location.hash.match(/^#\/t\/(.+)$/);
   if (coincide) mostrarTablero(coincide[1]);
   else mostrarLista();

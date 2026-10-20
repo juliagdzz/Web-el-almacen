@@ -3,8 +3,10 @@
 .pagina-tableros {
   --t-granate: var(--granate, #551c25);
   --t-crema: var(--crema, #f3e9d8);
+  --t-fondo: var(--fondo, #f6e7dc);
+  --t-terracota-oscuro: var(--terracota-oscuro, #8f4220);
   --t-oliva: var(--oliva-oscuro, #4a5a23);
-  --t-oxido: var(--oxido, #b85a2b);
+  --t-oxido: var(--terracota, #a44e26);
   --t-tinta: var(--tinta, #2a1a1a);
   -webkit-tap-highlight-color: transparent;
 }
@@ -453,14 +455,14 @@ body.en-tablero {
   box-sizing: border-box;
   border: 0;
   border-radius: 18px 18px 0 0;
-  background: var(--t-crema);
+  background: var(--t-fondo);
   color: var(--t-tinta);
 }
 .hoja::backdrop { background: rgb(0 0 0 / 0.45); }
 @media (min-width: 640px) {
   .hoja { margin: auto; border-radius: 18px; }
 }
-.hoja h2 { font-family: 'Fraunces', serif; color: var(--t-granate); margin: 0 0 1rem; }
+.hoja h2 { font-family: 'Fraunces', serif; color: var(--t-terracota-oscuro); margin: 0 0 1rem; }
 .hoja-cierre { position: absolute; top: 0.75rem; right: 0.75rem; margin: 0; }
 .hoja-cierre .icono { border: 0; background: transparent; }
 
@@ -500,7 +502,7 @@ body.en-tablero {
   padding: 0.6rem 1rem;
   border: 0;
   border-radius: 8px;
-  background: var(--t-oliva);
+  background: var(--t-oxido);
   color: var(--t-crema);
   font: inherit;
   cursor: pointer;
@@ -524,7 +526,7 @@ body.en-tablero {
   font-size: 1rem;
   resize: vertical;
 }
-.origen { display: inline-block; margin-top: 0.5rem; color: var(--t-granate); }
+.origen { display: inline-block; margin-top: 0.5rem; color: var(--t-oliva); }
 .acciones { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 1rem; }
 .acciones .peligro, .opcion.peligro { background: #fff; color: #a3261b; }
 .acciones .peligro { border: 1px solid #a3261b; }
@@ -556,7 +558,7 @@ body.en-tablero {
 .pagina-tableros .hoja-cierre .icono:hover,
 .pagina-tableros .tarjeta-nuevo:hover { background: transparent; }
 .pagina-tableros .fila button:hover,
-.pagina-tableros .acciones button:hover,
+.pagina-tableros .acciones button:hover { background: var(--t-terracota-oscuro); }
 .pagina-tableros .pin .editar:hover { background: var(--t-oliva); }
 .pagina-tableros .acciones .peligro:hover { background: white; }
 .pagina-tableros .fab:hover { background: var(--t-oliva); }

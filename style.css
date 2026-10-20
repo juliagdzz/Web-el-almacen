@@ -8,29 +8,33 @@
   --naranja: #D9772B;
   --crema: #F3E9D8;
   --tinta: #2A1A1A;
-  /* Nombres por uso */
-  --terracota: var(--oxido);
+  /* Nombres por uso: terracota manda, verde acompaña, granate para títulos
+     y detalles, crema solo en detalles pequeños */
+  --terracota: #A44E26; /* algo más oscuro que el óxido: el crema se lee bien encima */
+  --terracota-oscuro: #8F4220;
   --verde: var(--oliva-oscuro);
   --verde-claro: var(--oliva);
-  --fondo: var(--crema);
+  --fondo: #F6E7DC; /* arcilla muy clara */
 }
 
 body {
   margin: 0;
-  background: var(--crema);
+  background: var(--fondo);
   color: var(--tinta);
   font-family: 'DM Sans', sans-serif;
   line-height: 1.6;
 }
 
-h1, h2 { font-family: 'Fraunces', serif; color: var(--granate); }
+h1, h2 { font-family: 'Fraunces', serif; }
+h1 { color: var(--granate); }
+h2 { color: var(--terracota-oscuro); }
 
 .cabecera {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: var(--granate);
+  background: var(--terracota);
 }
 
 .cabecera .logo {
@@ -46,10 +50,10 @@ h1, h2 { font-family: 'Fraunces', serif; color: var(--granate); }
   text-decoration: none;
 }
 
-.cabecera nav a:hover { color: var(--oliva); }
+.cabecera nav a:hover { text-decoration: underline; text-decoration-color: var(--verde-claro); text-underline-offset: 4px; }
 
 button, .boton {
-  background: var(--oxido);
+  background: var(--terracota);
   color: var(--crema);
   border: none;
   padding: 0.6rem 1.2rem;
@@ -59,7 +63,7 @@ button, .boton {
   cursor: pointer;
 }
 
-button:hover, .boton:hover { background: var(--naranja); }
+button:hover, .boton:hover { background: var(--terracota-oscuro); }
 .contenedor {
   max-width: 800px;
   margin: 0 auto;
@@ -94,14 +98,16 @@ button:hover, .boton:hover { background: var(--naranja); }
 }
 
 .tarjeta.destacada {
-  background: var(--granate);
+  background: var(--verde);
   color: var(--crema);
-  border-color: var(--granate);
+  border-color: var(--verde);
 }
 
-.tarjeta.destacada h2 { color: var(--crema); }
+.tarjeta.destacada h2,
+.tarjeta.destacada .precio { color: var(--crema); }
 
 .precio {
+  color: var(--granate);
   font-family: 'Fraunces', serif;
   font-size: 2rem;
   font-weight: 700;
@@ -126,7 +132,7 @@ button:hover, .boton:hover { background: var(--naranja); }
 }
 
 /* Toques oliva */
-.cabecera { border-bottom: 4px solid var(--oliva); }
+.cabecera { border-bottom: 4px solid var(--verde); }
 
 .contenedor h2::after {
   content: "";
@@ -150,5 +156,5 @@ button:hover, .boton:hover { background: var(--naranja); }
 }
 .boton.secundario:hover { background: var(--oliva-oscuro); color: var(--crema); }
 
-::selection { background: var(--oliva); color: var(--crema); }
+::selection { background: var(--verde); color: var(--crema); }
 .portada .boton { margin: 0.25rem 0.5rem 0.25rem 0; }
