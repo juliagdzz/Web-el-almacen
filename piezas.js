@@ -546,6 +546,15 @@ function verReceta(r, piezas) {
   );
 }
 
+// Primera tarjeta de cada lista: un dibujo sobre fondo oliva con un + para añadir
+function tarjetaAnadir(href, ilustracion, texto, primera) {
+  return h("a", { href, class: "tarjeta-pieza tarjeta-anadir" },
+    h("span", { class: "ilustracion" },
+      h("img", { src: ilustracion, alt: "" }),
+      h("span", { class: "mas", "aria-hidden": "true" }, "+")),
+    h("span", { class: "info" }, h("strong", {}, `＋ ${texto}`), primera && h("small", {}, primera)));
+}
+
 async function vistaPiezas() {
   const piezas = (await datos.todos("piezas")).sort((a, b) => (b.fecha ?? "").localeCompare(a.fecha ?? "") || b.modificado - a.modificado);
   pintar(
@@ -553,12 +562,7 @@ async function vistaPiezas() {
     pestanas("piezas"),
     h("p", { class: "aviso" }, "Apunta cómo hiciste cada pieza: pasta, esmaltes, capas, pinceles y técnicas. Se guarda en este móvil."),
     h("div", { class: "tarjetas-piezas" },
-      // La primera tarjeta es la de añadir: la taza sobre fondo oliva
-      h("a", { href: "#/pieza/nueva", class: "tarjeta-pieza tarjeta-anadir" },
-        h("span", { class: "ilustracion" },
-          h("img", { src: "ilustracion-pieza.svg", alt: "" }),
-          h("span", { class: "mas", "aria-hidden": "true" }, "+")),
-        h("span", { class: "info" }, h("strong", {}, "＋ Añadir pieza"), piezas.length === 0 && h("small", {}, "Apunta tu primera pieza"))),
+      tarjetaAnadir("#/pieza/nueva", "ilustracion-pieza.svg", "Añadir pieza", piezas.length === 0 && "Apunta tu primera pieza"),
       piezas.map((p) =>
         h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verPieza(p); } },
           p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🏺"),
@@ -578,16 +582,15 @@ async function vistaRecetas() {
     h("h1", {}, "Mis esmaltes"),
     pestanas("esmaltes"),
     h("p", { class: "aviso" }, "Tus recetas de esmalte y engobe, con fotos de las pruebas. Luego puedes elegirlas al apuntar una pieza."),
-    h("a", { href: "#/esmalte/nuevo", class: "boton nueva" }, "＋ Nueva receta"),
-    recetas.length
-      ? h("div", { class: "tarjetas-piezas" }, recetas.map((r) =>
-          h("a", { href: `#/esmalte/${r.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verReceta(r, piezas); } },
-            r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
-            h("span", { class: "info" },
-              h("strong", {}, r.nombre || "Receta sin nombre"),
-              h("small", {}, [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera].filter(Boolean).join(" · ")),
-              h("small", {}, `${r.ingredientes.length} materiales · ${usos(r.id) === 1 ? "1 pieza" : `${usos(r.id)} piezas`}`)))))
-      : h("p", { class: "vacio" }, "Aún no tienes recetas."),
+    h("div", { class: "tarjetas-piezas" },
+      tarjetaAnadir("#/esmalte/nuevo", "ilustracion-esmalte.svg", "Añadir esmalte", recetas.length === 0 && "Apunta tu primera receta"),
+      recetas.map((r) =>
+        h("a", { href: `#/esmalte/${r.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verReceta(r, piezas); } },
+          r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
+          h("span", { class: "info" },
+            h("strong", {}, r.nombre || "Receta sin nombre"),
+            h("small", {}, [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera].filter(Boolean).join(" · ")),
+            h("small", {}, `${r.ingredientes.length} materiales · ${usos(r.id) === 1 ? "1 pieza" : `${usos(r.id)} piezas`}`))))),
   );
 }
 
