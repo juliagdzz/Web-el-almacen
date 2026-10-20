@@ -118,3 +118,31 @@ button:hover, .boton:hover { background: var(--naranja); }
   .cabecera .logo { white-space: nowrap; }
   .cabecera nav a { margin: 0 1.25rem 0 0; }
 }
+
+/* Toques oliva */
+.cabecera { border-bottom: 4px solid var(--oliva); }
+
+.contenedor h2::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  margin-top: 0.3rem;
+  border-radius: 2px;
+  background: var(--oliva);
+}
+.tarjeta h2::after { display: none; }
+
+.contenedor li::marker { color: var(--oliva); }
+.contenedor a:not(.boton) { color: var(--oliva-oscuro); }
+.portada p { border-left: 3px solid var(--oliva); padding-left: 0.75rem; }
+
+.boton.secundario {
+  background: transparent;
+  color: var(--oliva-oscuro);
+  box-shadow: inset 0 0 0 2px var(--oliva-oscuro);
+}
+.boton.secundario:hover { background: var(--oliva-oscuro); color: var(--crema); }
+
+::selection { background: var(--oliva); color: var(--crema); }
+.portada .boton { margin: 0.25rem 0.5rem 0.25rem 0; }

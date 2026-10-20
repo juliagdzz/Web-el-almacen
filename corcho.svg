@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360">
+  <!-- Textura de corcho: tono base, manchas grandes y gránulos de varios tonos -->
+  <filter id="manchas" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="3" seed="4" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.27  0 0 0 0 0.11  1.6 0 0 0 -0.7"/>
+  </filter>
+  <filter id="grano" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.16" numOctaves="3" seed="8" stitchTiles="stitch"/>
+    <!-- un solo canal de ruido para que los gránulos sean marrones, no de colores -->
+    <feColorMatrix values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1"/>
+    <feComponentTransfer>
+      <feFuncR type="discrete" tableValues="0.38 0.5 0.6 0.68 0.75 0.81 0.88"/>
+      <feFuncG type="discrete" tableValues="0.22 0.31 0.4 0.47 0.53 0.6 0.69"/>
+      <feFuncB type="discrete" tableValues="0.09 0.14 0.2 0.26 0.31 0.37 0.46"/>
+      <feFuncA type="linear" slope="0" intercept="0.85"/>
+    </feComponentTransfer>
+  </filter>
+  <filter id="oscuros" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" seed="15" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 0.24  0 0 0 0 0.13  0 0 0 0 0.04  6 0 0 0 -3.65"/>
+  </filter>
+  <filter id="poro" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="2" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 0.25  0 0 0 0 0.14  0 0 0 0 0.05  5 0 0 0 -2.9"/>
+  </filter>
+  <rect width="100%" height="100%" fill="#bc8a52"/>
+  <rect width="100%" height="100%" filter="url(#grano)"/>
+  <rect width="100%" height="100%" filter="url(#manchas)"/>
+  <rect width="100%" height="100%" filter="url(#oscuros)"/>
+  <rect width="100%" height="100%" filter="url(#poro)"/>
+</svg>

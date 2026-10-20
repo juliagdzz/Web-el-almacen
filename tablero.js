@@ -37,7 +37,6 @@ const db = {
   tablero: (id) => operacion("tableros", "readonly", (s) => s.get(id)),
   guardarTablero: (t) => operacion("tableros", "readwrite", (s) => s.put(t)),
   pins: (tableroId) => operacion("pins", "readonly", (s) => s.index("tablero").getAll(tableroId)),
-  pin: (id) => operacion("pins", "readonly", (s) => s.get(id)),
   guardarPin: (p) => operacion("pins", "readwrite", (s) => s.put(p)),
   borrarPin: (id) => operacion("pins", "readwrite", (s) => s.delete(id)),
   async borrarTablero(id) {
@@ -64,7 +63,8 @@ async function prepararImagen(blob) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  const imagen = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  return { imagen, proporcion: canvas.height / canvas.width };
 }
 
 // URLs de imágenes que hay que liberar al cambiar de vista
@@ -79,12 +79,15 @@ function liberarUrls() {
   urlsActivas = [];
 }
 
-// Pequeño giro para que parezcan fotos clavadas a mano
-function giro(id) {
+// Número fijo para cada foto: decide su giro y el color de la chincheta
+function huella(id) {
   let h = 0;
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0;
-  return ((Math.abs(h) % 50) / 10 - 2.5).toFixed(1) + "deg";
+  return Math.abs(h);
 }
+// Pequeño giro para que parezcan fotos clavadas a mano
+const giro = (id) => ((huella(id) % 50) / 10 - 2.5).toFixed(1) + "deg";
+const limitar = (n, min, max) => Math.min(max, Math.max(min, n));
 
 // ---------- Avisos ----------
 
@@ -154,32 +157,58 @@ async function mostrarTablero(id) {
   $("#nombre-tablero").textContent = tablero.nombre;
   document.title = `${tablero.nombre} · El Almacén`;
 
-  const pins = (await db.pins(id)).sort(porOrden);
-  const corcho = $("#corcho");
+  const pins = await db.pins(id);
+  await colocarSinPosicion(pins);
+  pins.sort((a, b) => a.orden - b.orden); // las más recientes quedan encima
+  pinsActuales = new Map(pins.map((p) => [p.id, p]));
+  seleccionado = null;
+  zMaximo = 0;
   corcho.replaceChildren(...pins.map(crearPin));
   $("#corcho-vacio").hidden = pins.length > 0;
 
   $("#vista-lista").hidden = true;
   $("#vista-tablero").hidden = false;
+  ajustarAlto();
 }
 
 function crearPin(p) {
-  const boton = document.createElement("button");
-  boton.className = "pin";
-  boton.style.setProperty("--giro", giro(p.id));
+  const el = document.createElement("div");
+  el.className = "pin";
+  el.classList.toggle("oliva", huella(p.id) % 2 === 0);
+  el.dataset.id = p.id;
+  el.tabIndex = 0;
+  el.setAttribute("role", "button");
+  el.setAttribute("aria-label", p.nota || "Foto de inspiración");
+  el.style.setProperty("--giro", giro(p.id));
+  el.style.zIndex = ++zMaximo;
+  colocar(el, p);
+
   const img = document.createElement("img");
   img.src = urlDe(p.imagen);
-  img.alt = p.nota || "Foto de inspiración";
-  img.loading = "lazy";
-  boton.append(img);
+  img.alt = "";
+  img.draggable = false;
+  img.style.aspectRatio = `1 / ${p.proporcion}`;
+  el.append(img);
   if (p.nota) {
     const nota = document.createElement("span");
     nota.className = "nota";
     nota.textContent = p.nota;
-    boton.append(nota);
+    el.append(nota);
   }
-  boton.addEventListener("click", () => abrirDetalle(p.id));
-  return boton;
+
+  const editar = document.createElement("button");
+  editar.className = "editar";
+  editar.type = "button";
+  editar.textContent = "✎";
+  editar.setAttribute("aria-label", "Ver la foto y su nota");
+  editar.addEventListener("click", () => abrirDetalle(p.id));
+  const tirador = document.createElement("span");
+  tirador.className = "tirador";
+  tirador.setAttribute("aria-hidden", "true");
+  el.append(editar, tirador);
+
+  el.addEventListener("keydown", (e) => e.key === "Enter" && e.target === el && abrirDetalle(p.id));
+  return el;
 }
 
 function enrutar() {
@@ -187,6 +216,165 @@ function enrutar() {
   if (coincide) mostrarTablero(coincide[1]);
   else mostrarLista();
 }
+
+// ---------- Composición: mover y cambiar de tamaño ----------
+// x, y y ancho se guardan como fracción del ancho del corcho,
+// así la composición se ve igual en el móvil y en el ordenador.
+
+const ANCHO_INICIAL = 0.42;
+const ANCHO_MINIMO = 0.15;
+const corcho = $("#corcho");
+let pinsActuales = new Map();
+let seleccionado = null; // la foto con el marco oliva
+let gesto = null;        // el arrastre en curso
+let zMaximo = 0;
+
+function colocar(el, p) {
+  el.style.setProperty("--x", p.x);
+  el.style.setProperty("--y", p.y);
+  el.style.setProperty("--w", p.ancho);
+}
+
+// Fotos guardadas antes de poder moverlas: se reparten en dos columnas
+async function colocarSinPosicion(pins) {
+  const alturas = [0.05, 0.05];
+  for (const p of [...pins].sort(porOrden)) {
+    if (p.x !== undefined) continue;
+    if (!p.proporcion) {
+      const bitmap = await createImageBitmap(p.imagen);
+      p.proporcion = bitmap.height / bitmap.width;
+      bitmap.close();
+    }
+    const col = alturas[0] <= alturas[1] ? 0 : 1;
+    p.ancho = ANCHO_INICIAL;
+    p.x = col === 0 ? 0.05 : 0.53;
+    p.y = alturas[col];
+    alturas[col] += p.ancho * p.proporcion + 0.1;
+    await db.guardarPin(p);
+  }
+}
+
+// El corcho crece hacia abajo para que siempre haya sitio libre
+function ajustarAlto(soloCrecer = false) {
+  let fondo = 0;
+  for (const el of corcho.children) fondo = Math.max(fondo, el.offsetTop + el.offsetHeight);
+  const alto = Math.max(fondo + innerHeight * 0.4, innerHeight * 0.7);
+  if (soloCrecer && alto < corcho.offsetHeight) return;
+  corcho.style.height = alto + "px";
+}
+
+function seleccionar(el) {
+  if (seleccionado === el) return;
+  seleccionado?.classList.remove("seleccionado");
+  seleccionado = el;
+  el.classList.add("seleccionado");
+  el.style.zIndex = ++zMaximo;
+  const p = pinsActuales.get(el.dataset.id);
+  p.orden = Date.now();
+  db.guardarPin(p);
+}
+
+function deseleccionar() {
+  seleccionado?.classList.remove("seleccionado");
+  seleccionado = null;
+}
+
+function empezarArrastre() {
+  if (!gesto) return;
+  gesto.activo = true;
+  seleccionar(gesto.el);
+  gesto.el.classList.add("arrastrando");
+  navigator.vibrate?.(10);
+}
+
+function terminarGesto() {
+  clearTimeout(gesto.espera);
+  gesto.el.classList.remove("arrastrando");
+  gesto = null;
+}
+
+corcho.addEventListener("pointerdown", (e) => {
+  const el = e.target.closest(".pin");
+  if (!el) return deseleccionar();
+  if (e.target.closest(".editar") || e.button > 0) return;
+  const p = pinsActuales.get(el.dataset.id);
+  gesto = {
+    el,
+    p,
+    tipo: e.target.closest(".tirador") ? "tamano" : "mover",
+    estabaSeleccionada: el === seleccionado,
+    // Con ratón se arrastra directamente. En el móvil, si la foto no está
+    // seleccionada, hay que mantenerla pulsada para no estorbar al desplazarse.
+    directo: e.pointerType === "mouse" || el === seleccionado,
+    inicioX: e.clientX,
+    inicioY: e.clientY,
+    x0: p.x,
+    y0: p.y,
+    ancho0: p.ancho,
+    activo: false,
+  };
+  el.setPointerCapture(e.pointerId);
+  if (gesto.tipo === "tamano") empezarArrastre();
+  else if (!gesto.directo) gesto.espera = setTimeout(empezarArrastre, 350);
+});
+
+corcho.addEventListener("pointermove", (e) => {
+  if (!gesto) return;
+  const dx = e.clientX - gesto.inicioX;
+  const dy = e.clientY - gesto.inicioY;
+  if (!gesto.activo) {
+    if (Math.hypot(dx, dy) < 6) return;
+    if (!gesto.directo) return terminarGesto(); // se estaba desplazando por la página
+    empezarArrastre();
+  }
+  const ancho = corcho.clientWidth;
+  const p = gesto.p;
+  if (gesto.tipo === "mover") {
+    p.x = limitar(gesto.x0 + dx / ancho, 0, 1 - p.ancho);
+    p.y = Math.max(0, gesto.y0 + dy / ancho);
+  } else {
+    p.ancho = limitar(gesto.ancho0 + dx / ancho, ANCHO_MINIMO, 1 - p.x);
+  }
+  colocar(gesto.el, p);
+  ajustarAlto(true);
+});
+
+corcho.addEventListener("pointerup", async () => {
+  if (!gesto) return;
+  const { activo, estabaSeleccionada, el, p } = gesto;
+  terminarGesto();
+  if (activo) {
+    await db.guardarPin(p);
+    ajustarAlto();
+  } else if (estabaSeleccionada) {
+    abrirDetalle(p.id);
+  } else {
+    seleccionar(el);
+  }
+});
+
+corcho.addEventListener("pointercancel", () => {
+  if (!gesto) return;
+  if (gesto.activo) db.guardarPin(gesto.p);
+  terminarGesto();
+});
+
+// Tocar fuera del corcho también suelta la foto elegida
+document.addEventListener("pointerdown", (e) => {
+  if (!corcho.contains(e.target) && !e.target.closest("dialog")) deseleccionar();
+});
+
+// Mientras se arrastra, que el dedo no desplace la página
+corcho.addEventListener("touchmove", (e) => gesto?.activo && e.preventDefault(), { passive: false });
+corcho.addEventListener("contextmenu", (e) => e.target.closest(".pin") && e.preventDefault());
+
+// Al girar el móvil cambia el ancho y, con él, el alto de las fotos
+let anchoAnterior = 0;
+new ResizeObserver(() => {
+  if (!tableroActual || corcho.clientWidth === anchoAnterior) return;
+  anchoAnterior = corcho.clientWidth;
+  ajustarAlto();
+}).observe(corcho);
 
 // ---------- Tableros ----------
 
@@ -220,18 +408,40 @@ $("#btn-borrar-tablero").addEventListener("click", async () => {
 
 async function anadirImagenes(blobs, origen = null) {
   if (!tableroActual) return;
-  $("#corcho").classList.add("cargando");
+  corcho.classList.add("cargando");
+  // Una foto sola aparece en el centro de lo que se ve del corcho;
+  // varias, repartidas en dos columnas desde arriba de lo que se ve
+  const caja = corcho.getBoundingClientRect();
+  const ancho = caja.width || 1;
+  const arriba = Math.max(0, -caja.top) / ancho + 0.04;
+  const centro = ((Math.max(caja.top, 0) + Math.min(caja.bottom, innerHeight)) / 2 - caja.top) / ancho;
+  const alturas = [arriba, arriba];
   let anadidas = 0;
+  let ultima = null;
   try {
     for (const blob of blobs) {
       try {
-        const imagen = await prepararImagen(blob);
+        const { imagen, proporcion } = await prepararImagen(blob);
+        const alto = ANCHO_INICIAL * proporcion;
+        let x = 0.5 - ANCHO_INICIAL / 2;
+        let y = Math.max(0.03, centro - alto / 2);
+        if (blobs.length > 1) {
+          const col = alturas[0] <= alturas[1] ? 0 : 1;
+          x = col === 0 ? 0.05 : 0.53;
+          y = alturas[col];
+          alturas[col] += alto + 0.1;
+        }
+        ultima = nuevoId();
         await db.guardarPin({
-          id: nuevoId(),
+          id: ultima,
           tableroId: tableroActual.id,
           imagen,
+          proporcion,
           nota: "",
           origen,
+          x,
+          y,
+          ancho: ANCHO_INICIAL,
           orden: Date.now() + anadidas,
           creado: Date.now(),
         });
@@ -241,12 +451,14 @@ async function anadirImagenes(blobs, origen = null) {
       }
     }
   } finally {
-    $("#corcho").classList.remove("cargando");
+    corcho.classList.remove("cargando");
   }
   if (anadidas === 0) return avisar("No he podido leer esa imagen");
   $("#hoja-anadir").open && $("#hoja-anadir").close();
-  avisar(anadidas === 1 ? "Foto añadida" : `${anadidas} fotos añadidas`);
-  mostrarTablero(tableroActual.id);
+  avisar(anadidas === 1 ? "Foto añadida: arrástrala donde quieras" : `${anadidas} fotos añadidas`);
+  await mostrarTablero(tableroActual.id);
+  const nueva = corcho.querySelector(`[data-id="${ultima}"]`);
+  if (nueva) seleccionar(nueva);
 }
 
 // Pinterest no deja descargar sus fotos desde el navegador; lo hace /api/pin
@@ -330,8 +542,8 @@ vistaTablero.addEventListener("drop", (e) => {
 
 let pinAbierto = null;
 
-async function abrirDetalle(id) {
-  pinAbierto = await db.pin(id);
+function abrirDetalle(id) {
+  pinAbierto = pinsActuales.get(id);
   $("#detalle-img").src = urlDe(pinAbierto.imagen);
   $("#detalle-nota").value = pinAbierto.nota;
   const origen = $("#detalle-origen");
@@ -351,8 +563,8 @@ $("#hoja-detalle").addEventListener("close", async () => {
   pinAbierto = null;
 });
 
-$("#detalle-subir").addEventListener("click", async () => {
-  pinAbierto.orden = Date.now();
+$("#detalle-fondo").addEventListener("click", async () => {
+  pinAbierto.orden = Math.min(...[...pinsActuales.values()].map((p) => p.orden)) - 1;
   await db.guardarPin(pinAbierto);
   $("#hoja-detalle").close();
   mostrarTablero(tableroActual.id);
