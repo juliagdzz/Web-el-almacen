@@ -4,7 +4,7 @@
   "start_url": "/creaciones.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F6E7DC",
+  "background_color": "#551C25",
   "theme_color": "#A44E26",
   "icons": [
     {
