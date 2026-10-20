@@ -1,0 +1,122 @@
+/* Servicio de horneado */
+
+.horno [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .contenedor.horno { padding: 1rem 1rem 3rem; }
+}
+.horno h1 { margin-bottom: 0.25rem; }
+.entradilla { margin-top: 0; }
+
+/* Escena del horno */
+.escena-horno {
+  margin: 1rem 0;
+  padding: 1rem 1rem 0.75rem;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 70%, #fbf1e8, #efdccd);
+  text-align: center;
+}
+.escena-horno svg { width: min(100%, 20rem); height: auto; overflow: hidden; } /* con hueco arriba para la tapa abierta */
+.escena-horno figcaption { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5rem 1rem; margin-top: 0.25rem; }
+#estado-horno { font-weight: 600; color: var(--terracota-oscuro); }
+/* Mientras cuece, el resplandor late un poco */
+.cociendo #aura { animation: latido 2.4s ease-in-out infinite; }
+.cociendo #calor { animation: subir 1.8s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: 0.3; } }
+@keyframes subir { 0% { transform: translateY(6px); opacity: 0.2; } 50% { opacity: 0.8; } 100% { transform: translateY(-6px); opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) {
+  .cociendo #aura, .cociendo #calor { animation: none; }
+}
+
+.bloque {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.bloque h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+.bloque h2::after { display: none; }
+
+.horno button.secundario {
+  background: white;
+  color: var(--verde);
+  box-shadow: inset 0 0 0 2px var(--verde);
+}
+.horno button.secundario:hover { background: var(--verde); color: var(--crema); }
+.horno button.texto, .horno button.texto:hover { background: none; color: var(--verde); }
+
+/* Tarjetas para elegir */
+.tarjetas-opcion { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; }
+.tarjeta-opcion {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem;
+  border: 2px solid #e6d5c8;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.tarjeta-opcion input { position: absolute; opacity: 0; }
+.tarjeta-opcion:has(input:checked) { border-color: var(--terracota); background: #fbf1ea; }
+.tarjeta-opcion:has(input:focus-visible) { outline: 2px solid var(--verde); outline-offset: 2px; }
+.tarjeta-opcion strong { color: var(--terracota-oscuro); }
+.tarjeta-opcion small { font-size: 0.85rem; line-height: 1.4; }
+.precio-completo { font-size: 0.85rem; font-weight: 600; color: var(--verde); }
+
+.interruptor { display: flex; gap: 0.75rem; align-items: flex-start; margin-top: 0.9rem; cursor: pointer; }
+.interruptor input { width: 1.4rem; height: 1.4rem; margin-top: 0.15rem; accent-color: var(--terracota); flex: none; }
+.interruptor span { display: grid; gap: 0.15rem; }
+.interruptor small { font-size: 0.85rem; opacity: 0.8; }
+
+.forma { display: flex; gap: 0.5rem; margin-bottom: 0.9rem; }
+.forma label { flex: 1; padding: 0.5rem; border: 2px solid var(--verde); border-radius: 999px; color: var(--verde); text-align: center; font-weight: 500; cursor: pointer; }
+.forma label:has(input:checked) { background: var(--verde); color: var(--crema); }
+.forma input { position: absolute; opacity: 0; }
+
+.medidas-pieza { display: grid; gap: 0.7rem; }
+.medidas-pieza label { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; font-weight: 500; }
+.con-unidad { display: flex; align-items: center; gap: 0.4rem; }
+.medidas-pieza input {
+  width: 6rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #d6c7bd;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 1rem;
+  text-align: right;
+}
+
+/* Resultado */
+.resultado-horno { text-align: center; border: 2px solid var(--terracota); }
+.precio-grande { margin: 0; }
+#precio { font-family: 'Fraunces', serif; font-size: 2.6rem; font-weight: 700; color: var(--terracota); }
+#precio-detalle { display: block; color: var(--verde); }
+.ocupacion { height: 0.7rem; margin: 0.75rem 0 0.5rem; border-radius: 999px; background: #efe2d8; overflow: hidden; }
+#barra-ocupacion { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--verde-claro), var(--terracota)); transition: width 0.4s; }
+.desglose { margin: 0 0 0.9rem; font-size: 0.85rem; color: var(--tinta); opacity: 0.85; }
+.resultado-horno button:disabled { opacity: 0.4; }
+
+.lista-presupuesto { list-style: none; margin: 0; padding: 0; }
+.lista-presupuesto li { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee2d9; font-size: 0.9rem; }
+.lista-presupuesto strong { color: var(--terracota); }
+.lista-presupuesto .quitar, .lista-presupuesto .quitar:hover { width: 2rem; height: 2rem; padding: 0; background: none; color: #a3261b; }
+.total { display: flex; justify-content: space-between; margin: 0.75rem 0; font-size: 1.1rem; }
+.total strong { font-family: 'Fraunces', serif; font-size: 1.5rem; color: var(--terracota); }
+.acciones-presupuesto { display: flex; justify-content: space-between; gap: 0.5rem; }
+.nota-horno { font-size: 0.8rem; opacity: 0.75; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(2rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--crema);
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.visible { opacity: 1; }
