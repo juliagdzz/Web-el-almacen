@@ -17,7 +17,14 @@
   --fondo: #F6E7DC; /* arcilla muy clara */
 }
 
+/* El fondo «de base» es granate: es el color que pone Chrome en el móvil
+   debajo de la página (junto a los botones del sistema) y en los rebotes al
+   deslizar. El beige lo pone body, que ocupa al menos toda la pantalla */
+html { background: var(--granate); }
 body {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--fondo);
   color: var(--tinta);
