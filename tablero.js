@@ -607,6 +607,40 @@ function coincide(e, palabras) {
   return palabras.every((p) => e.texto.includes(p) || (soloLetrasYNumeros(p) && e.clave.includes(soloLetrasYNumeros(p))));
 }
 
+// Las series que salen arriba; las demás van a «Otros esmaltes»
+const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
+
+function leerSeries() {
+  try {
+    const guardadas = JSON.parse(localStorage.getItem("seriesFavoritas"));
+    if (Array.isArray(guardadas)) return new Set(guardadas);
+  } catch {}
+  return new Set(SERIES_POR_DEFECTO);
+}
+
+function guardarSeries(series) {
+  try { localStorage.setItem("seriesFavoritas", JSON.stringify([...series])); } catch {}
+}
+
+function crearCasillasSeries(lista) {
+  const favoritas = leerSeries();
+  const todas = [...new Set(lista.map((e) => e.serie))].sort((a, b) => a.localeCompare(b, "es"));
+  $("#lista-series").replaceChildren(...todas.map((serie) => {
+    const label = document.createElement("label");
+    const casilla = document.createElement("input");
+    casilla.type = "checkbox";
+    casilla.value = serie;
+    casilla.checked = favoritas.has(serie);
+    casilla.addEventListener("change", () => {
+      const marcadas = [...$("#lista-series").querySelectorAll("input:checked")].map((c) => c.value);
+      guardarSeries(marcadas);
+      mostrarEsmaltes();
+    });
+    label.append(casilla, serie);
+    return label;
+  }));
+}
+
 async function mostrarEsmaltes() {
   let lista;
   try {
@@ -615,17 +649,36 @@ async function mostrarEsmaltes() {
     $("#cuenta-esmaltes").textContent = "No he podido cargar el catálogo de Prodesco. Prueba otra vez en un rato.";
     return;
   }
-  const serie = $("#serie-esmalte");
-  if (serie.options.length === 1) {
-    for (const nombre of [...new Set(lista.map((e) => e.serie))].sort((a, b) => a.localeCompare(b, "es"))) {
-      serie.add(new Option(nombre, nombre));
-    }
-  }
+  if (!$("#lista-series").children.length) crearCasillasSeries(lista);
+
+  const favoritas = leerSeries();
   const palabras = sinAcentos($("#buscar-esmalte").value).split(/\s+/).filter(Boolean);
-  const encontrados = lista.filter((e) => (!serie.value || e.serie === serie.value) && coincide(e, palabras));
-  $("#cuenta-esmaltes").textContent = encontrados.length === 1 ? "1 esmalte" : `${encontrados.length} esmaltes`;
-  $("#lista-esmaltes").replaceChildren(...encontrados.map(crearOpcionEsmalte));
+  const encontrados = lista.filter((e) => coincide(e, palabras));
+  const principales = encontrados.filter((e) => favoritas.has(e.serie));
+  const otros = encontrados.filter((e) => !favoritas.has(e.serie));
+
+  const cuantos = (n) => (n === 1 ? "1 esmalte" : `${n} esmaltes`);
+  $("#cuenta-esmaltes").textContent = principales.length
+    ? `${cuantos(principales.length)} en tus series`
+    : palabras.length ? "Ninguno en tus series" : "No has elegido ninguna serie";
+  $("#esmaltes-principales").replaceChildren(...principales.map(crearOpcionEsmalte));
+  $("#esmaltes-otros").replaceChildren(...otros.map(crearOpcionEsmalte));
+  const otrosEsmaltes = $("#otros-esmaltes");
+  otrosEsmaltes.hidden = !otros.length;
+  otrosEsmaltes.querySelector("summary").textContent = `Otros esmaltes (${otros.length})`;
+  // Si lo que buscas solo está en otras series, se despliega solo, y se vuelve a plegar después
+  const abrirSolo = palabras.length > 0 && !principales.length && otros.length > 0;
+  if (abrirSolo && !otrosEsmaltes.open) {
+    otrosEsmaltes.open = true;
+    otrosEsmaltes.dataset.abiertoSolo = "si";
+  } else if (!abrirSolo && otrosEsmaltes.dataset.abiertoSolo) {
+    otrosEsmaltes.open = false;
+    delete otrosEsmaltes.dataset.abiertoSolo;
+  }
 }
+
+// Si lo abres o cierras tú, se queda como lo dejes
+$("#otros-esmaltes summary").addEventListener("click", () => delete $("#otros-esmaltes").dataset.abiertoSolo);
 
 function crearOpcionEsmalte(e) {
   const boton = document.createElement("button");
@@ -671,7 +724,6 @@ $("#btn-esmaltes").addEventListener("click", () => {
   mostrarEsmaltes();
 });
 $("#buscar-esmalte").addEventListener("input", mostrarEsmaltes);
-$("#serie-esmalte").addEventListener("change", mostrarEsmaltes);
 
 // ---------- Detalle de una foto ----------
 

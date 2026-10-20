@@ -79,14 +79,20 @@
   <dialog id="hoja-esmaltes" class="hoja hoja-esmaltes">
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Esmaltes de Prodesco</h2>
-    <div class="filtros">
-      <input id="buscar-esmalte" type="search" placeholder="Número o nombre: 5546, azul…" autocomplete="off" aria-label="Buscar esmalte">
-      <select id="serie-esmalte" aria-label="Serie">
-        <option value="">Todas las series</option>
-      </select>
-    </div>
+    <input id="buscar-esmalte" class="buscar-esmalte" type="search" placeholder="Número o nombre: 5546, azul…" autocomplete="off" aria-label="Buscar esmalte">
+    <details id="elegir-series" class="elegir-series">
+      <summary>Elegir mis series</summary>
+      <p>Las series marcadas salen arriba; las demás, en «Otros esmaltes».</p>
+      <div id="lista-series" class="lista-series"></div>
+    </details>
     <p id="cuenta-esmaltes" class="cuenta-esmaltes">Cargando el catálogo…</p>
-    <div id="lista-esmaltes" class="lista-esmaltes"></div>
+    <div class="lista-esmaltes">
+      <div id="esmaltes-principales" class="rejilla-esmaltes"></div>
+      <details id="otros-esmaltes" class="otros-esmaltes">
+        <summary>Otros esmaltes</summary>
+        <div id="esmaltes-otros" class="rejilla-esmaltes"></div>
+      </details>
+    </div>
   </dialog>
 
   <!-- Detalle de una foto -->
