@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#7b2d26">
+  <title>Inspiración · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tablero.css">
+</head>
+<body class="pagina-tableros">
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="inspiracion.html">Miembros</a>
+    </nav>
+  </header>
+
+  <!-- Lista de tableros -->
+  <main id="vista-lista" class="vista" hidden>
+    <h1>Mis tableros</h1>
+    <p class="aviso">Tus tableros se guardan en este móvil. Si borras los datos del navegador, se pierden.</p>
+    <div id="lista-tableros" class="lista-tableros"></div>
+  </main>
+
+  <!-- Un tablero (el corcho) -->
+  <main id="vista-tablero" class="vista vista-corcho" hidden>
+    <div class="barra-tablero">
+      <a href="#/" class="volver" aria-label="Volver a mis tableros">←</a>
+      <h1 id="nombre-tablero"></h1>
+      <button id="btn-opciones" class="icono" aria-label="Opciones del tablero">⋯</button>
+    </div>
+    <div id="corcho" class="corcho"></div>
+    <p id="corcho-vacio" class="corcho-vacio" hidden>
+      Tu corcho está vacío.<br>Pulsa <strong>+</strong> para añadir fotos de piezas, esmaltes o ideas.
+    </p>
+    <button id="btn-anadir" class="fab" aria-label="Añadir foto">+</button>
+  </main>
+
+  <!-- Hoja para añadir fotos -->
+  <dialog id="hoja-anadir" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Añadir al corcho</h2>
+
+    <label class="opcion">
+      <span>📷 Galería o cámara</span>
+      <input id="input-fotos" type="file" accept="image/*" multiple hidden>
+    </label>
+
+    <button id="btn-pegar" class="opcion" type="button">📋 Pegar imagen copiada</button>
+
+    <form id="form-enlace" class="form-enlace">
+      <label for="input-enlace">📌 Enlace de Pinterest</label>
+      <div class="fila">
+        <input id="input-enlace" type="text" inputmode="url" placeholder="https://pin.it/…" autocomplete="off">
+        <button type="submit">Añadir</button>
+      </div>
+      <small>En Pinterest pulsa Compartir → Copiar enlace y pégalo aquí.</small>
+    </form>
+  </dialog>
+
+  <!-- Detalle de una foto -->
+  <dialog id="hoja-detalle" class="hoja hoja-detalle">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <img id="detalle-img" alt="">
+    <label for="detalle-nota">Nota</label>
+    <textarea id="detalle-nota" rows="3" placeholder="Ej.: esmalte celadón, probar con gres rojo…"></textarea>
+    <a id="detalle-origen" class="origen" target="_blank" rel="noopener" hidden>Ver en Pinterest ↗</a>
+    <div class="acciones">
+      <button id="detalle-subir" type="button">Poner la primera</button>
+      <button id="detalle-borrar" type="button" class="peligro">Borrar foto</button>
+    </div>
+  </dialog>
+
+  <!-- Opciones del tablero -->
+  <dialog id="hoja-opciones" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Opciones</h2>
+    <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
+    <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="tablero.js"></script>
+</body>
+</html>
