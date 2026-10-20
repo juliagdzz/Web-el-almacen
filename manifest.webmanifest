@@ -1,12 +1,15 @@
 {
-  "name": "El Almacén · Inspiración",
-  "short_name": "Inspiración",
+  "name": "El Almacén",
+  "short_name": "El Almacén",
   "start_url": "/inspiracion.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F6E7DC",
   "theme_color": "#A44E26",
   "icons": [
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "share_target": {
