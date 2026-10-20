@@ -2,22 +2,22 @@
   <!-- Maranta que cuelga por el marco del corcho -->
   <defs>
     <clipPath id="forma">
-      <path d="M6 0 C 11 -13, 34 -15, 50 0 C 34 15, 11 13, 6 0 Z"/>
+      <path d="M6 0 C 6 -10, 17 -14.5, 29 -14 C 41 -13.5, 48 -7, 48 0 C 48 7, 41 13.5, 29 14 C 17 14.5, 6 10, 6 0 Z"/>
     </clipPath>
     <symbol id="hoja" overflow="visible">
       <path d="M0 0 L7 0" stroke="#4a5a23" stroke-width="1.6" stroke-linecap="round"/>
       <g clip-path="url(#forma)">
         <rect x="0" y="-16" width="52" height="32" fill="#3c4a1a"/>
-        <ellipse cx="27" cy="0" rx="21" ry="5.5" fill="#8f9a45" opacity="0.75"/>
+        <ellipse cx="27" cy="0" rx="20" ry="6.5" fill="#8f9a45" opacity="0.75"/>
         <ellipse cx="27" cy="0" rx="17" ry="2.6" fill="#b8bd6a" opacity="0.6"/>
         <g fill="#232c0c">
-          <ellipse cx="16" cy="-6.5" rx="3" ry="1.8"/><ellipse cx="16" cy="6.5" rx="3" ry="1.8"/>
-          <ellipse cx="26" cy="-7.5" rx="3.2" ry="2"/><ellipse cx="26" cy="7.5" rx="3.2" ry="2"/>
-          <ellipse cx="36" cy="-6" rx="2.6" ry="1.6"/><ellipse cx="36" cy="6" rx="2.6" ry="1.6"/>
+          <ellipse cx="16" cy="-7.5" rx="3" ry="2"/><ellipse cx="16" cy="7.5" rx="3" ry="2"/>
+          <ellipse cx="26" cy="-9" rx="3.4" ry="2.2"/><ellipse cx="26" cy="9" rx="3.4" ry="2.2"/>
+          <ellipse cx="36" cy="-8" rx="2.8" ry="1.8"/><ellipse cx="36" cy="8" rx="2.8" ry="1.8"/>
         </g>
         <g stroke="#a3343f" fill="none" stroke-linecap="round">
-          <path d="M7 0 L49 0" stroke-width="1.1"/>
-          <path d="M12 0 Q 17 -6, 22 -11 M12 0 Q 17 6, 22 11 M20 0 Q 26 -6, 31 -11 M20 0 Q 26 6, 31 11 M28 0 Q 34 -5, 39 -9 M28 0 Q 34 5, 39 9 M36 0 Q 41 -4, 45 -6 M36 0 Q 41 4, 45 6" stroke-width="0.6" opacity="0.85"/>
+          <path d="M7 0 L46 0" stroke-width="1.1"/>
+          <path d="M12 0 Q 17 -6, 22 -11 M12 0 Q 17 6, 22 11 M20 0 Q 26 -6, 31 -11 M20 0 Q 26 6, 31 11 M28 0 Q 34 -5, 39 -9 M28 0 Q 34 5, 39 9 M36 0 Q 41 -5, 44 -9 M36 0 Q 41 5, 44 9" stroke-width="0.6" opacity="0.85"/>
         </g>
       </g>
     </symbol>
@@ -25,8 +25,8 @@
       <path d="M0 0 L7 0" stroke="#4a5a23" stroke-width="1.6" stroke-linecap="round"/>
       <g clip-path="url(#forma)">
         <rect x="0" y="-16" width="52" height="32" fill="#6a2636"/>
-        <ellipse cx="27" cy="0" rx="20" ry="4" fill="#8a3a4b" opacity="0.7"/>
-        <path d="M7 0 L49 0" stroke="#c07a85" stroke-width="0.9"/>
+        <ellipse cx="27" cy="0" rx="19" ry="5.5" fill="#8a3a4b" opacity="0.7"/>
+        <path d="M7 0 L46 0" stroke="#c07a85" stroke-width="0.9"/>
       </g>
     </symbol>
   </defs>
