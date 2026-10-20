@@ -564,3 +564,34 @@ body.en-tablero {
 .pagina-tableros .acciones .peligro:hover { background: white; }
 .pagina-tableros .fab:hover { background: var(--t-oliva); }
 .pagina-tableros .fab-esmalte:hover { background: var(--t-oxido); }
+
+/* ---------- Paleta desde una foto ---------- */
+.boton-paleta, .pagina-tableros .boton-paleta:hover {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: white;
+  color: var(--t-oliva);
+  box-shadow: inset 0 0 0 2px var(--t-oliva);
+  font-weight: 600;
+}
+.hoja-paleta[open] { display: flex; flex-direction: column; height: 90dvh; }
+.paleta-cabecera { display: flex; gap: 0.75rem; align-items: center; }
+#paleta-foto { width: 5.5rem; height: 5.5rem; object-fit: cover; border-radius: 10px; flex: none; }
+.paleta-colores { flex: 1; display: flex; height: 5.5rem; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+.color-paleta { flex: 1; }
+.solo-mis-series { display: flex; align-items: center; gap: 0.5rem; margin: 0.75rem 0 0; font-size: 0.9rem; }
+.solo-mis-series input { width: 1.2rem; height: 1.2rem; accent-color: var(--t-oliva); }
+.paleta-ayuda { margin: 0.35rem 0 0.5rem; font-size: 0.8rem; color: var(--t-oliva); }
+.paleta-sugerencias { flex: 1; overflow-y: auto; display: grid; gap: 0.6rem; align-content: start; padding-bottom: 1rem; }
+.fila-paleta { display: grid; grid-template-columns: 4.2rem 1fr; gap: 0.6rem; align-items: start; padding: 0.6rem; border-radius: 12px; background: white; }
+.color-grande { display: flex; align-items: flex-end; justify-content: center; height: 100%; min-height: 6rem; border-radius: 8px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08); }
+.color-grande span { margin-bottom: 0.3rem; padding: 0 0.3rem; border-radius: 4px; background: rgb(255 255 255 / 0.85); font-size: 0.62rem; font-weight: 600; color: #2a1a1a; }
+.esmaltes-parecidos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+.esmaltes-parecidos .opcion-esmalte img { margin-bottom: 2px; }
+.esmaltes-parecidos .opcion-esmalte span { font-size: 0.68rem; }
+.parecido { font-size: 0.62rem; color: var(--t-oliva); }
+.opcion-esmalte.anadido img { outline: 3px solid var(--t-oliva); outline-offset: -3px; }
+.opcion-esmalte.anadido strong::after { content: " ✓"; color: var(--t-oliva); }

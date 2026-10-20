@@ -115,6 +115,7 @@
     <label for="detalle-nota">Nota</label>
     <textarea id="detalle-nota" rows="3" placeholder="Ej.: esmalte celadón, probar con gres rojo…"></textarea>
     <a id="detalle-origen" class="origen" target="_blank" rel="noopener" hidden></a>
+    <button id="detalle-paleta" class="boton-paleta" type="button">🎨 Paleta de esta foto</button>
     <div class="acciones">
       <button id="detalle-fondo" type="button">Enviar al fondo</button>
       <button id="detalle-borrar" type="button" class="peligro">Borrar foto</button>
@@ -126,12 +127,27 @@
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Opciones</h2>
     <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir tablero</button>
+    <button id="btn-paleta-tablero" class="opcion" type="button">🎨 Paleta del tablero</button>
     <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
     <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
   </dialog>
 
   <div id="aviso" class="toast" role="status" aria-live="polite"></div>
 
+  <!-- Paleta desde una foto -->
+  <dialog id="hoja-paleta" class="hoja hoja-paleta">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Paleta de colores</h2>
+    <div class="paleta-cabecera">
+      <img id="paleta-foto" alt="">
+      <div id="paleta-colores" class="paleta-colores"></div>
+    </div>
+    <label class="solo-mis-series"><input id="paleta-mis-series" type="checkbox" checked> Solo esmaltes de mis series</label>
+    <p class="paleta-ayuda">Los esmaltes de Prodesco que más se parecen a cada color. Toca uno para ponerlo en el corcho.</p>
+    <div id="paleta-sugerencias" class="paleta-sugerencias"></div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/colorthief@2.4.0/dist/color-thief.umd.js"></script>
   <script src="compartir.js"></script>
   <script src="tablero.js"></script>
 </body>

@@ -604,7 +604,8 @@ function dibujarPin(ctx, el) {
   ctx.restore();
 }
 
-async function imagenDelTablero() {
+// sinCorcho: solo las fotos y chapas, con el fondo transparente (para sacar su paleta)
+async function imagenDelTablero({ sinCorcho = false } = {}) {
   const pins = [...corcho.querySelectorAll(".pin")].sort((a, b) => a.style.zIndex - b.style.zIndex);
   if (!pins.length) return null;
   deseleccionar();
@@ -629,12 +630,14 @@ async function imagenDelTablero() {
   ctx.scale(escala, escala);
 
   // Corcho, con los mismos puntitos que en pantalla
-  ctx.fillStyle = "#c49a64";
-  ctx.fillRect(0, 0, ancho, alto);
-  for (const [paso, desfaseX, desfaseY, color] of [[7, 0, 0, "rgb(90 55 20 / 0.25)"], [11, 3, 5, "rgb(255 240 210 / 0.25)"]]) {
-    ctx.fillStyle = color;
-    for (let py = desfaseY; py < alto; py += paso) {
-      for (let px = desfaseX; px < ancho; px += paso) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+  if (!sinCorcho) {
+    ctx.fillStyle = "#c49a64";
+    ctx.fillRect(0, 0, ancho, alto);
+    for (const [paso, desfaseX, desfaseY, color] of [[7, 0, 0, "rgb(90 55 20 / 0.25)"], [11, 3, 5, "rgb(255 240 210 / 0.25)"]]) {
+      ctx.fillStyle = color;
+      for (let py = desfaseY; py < alto; py += paso) {
+        for (let px = desfaseX; px < ancho; px += paso) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+      }
     }
   }
 
@@ -642,6 +645,8 @@ async function imagenDelTablero() {
   ctx.translate(MARGEN - izquierda, MARGEN - arriba);
   for (const el of pins) dibujarPin(ctx, el);
   ctx.restore();
+
+  if (sinCorcho) return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 
   // Pie con el nombre del tablero
   ctx.fillStyle = "rgb(255 253 247 / 0.92)";
@@ -993,6 +998,128 @@ $("#btn-esmaltes").addEventListener("click", () => {
 });
 $("#buscar-esmalte").addEventListener("input", mostrarEsmaltes);
 
+// ---------- Paleta desde una foto ----------
+// Color Thief saca los 5 colores dominantes y, para cada uno, se buscan los esmaltes
+// cuyo azulejo de muestra se le parece más (colores-esmaltes.json, ver scripts/).
+
+let coloresEsmaltes = null;
+const cargarColores = () => (coloresEsmaltes ??= fetch("colores-esmaltes.json").then((r) => r.json()).catch(() => { coloresEsmaltes = null; return {}; }));
+
+const aHex = ([r, g, b]) => "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+const deHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+
+// RGB → CIELAB, para medir parecidos como los ve el ojo
+function aLab([r, g, b]) {
+  const lineal = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const [R, G, B] = [lineal(r), lineal(g), lineal(b)];
+  const f = (t) => (t > 216 / 24389 ? Math.cbrt(t) : (t * 24389 / 27 + 16) / 116);
+  const x = f((R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047);
+  const y = f(R * 0.2126 + G * 0.7152 + B * 0.0722);
+  const z = f((R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+}
+
+// Diferencia de color CIEDE2000: por debajo de 2 casi no se nota, por encima de 20 son colores distintos
+function diferencia([L1, a1, b1], [L2, a2, b2]) {
+  const rad = Math.PI / 180;
+  const C1 = Math.hypot(a1, b1), C2 = Math.hypot(a2, b2), Cm = (C1 + C2) / 2;
+  const G = 0.5 * (1 - Math.sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7)));
+  const a1p = a1 * (1 + G), a2p = a2 * (1 + G);
+  const C1p = Math.hypot(a1p, b1), C2p = Math.hypot(a2p, b2);
+  const h1p = (Math.atan2(b1, a1p) / rad + 360) % 360, h2p = (Math.atan2(b2, a2p) / rad + 360) % 360;
+  const dLp = L2 - L1, dCp = C2p - C1p;
+  let dhp = C1p * C2p === 0 ? 0 : h2p - h1p;
+  if (dhp > 180) dhp -= 360; else if (dhp < -180) dhp += 360;
+  const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin((dhp * rad) / 2);
+  const Lm = (L1 + L2) / 2, Cmp = (C1p + C2p) / 2;
+  let hm = h1p + h2p;
+  if (C1p * C2p !== 0) hm = Math.abs(h1p - h2p) > 180 ? (h1p + h2p + (h1p + h2p < 360 ? 360 : -360)) / 2 : (h1p + h2p) / 2;
+  const T = 1 - 0.17 * Math.cos((hm - 30) * rad) + 0.24 * Math.cos(2 * hm * rad) + 0.32 * Math.cos((3 * hm + 6) * rad) - 0.2 * Math.cos((4 * hm - 63) * rad);
+  const SL = 1 + (0.015 * (Lm - 50) ** 2) / Math.sqrt(20 + (Lm - 50) ** 2), SC = 1 + 0.045 * Cmp, SH = 1 + 0.015 * Cmp * T;
+  const RT = -2 * Math.sqrt(Cmp ** 7 / (Cmp ** 7 + 25 ** 7)) * Math.sin(60 * Math.exp(-(((hm - 275) / 25) ** 2)) * rad);
+  return Math.sqrt((dLp / SL) ** 2 + (dCp / SC) ** 2 + (dHp / SH) ** 2 + RT * (dCp / SC) * (dHp / SH));
+}
+
+const parecido = (d) => (d < 6 ? "Casi igual" : d < 12 ? "Muy parecido" : d < 20 ? "Parecido" : "Lo más cercano");
+
+let paletaActual = null; // { colores: [[r,g,b]…] }
+
+async function abrirPaleta(blob) {
+  if (!window.ColorThief) return avisar("No se ha podido cargar Color Thief; prueba con conexión");
+  const url = urlDe(blob);
+  const img = $("#paleta-foto");
+  img.src = url;
+  await img.decode();
+  // Color Thief a veces da uno menos de los pedidos: se piden 6 y se quedan 5
+  const colores = new ColorThief().getPalette(img, 6, 5).slice(0, 5);
+  paletaActual = { colores };
+  $("#paleta-colores").replaceChildren(...colores.map((c) =>
+    Object.assign(document.createElement("span"), { className: "color-paleta", title: aHex(c), style: `background:${aHex(c)}` })));
+  $("#paleta-sugerencias").replaceChildren(Object.assign(document.createElement("p"), { className: "cuenta-esmaltes", textContent: "Buscando esmaltes parecidos…" }));
+  $("#hoja-paleta").showModal();
+  pintarSugerencias();
+}
+
+async function pintarSugerencias() {
+  if (!paletaActual) return;
+  let lista, colores;
+  try {
+    [lista, colores] = await Promise.all([cargarCatalogo(), cargarColores()]);
+  } catch {
+    $("#paleta-sugerencias").replaceChildren(Object.assign(document.createElement("p"), { textContent: "No he podido cargar el catálogo de Prodesco." }));
+    return;
+  }
+  const soloMias = $("#paleta-mis-series").checked;
+  const favoritas = leerSeries();
+  const candidatos = lista
+    .filter((e) => colores[e.id] && (!soloMias || favoritas.has(e.serie)))
+    .map((e) => ({ e, lab: aLab(deHex(colores[e.id])) }));
+
+  $("#paleta-sugerencias").replaceChildren(...paletaActual.colores.map((c) => {
+    const lab = aLab(c);
+    const mejores = candidatos.map((x) => ({ ...x, d: diferencia(lab, x.lab) })).sort((a, b) => a.d - b.d).slice(0, 3);
+    const fila = document.createElement("section");
+    fila.className = "fila-paleta";
+    const muestra = Object.assign(document.createElement("div"), { className: "color-grande" });
+    muestra.style.background = aHex(c);
+    muestra.append(Object.assign(document.createElement("span"), { textContent: aHex(c).toUpperCase() }));
+    const opciones = document.createElement("div");
+    opciones.className = "esmaltes-parecidos";
+    for (const { e, d } of mejores) {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "opcion-esmalte";
+      const img = Object.assign(document.createElement("img"), { src: e.miniatura, alt: "", loading: "lazy" });
+      boton.append(img,
+        Object.assign(document.createElement("strong"), { textContent: e.codigo || e.nombre }),
+        Object.assign(document.createElement("span"), { textContent: e.codigo ? e.nombre || e.serie : e.serie }),
+        Object.assign(document.createElement("small"), { className: "parecido", textContent: parecido(d) }));
+      boton.addEventListener("click", async () => {
+        await anadirEsmalte(e, boton);
+        boton.classList.add("anadido");
+      });
+      opciones.append(boton);
+    }
+    if (!mejores.length) opciones.append(Object.assign(document.createElement("p"), { textContent: "Ninguno en tus series: quita «Solo mis series»." }));
+    fila.append(muestra, opciones);
+    return fila;
+  }));
+}
+
+$("#paleta-mis-series").addEventListener("change", pintarSugerencias);
+$("#detalle-paleta").addEventListener("click", () => {
+  const blob = pinAbierto?.imagen;
+  $("#hoja-detalle").close();
+  if (blob) abrirPaleta(blob);
+});
+$("#btn-paleta-tablero").addEventListener("click", async () => {
+  $("#hoja-opciones").close();
+  avisar("Mirando los colores del tablero…");
+  const imagen = await imagenDelTablero({ sinCorcho: true }); // Color Thief no cuenta lo transparente
+  if (!imagen) return avisar("El tablero está vacío");
+  abrirPaleta(imagen);
+});
+
 // ---------- Detalle de una foto ----------
 
 let pinAbierto = null;
@@ -1003,6 +1130,7 @@ function abrirDetalle(id) {
   $("#detalle-nota").value = pinAbierto.nota;
   const esmalte = pinAbierto.esmalte;
   $("#detalle-esmalte").hidden = !esmalte;
+  $("#detalle-paleta").hidden = Boolean(esmalte); // la paleta tiene sentido en las fotos, no en las chapas
   if (esmalte) {
     $("#detalle-esmalte-nombre").textContent = nombreEsmalte(esmalte);
     $("#detalle-esmalte-serie").textContent = esmalte.serie;
