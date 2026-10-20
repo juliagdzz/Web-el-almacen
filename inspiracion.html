@@ -35,6 +35,7 @@
     <div class="barra-tablero">
       <a href="#/" class="volver" aria-label="Volver a mis tableros">←</a>
       <h1 id="nombre-tablero"></h1>
+      <button id="btn-compartir" class="icono" aria-label="Compartir tablero" title="Compartir tablero"><svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       <button id="btn-opciones" class="icono" aria-label="Opciones del tablero">⋯</button>
     </div>
     <p class="ayuda">Arrastra el corcho para moverte. Toca una foto para elegirla y arrástrala; el círculo de la esquina cambia su tamaño.</p>
@@ -120,12 +121,14 @@
   <dialog id="hoja-opciones" class="hoja">
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Opciones</h2>
+    <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir tablero</button>
     <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
     <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
   </dialog>
 
   <div id="aviso" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="compartir.js"></script>
   <script src="tablero.js"></script>
 </body>
 </html>

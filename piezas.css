@@ -111,14 +111,14 @@
 .fila-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0 0.75rem; }
 .con-unidad { display: flex; align-items: center; gap: 0.35rem; }
 
-.piezas button.secundario {
+.piezas button.secundario, dialog button.secundario {
   padding: 0.45rem 0.9rem;
   background: white;
   color: var(--verde);
   box-shadow: inset 0 0 0 2px var(--verde);
   font-size: 0.9rem;
 }
-.piezas button.secundario:hover { background: var(--verde); color: var(--crema); }
+.piezas button.secundario:hover, dialog button.secundario:hover { background: var(--verde); color: var(--crema); }
 .piezas button.peligro, .piezas button.peligro:hover {
   background: white;
   color: #a3261b;
@@ -337,3 +337,110 @@
   transition: opacity 0.2s;
 }
 .toast.visible { opacity: 1; }
+
+/* Ficha para ver: carrusel de fotos y detalles */
+.hoja-ver[open] { display: block; overflow-y: auto; padding-top: 0; }
+.hoja-ver .hoja-cierre { position: sticky; top: 0.5rem; z-index: 2; display: flex; justify-content: flex-end; height: 0; margin: 0; }
+.hoja-ver .hoja-cierre .icono { margin: 0.5rem 0.25rem 0 0; background: rgb(255 255 255 / 0.85); border-radius: 50%; box-shadow: 0 1px 3px rgb(0 0 0 / 0.2); }
+.carrusel { position: relative; margin: 0 -1rem; }
+.carrusel-pista {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  background: #2a1a1a;
+}
+.carrusel-pista::-webkit-scrollbar { display: none; }
+.carrusel-pista img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: min(60dvh, 28rem);
+  object-fit: contain;
+  scroll-snap-align: center;
+}
+.carrusel-vacio {
+  display: grid;
+  place-items: center;
+  height: 8rem;
+  margin: 0 -1rem;
+  background: #efd9ca;
+  font-size: 3rem;
+}
+.flecha {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.85);
+  color: var(--tinta);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.flecha:hover { background: white; }
+.flecha.anterior { left: 0.5rem; }
+.flecha.siguiente { right: 0.5rem; }
+.contador {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.55);
+  color: white;
+  font-size: 0.8rem;
+}
+
+.ficha-ver h2 { margin: 1rem 0 0; color: var(--granate); }
+.ficha-ver h3 { margin: 1.25rem 0 0.5rem; font-size: 1rem; color: var(--terracota-oscuro); }
+.subtitulo { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.25rem 0 0; color: var(--verde); }
+.valoracion { color: var(--terracota); letter-spacing: 2px; }
+.datos { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; margin: 1rem 0 0; }
+.datos dt { font-weight: 600; font-size: 0.85rem; color: var(--verde); }
+.datos dd { margin: 0; }
+.capas-ver { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; counter-reset: capa; }
+.capas-ver li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: white;
+  counter-increment: capa;
+}
+.capas-ver li::before {
+  content: counter(capa);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--terracota);
+  color: var(--crema);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.capas-ver div { display: grid; line-height: 1.35; min-width: 0; }
+.capas-ver small { font-size: 0.8rem; color: var(--verde); }
+.capas-ver .nota { color: var(--tinta); opacity: 0.8; font-style: italic; }
+.notas-ver { white-space: pre-line; margin: 0; }
+.hoja-ver .tabla-receta { margin-top: 1rem; }
+.acciones-ver {
+  position: sticky;
+  bottom: calc(-1.25rem - env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1.5rem -1rem calc(-1.25rem - env(safe-area-inset-bottom));
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--fondo);
+  box-shadow: 0 -1px 0 #e8d6c9;
+}
+.compartir { display: inline-flex; align-items: center; gap: 0.4rem; }
+.compartir span { display: inline-flex; }
+.hoja-ver .chips { gap: 0.4rem; }
+.hoja-ver .chip { padding: 0.15rem 0.75rem; background: white; color: var(--verde); font-size: 0.85rem; }

@@ -324,6 +324,133 @@ function nombreCapa(c) {
   return [c.codigo, c.nombre].filter(Boolean).join(" · ") || "Esmalte";
 }
 
+function muestraCapa(c) {
+  return c.origen === "prodesco" && c.miniatura
+    ? h("img", { class: "muestra", src: c.miniatura, alt: "" })
+    : h("span", { class: "muestra sin-foto" }, c.origen === "propio" ? "🧪" : "🎨");
+}
+
+// "2 capas · pincel · Paletina 20 mm · exterior"
+function detalleCapa(c) {
+  return [`${c.capas} ${c.capas === 1 ? "capa" : "capas"}`, c.aplicacion?.toLowerCase(), c.pincel, c.zona?.toLowerCase()]
+    .filter(Boolean).join(" · ");
+}
+
+// Proporciones de una receta sobre la base (sin los añadidos)
+function proporciones(r) {
+  const conCantidad = r.ingredientes.filter((i) => i.material && Number(i.cantidad) > 0);
+  const base = conCantidad.filter((i) => !i.anadido).reduce((s, i) => s + Number(i.cantidad), 0);
+  return {
+    base,
+    filas: base ? conCantidad.map((i) => ({ ...i, parte: Number(i.cantidad) / base })) : [],
+    peligro: conCantidad.some((i) => material(i.material)?.[2]),
+  };
+}
+
+// ---------- Fichas para ver, con carrusel de fotos y botón de compartir ----------
+
+function carrusel(fotos, icono) {
+  if (!fotos.length) return h("div", { class: "carrusel-vacio" }, icono);
+  const pista = h("div", { class: "carrusel-pista" },
+    fotos.map((foto, i) => h("img", { src: urlDe(foto), alt: `Foto ${i + 1} de ${fotos.length}` })));
+  const contador = h("span", { class: "contador" }, `1 / ${fotos.length}`);
+  const ir = (paso) => pista.scrollBy({ left: paso * pista.clientWidth, behavior: "smooth" });
+  pista.addEventListener("scroll", () => {
+    contador.textContent = `${Math.round(pista.scrollLeft / pista.clientWidth) + 1} / ${fotos.length}`;
+  }, { passive: true });
+  return h("div", { class: "carrusel" }, pista, fotos.length > 1 && [
+    h("button", { type: "button", class: "flecha anterior", "aria-label": "Foto anterior", onclick: () => ir(-1) }, "‹"),
+    h("button", { type: "button", class: "flecha siguiente", "aria-label": "Foto siguiente", onclick: () => ir(1) }, "›"),
+    contador,
+  ]);
+}
+
+const botonCerrar = () => h("form", { method: "dialog", class: "hoja-cierre" }, h("button", { class: "icono", "aria-label": "Cerrar" }, "✕"));
+const botonCompartir = (onclick) => h("button", { type: "button", class: "secundario compartir", onclick },
+  h("span", { innerHTML: ICONO_COMPARTIR }), "Compartir");
+
+function textoPieza(p) {
+  const coccion = [p.temperatura && `${p.temperatura} ºC`, p.atmosfera?.toLowerCase()].filter(Boolean).join(", ");
+  return [
+    `${p.nombre || "Pieza"}${p.fecha ? ` (${fecha(p.fecha)})` : ""}`,
+    p.pasta && `Pasta: ${p.pasta}`,
+    coccion && `Cocción: ${coccion}`,
+    p.capas.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? " (Prodesco)" : ""}: ${detalleCapa(c)}${c.nota ? `. ${c.nota}` : ""}`).join("\n")}`,
+    p.tecnicas.length && `Técnicas: ${p.tecnicas.join(", ")}`,
+    p.notas && `Notas: ${p.notas}`,
+    "Hecha en El Almacén",
+  ].filter(Boolean).join("\n\n");
+}
+
+function textoReceta(r) {
+  const { filas } = proporciones(r);
+  return [
+    r.nombre || "Receta de esmalte",
+    [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera?.toLowerCase()].filter(Boolean).join(" · "),
+    filas.length && filas.map((f) => `${f.anadido ? "+ " : ""}${f.material}: ${numero.format(f.parte * 100)} %`).join("\n"),
+    r.notas && `Notas: ${r.notas}`,
+    "Receta de El Almacén",
+  ].filter(Boolean).join("\n\n");
+}
+
+function abrirFicha(...contenido) {
+  const hoja = $("#hoja-ver");
+  hoja.replaceChildren(botonCerrar(), ...contenido.flat().filter((x) => x != null && x !== false));
+  hoja.showModal();
+  hoja.scrollTop = 0;
+}
+
+function verPieza(p) {
+  const coccion = [p.temperatura && `${p.temperatura} ºC`, p.atmosfera?.toLowerCase()].filter(Boolean).join(", ");
+  abrirFicha(
+    carrusel(p.fotos, "🏺"),
+    h("div", { class: "ficha-ver" },
+      h("h2", {}, p.nombre || "Pieza sin nombre"),
+      h("p", { class: "subtitulo" }, fecha(p.fecha),
+        p.valoracion > 0 && h("span", { class: "valoracion", "aria-label": `${p.valoracion} de 5` }, "★".repeat(p.valoracion) + "☆".repeat(5 - p.valoracion))),
+      (p.pasta || coccion) && h("dl", { class: "datos" },
+        p.pasta && [h("dt", {}, "Pasta"), h("dd", {}, p.pasta)],
+        coccion && [h("dt", {}, "Cocción"), h("dd", {}, coccion)]),
+      p.capas.length > 0 && [
+        h("h3", {}, "Esmaltes y capas"),
+        h("ol", { class: "capas-ver" }, p.capas.map((c) => h("li", {},
+          muestraCapa(c),
+          h("div", {},
+            h("strong", {}, nombreCapa(c)),
+            h("small", {}, detalleCapa(c)),
+            c.nota && h("small", { class: "nota" }, c.nota))))),
+      ],
+      p.tecnicas.length > 0 && [h("h3", {}, "Técnicas"), h("div", { class: "chips" }, p.tecnicas.map((t) => h("span", { class: "chip" }, t)))],
+      p.notas && [h("h3", {}, "Notas"), h("p", { class: "notas-ver" }, p.notas)]),
+    h("div", { class: "acciones-ver" },
+      botonCompartir(() => compartir({ titulo: p.nombre || "Pieza", texto: textoPieza(p), imagenes: p.fotos, avisar })),
+      h("a", { href: `#/pieza/${p.id}`, class: "boton" }, "Editar")),
+  );
+}
+
+function verReceta(r, piezas) {
+  const { filas, peligro } = proporciones(r);
+  const usadaEn = piezas.filter((p) => p.capas.some((c) => c.receta === r.id));
+  abrirFicha(
+    carrusel(r.fotos, "🧪"),
+    h("div", { class: "ficha-ver" },
+      h("h2", {}, r.nombre || "Receta sin nombre"),
+      h("p", { class: "subtitulo" }, [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera].filter(Boolean).join(" · ")),
+      filas.length > 0 && h("table", { class: "tabla-receta" },
+        h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", {}, "%"))),
+        h("tbody", {}, filas.map((f) => h("tr", { class: f.anadido ? "anadido" : "" },
+          h("td", {}, f.material, material(f.material)?.[2] && " ⚠"),
+          h("td", {}, `${f.anadido ? "+" : ""}${numero.format(f.parte * 100)}`))))),
+      peligro && h("p", { class: "aviso-peligro" }, "⚠ Lleva materiales tóxicos: guantes y mascarilla FFP2."),
+      r.notas && [h("h3", {}, "Notas"), h("p", { class: "notas-ver" }, r.notas)],
+      usadaEn.length > 0 && [h("h3", {}, "Piezas con este esmalte"),
+        h("ul", { class: "usada-en" }, usadaEn.map((p) => h("li", {}, h("a", { href: "#/", onclick: (e) => { e.preventDefault(); verPieza(p); } }, p.nombre || "Pieza sin nombre"))))]),
+    h("div", { class: "acciones-ver" },
+      botonCompartir(() => compartir({ titulo: r.nombre || "Receta", texto: textoReceta(r), imagenes: r.fotos, avisar })),
+      h("a", { href: `#/esmalte/${r.id}`, class: "boton" }, "Editar")),
+  );
+}
+
 async function vistaPiezas() {
   const piezas = (await datos.todos("piezas")).sort((a, b) => (b.fecha ?? "").localeCompare(a.fecha ?? "") || b.modificado - a.modificado);
   pintar(
@@ -333,7 +460,7 @@ async function vistaPiezas() {
     h("a", { href: "#/pieza/nueva", class: "boton nueva" }, "＋ Nueva pieza"),
     piezas.length
       ? h("div", { class: "tarjetas-piezas" }, piezas.map((p) =>
-          h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza" },
+          h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verPieza(p); } },
             p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🏺"),
             h("span", { class: "info" },
               h("strong", {}, p.nombre || "Pieza sin nombre"),
@@ -355,7 +482,7 @@ async function vistaRecetas() {
     h("a", { href: "#/esmalte/nuevo", class: "boton nueva" }, "＋ Nueva receta"),
     recetas.length
       ? h("div", { class: "tarjetas-piezas" }, recetas.map((r) =>
-          h("a", { href: `#/esmalte/${r.id}`, class: "tarjeta-pieza" },
+          h("a", { href: `#/esmalte/${r.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verReceta(r, piezas); } },
             r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
             h("span", { class: "info" },
               h("strong", {}, r.nombre || "Receta sin nombre"),
@@ -402,9 +529,7 @@ async function vistaPieza(id) {
       guardar();
       pintarCapas();
     };
-    const muestra = c.origen === "prodesco" && c.miniatura
-      ? h("img", { class: "muestra", src: c.miniatura, alt: "" })
-      : h("span", { class: "muestra sin-foto" }, c.origen === "propio" ? "🧪" : "🎨");
+    const muestra = muestraCapa(c);
     const titulo = c.origen === "otro"
       ? h("input", { type: "text", value: c.nombre, placeholder: "Nombre del esmalte", "aria-label": "Nombre del esmalte", oninput: cambia("nombre") })
       : h("strong", {}, nombreCapa(c), c.origen === "propio" && h("a", { href: `#/esmalte/${c.receta}`, class: "ver" }, " ver receta"));
@@ -546,8 +671,7 @@ async function vistaReceta(id) {
 
   // Proporciones sobre la base (sin los añadidos) y cuánto pesar para un lote
   function pintarCalculo() {
-    const conCantidad = r.ingredientes.filter((i) => i.material && Number(i.cantidad) > 0);
-    const base = conCantidad.filter((i) => !i.anadido).reduce((s, i) => s + Number(i.cantidad), 0);
+    const { base, filas, peligro } = proporciones(r);
     if (!base) {
       calculo.replaceChildren(h("p", { class: "ayuda" }, "Escribe materiales y cantidades para ver las proporciones."));
       return;
@@ -562,14 +686,11 @@ async function vistaReceta(id) {
         ` ${unidadLote === "g" ? "g" : unidadLote} de base`),
       h("table", { class: "tabla-receta" },
         h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", {}, "%"), h("th", {}, unidadLote === "g" ? "g" : unidadLote))),
-        h("tbody", {}, conCantidad.map((i) => {
-          const parte = Number(i.cantidad) / base;
-          return h("tr", { class: i.anadido ? "anadido" : "" },
-            h("td", {}, i.material),
-            h("td", {}, `${i.anadido ? "+" : ""}${numero.format(parte * 100)}`),
-            h("td", {}, numero.format(parte * (Number(r.lote) || 0))));
-        }))),
-      conCantidad.some((i) => material(i.material)?.[2]) &&
+        h("tbody", {}, filas.map((f) => h("tr", { class: f.anadido ? "anadido" : "" },
+          h("td", {}, f.material),
+          h("td", {}, `${f.anadido ? "+" : ""}${numero.format(f.parte * 100)}`),
+          h("td", {}, numero.format(f.parte * (Number(r.lote) || 0))))))),
+      peligro &&
         h("p", { class: "aviso-peligro" }, "⚠ Esta receta lleva materiales tóxicos: pésalos con guantes y mascarilla FFP2, y no la uses en piezas para comida sin hacer pruebas."));
   }
   pintarIngredientes();

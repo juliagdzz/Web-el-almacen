@@ -448,6 +448,171 @@ async function crearTablero() {
 
 $("#btn-opciones").addEventListener("click", () => $("#hoja-opciones").showModal());
 
+// ---------- Compartir el tablero como una imagen de la composición ----------
+
+const COLORES_CHINCHETA = { oliva: ["#d9d78f", "#9b9a3a", "#3f4c1b"], oxido: ["#e9896b", "#b85a2b", "#6e2e17"] };
+
+function sombra(ctx, activar) {
+  ctx.shadowColor = activar ? "rgb(40 20 0 / 0.35)" : "transparent";
+  ctx.shadowBlur = activar ? 8 : 0;
+  ctx.shadowOffsetY = activar ? 4 : 0;
+}
+
+function capsula(ctx, x, y, ancho, alto) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, ancho, alto, alto / 2);
+  else ctx.rect(x, y, ancho, alto);
+}
+
+// Texto en varias líneas dentro de un ancho, como mucho «maximo» líneas
+function textoEnLineas(ctx, texto, x, y, ancho, alto, maximo) {
+  const lineas = [];
+  let actual = "";
+  for (const palabra of texto.split(/\s+/)) {
+    const prueba = actual ? `${actual} ${palabra}` : palabra;
+    if (ctx.measureText(prueba).width > ancho && actual) {
+      lineas.push(actual);
+      actual = palabra;
+    } else actual = prueba;
+  }
+  if (actual) lineas.push(actual);
+  if (lineas.length > maximo) lineas.splice(maximo - 1, Infinity, lineas.slice(maximo - 1).join(" ").slice(0, 40) + "…");
+  lineas.forEach((l, i) => ctx.fillText(l, x, y + i * alto));
+}
+
+// Dibuja una foto o chapa tal y como está en el corcho (posición, tamaño y giro)
+function dibujarPin(ctx, el) {
+  const x = el.offsetLeft;
+  const y = el.offsetTop;
+  const ancho = el.offsetWidth;
+  const alto = el.offsetHeight;
+  ctx.save();
+  if (el.classList.contains("chapa")) {
+    const muestra = el.querySelector(".muestra");
+    const d = muestra.offsetWidth;
+    const cx = x + muestra.offsetLeft + d / 2;
+    const cy = y + muestra.offsetTop + d / 2;
+    sombra(ctx, true);
+    ctx.beginPath();
+    ctx.arc(cx, cy, d / 2, 0, Math.PI * 2);
+    ctx.fillStyle = "#fffdf7";
+    ctx.fill();
+    sombra(ctx, false);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, d / 2 - 3, 0, Math.PI * 2);
+    ctx.clip();
+    const lado = (d - 6) * 1.25; // igual que el recorte de la chapa en pantalla
+    ctx.drawImage(muestra.querySelector("img"), cx - lado / 2, cy - lado / 2, lado, lado);
+    ctx.restore();
+    const etiqueta = el.querySelector(".etiqueta");
+    ctx.font = "600 11px 'DM Sans', sans-serif";
+    const anchoEtiqueta = ctx.measureText(etiqueta.textContent).width + 16;
+    const ey = y + etiqueta.offsetTop;
+    ctx.fillStyle = "#f3e9d8";
+    capsula(ctx, cx - anchoEtiqueta / 2, ey, anchoEtiqueta, 18);
+    ctx.fill();
+    ctx.fillStyle = "#2a1a1a";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(etiqueta.textContent, cx, ey + 9.5);
+  } else {
+    ctx.translate(x + ancho / 2, y + alto / 2);
+    ctx.rotate(((parseFloat(el.style.getPropertyValue("--giro")) || 0) * Math.PI) / 180);
+    ctx.translate(-ancho / 2, -alto / 2);
+    sombra(ctx, true);
+    ctx.fillStyle = "#fffdf7";
+    ctx.fillRect(0, 0, ancho, alto);
+    sombra(ctx, false);
+    const img = el.querySelector("img");
+    ctx.drawImage(img, img.offsetLeft, img.offsetTop, img.offsetWidth, img.offsetHeight);
+    const nota = el.querySelector(".nota");
+    if (nota) {
+      ctx.font = "12.5px 'DM Sans', sans-serif";
+      ctx.fillStyle = "#2a1a1a";
+      ctx.textBaseline = "top";
+      textoEnLineas(ctx, nota.textContent, nota.offsetLeft, nota.offsetTop, nota.offsetWidth, 16, 3);
+    }
+    const [claro, medio, oscuro] = COLORES_CHINCHETA[el.classList.contains("oliva") ? "oliva" : "oxido"];
+    const brillo = ctx.createRadialGradient(ancho / 2 - 2, 0, 1, ancho / 2, 2, 7);
+    brillo.addColorStop(0, claro);
+    brillo.addColorStop(0.6, medio);
+    brillo.addColorStop(1, oscuro);
+    sombra(ctx, true);
+    ctx.beginPath();
+    ctx.arc(ancho / 2, 2, 7, 0, Math.PI * 2);
+    ctx.fillStyle = brillo;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+async function imagenDelTablero() {
+  const pins = [...corcho.querySelectorAll(".pin")].sort((a, b) => a.style.zIndex - b.style.zIndex);
+  if (!pins.length) return null;
+  deseleccionar();
+  // Que todas las fotos estén cargadas antes de dibujarlas
+  await Promise.all(pins.flatMap((el) => [...el.querySelectorAll("img")]).map((img) => img.decode().catch(() => {})));
+  await document.fonts?.ready;
+
+  const MARGEN = 32;
+  const PIE = 40;
+  const izquierda = Math.min(...pins.map((el) => el.offsetLeft));
+  const arriba = Math.min(...pins.map((el) => el.offsetTop));
+  const derecha = Math.max(...pins.map((el) => el.offsetLeft + el.offsetWidth));
+  const abajo = Math.max(...pins.map((el) => el.offsetTop + el.offsetHeight + (el.classList.contains("chapa") ? 6 : 0)));
+  const ancho = derecha - izquierda + 2 * MARGEN;
+  const alto = abajo - arriba + 2 * MARGEN + PIE;
+  const escala = Math.min(2.5, 3200 / Math.max(ancho, alto)); // nítida pero sin pasarse de tamaño
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(ancho * escala);
+  canvas.height = Math.round(alto * escala);
+  const ctx = canvas.getContext("2d");
+  ctx.scale(escala, escala);
+
+  // Corcho, con los mismos puntitos que en pantalla
+  ctx.fillStyle = "#c49a64";
+  ctx.fillRect(0, 0, ancho, alto);
+  for (const [paso, desfaseX, desfaseY, color] of [[7, 0, 0, "rgb(90 55 20 / 0.25)"], [11, 3, 5, "rgb(255 240 210 / 0.25)"]]) {
+    ctx.fillStyle = color;
+    for (let py = desfaseY; py < alto; py += paso) {
+      for (let px = desfaseX; px < ancho; px += paso) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+    }
+  }
+
+  ctx.save();
+  ctx.translate(MARGEN - izquierda, MARGEN - arriba);
+  for (const el of pins) dibujarPin(ctx, el);
+  ctx.restore();
+
+  // Pie con el nombre del tablero
+  ctx.fillStyle = "rgb(255 253 247 / 0.92)";
+  ctx.fillRect(0, alto - PIE, ancho, PIE);
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#551c25";
+  ctx.font = "700 17px 'Fraunces', serif";
+  ctx.fillText(tableroActual.nombre, 14, alto - PIE / 2);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#4a5a23";
+  ctx.font = "13px 'DM Sans', sans-serif";
+  ctx.fillText("El Almacén", ancho - 14, alto - PIE / 2);
+
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+}
+
+async function compartirTablero() {
+  $("#hoja-opciones").open && $("#hoja-opciones").close();
+  avisar("Preparando la imagen…");
+  const imagen = await imagenDelTablero();
+  if (!imagen) return avisar("El tablero está vacío");
+  await compartir({ titulo: tableroActual.nombre, texto: `Mi tablero «${tableroActual.nombre}» · El Almacén`, imagenes: [imagen], avisar });
+}
+
+$("#btn-compartir").addEventListener("click", compartirTablero);
+$("#btn-compartir-opciones").addEventListener("click", compartirTablero);
+
 $("#btn-renombrar").addEventListener("click", async () => {
   const nombre = prompt("Nuevo nombre", tableroActual.nombre)?.trim();
   $("#hoja-opciones").close();
