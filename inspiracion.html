@@ -35,21 +35,24 @@
       <h1 id="nombre-tablero"></h1>
       <button id="btn-opciones" class="icono" aria-label="Opciones del tablero">⋯</button>
     </div>
-    <p class="ayuda">Toca una foto para elegirla, arrástrala para moverla y usa el círculo de la esquina para cambiar su tamaño.</p>
-    <div class="marco">
+    <p class="ayuda">Arrastra el corcho para moverte. Toca una foto para elegirla y arrástrala; el círculo de la esquina cambia su tamaño.</p>
+    <div id="corcho-vista" class="corcho-vista">
       <div id="corcho" class="corcho"></div>
-      <img class="planta" src="planta.svg" alt="" aria-hidden="true">
     </div>
     <p id="corcho-vacio" class="corcho-vacio" hidden>
-      Tu corcho está vacío.<br>Pulsa <strong>+</strong> para añadir fotos de piezas, esmaltes o ideas.
+      Tu corcho está vacío.<br>Añade fotos de piezas o ideas con <span class="mini mini-foto"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4.5 17.5l5-5 3.5 3.5 2.5-2.5 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></span>
+      y muestras de esmalte con <span class="mini mini-esmalte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c-.4 0-.7.2-.9.5C9.6 6 6.5 10.4 6.5 14a5.5 5.5 0 0 0 11 0c0-3.6-3.1-8-4.6-10.3-.2-.3-.5-.5-.9-.5z" fill="currentColor"/><path class="brillo" d="M9.6 14.6a2.6 2.6 0 0 0 2.2 2.4" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></span>
     </p>
-    <button id="btn-anadir" class="fab" aria-label="Añadir foto">+</button>
+    <div class="botones-anadir">
+      <button id="btn-esmaltes" class="fab fab-esmalte" type="button" aria-label="Añadir esmalte de Prodesco" title="Añadir esmalte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c-.4 0-.7.2-.9.5C9.6 6 6.5 10.4 6.5 14a5.5 5.5 0 0 0 11 0c0-3.6-3.1-8-4.6-10.3-.2-.3-.5-.5-.9-.5z" fill="currentColor"/><path class="brillo" d="M9.6 14.6a2.6 2.6 0 0 0 2.2 2.4" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <button id="btn-anadir" class="fab" type="button" aria-label="Añadir foto" title="Añadir foto"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4.5 17.5l5-5 3.5 3.5 2.5-2.5 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+    </div>
   </main>
 
   <!-- Hoja para añadir fotos -->
   <dialog id="hoja-anadir" class="hoja">
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
-    <h2>Añadir al corcho</h2>
+    <h2>Añadir una foto</h2>
 
     <label class="opcion">
       <span>📷 Hacer foto</span>
@@ -62,8 +65,6 @@
     </label>
 
     <button id="btn-pegar" class="opcion" type="button">📋 Pegar imagen copiada</button>
-
-    <button id="btn-esmaltes" class="opcion" type="button">🎨 Esmalte de Prodesco</button>
 
     <form id="form-enlace" class="form-enlace">
       <label for="input-enlace">📌 Enlace de Pinterest</label>

@@ -144,6 +144,7 @@ async function mostrarLista() {
     lista.append(tarjeta);
   }
 
+  document.body.classList.remove("en-tablero");
   $("#vista-tablero").hidden = true;
   $("#vista-lista").hidden = false;
 }
@@ -166,9 +167,15 @@ async function mostrarTablero(id) {
   corcho.replaceChildren(...pins.map(crearPin));
   $("#corcho-vacio").hidden = pins.length > 0;
 
+  const cambiaDeTablero = vista.dataset.tablero !== id;
+  vista.dataset.tablero = id;
+  document.body.classList.add("en-tablero");
   $("#vista-lista").hidden = true;
   $("#vista-tablero").hidden = false;
+  medir();
   ajustarAlto();
+  // Al abrir un tablero se empieza mirando la pantalla del centro
+  if (cambiaDeTablero) vista.scrollTo(unidad, 0);
 }
 
 function crearPin(p) {
@@ -231,16 +238,33 @@ function enrutar() {
 }
 
 // ---------- Composición: mover y cambiar de tamaño ----------
-// x, y y ancho se guardan como fracción del ancho del corcho,
-// así la composición se ve igual en el móvil y en el ordenador.
+// x, y y ancho se guardan en «pantallas» (unidad = ancho de lo que se ve,
+// hasta 760 px), así la composición se ve igual en el móvil y en el ordenador.
+// El corcho mide tres pantallas de ancho: x va de -1 (izquierda) a 2 (derecha)
+// y las composiciones de antes, entre 0 y 1, quedan en la del centro.
 
 const ANCHO_INICIAL = 0.42;
 const ANCHO_MINIMO = 0.15;
 const corcho = $("#corcho");
+const vista = $("#corcho-vista");
+const UNIDAD_MAXIMA = 760;
+let unidad = 1;
 let pinsActuales = new Map();
 let seleccionado = null; // la foto con el marco oliva
 let gesto = null;        // el arrastre en curso
+let panoramica = null;   // desplazar el corcho con el ratón
 let zMaximo = 0;
+
+function medir() {
+  const anterior = unidad;
+  unidad = Math.min(vista.clientWidth, UNIDAD_MAXIMA) || 1;
+  corcho.style.setProperty("--u", unidad + "px");
+  corcho.style.width = Math.max(3 * unidad, vista.clientWidth) + "px";
+  if (anterior > 1 && anterior !== unidad) {
+    vista.scrollLeft *= unidad / anterior;
+    vista.scrollTop *= unidad / anterior;
+  }
+}
 
 function colocar(el, p) {
   el.style.setProperty("--x", p.x);
@@ -271,7 +295,7 @@ async function colocarSinPosicion(pins) {
 function ajustarAlto(soloCrecer = false) {
   let fondo = 0;
   for (const el of corcho.children) fondo = Math.max(fondo, el.offsetTop + el.offsetHeight);
-  const alto = Math.max(fondo + innerHeight * 0.4, innerHeight * 0.7);
+  const alto = Math.max(fondo + vista.clientHeight * 0.6, vista.clientHeight);
   if (soloCrecer && alto < corcho.offsetHeight) return;
   corcho.style.height = alto + "px";
 }
@@ -308,7 +332,16 @@ function terminarGesto() {
 
 corcho.addEventListener("pointerdown", (e) => {
   const el = e.target.closest(".pin");
-  if (!el) return deseleccionar();
+  if (!el) {
+    deseleccionar();
+    // Con el ratón, arrastrar el corcho vacío lo desplaza (con el dedo ya lo hace el navegador)
+    if (e.pointerType === "mouse" && e.button === 0) {
+      panoramica = { x: e.clientX, y: e.clientY, izquierda: vista.scrollLeft, arriba: vista.scrollTop };
+      corcho.classList.add("panoramica");
+      corcho.setPointerCapture(e.pointerId);
+    }
+    return;
+  }
   if (e.target.closest(".editar") || e.button > 0) return;
   const p = pinsActuales.get(el.dataset.id);
   gesto = {
@@ -332,6 +365,11 @@ corcho.addEventListener("pointerdown", (e) => {
 });
 
 corcho.addEventListener("pointermove", (e) => {
+  if (panoramica) {
+    vista.scrollLeft = panoramica.izquierda - (e.clientX - panoramica.x);
+    vista.scrollTop = panoramica.arriba - (e.clientY - panoramica.y);
+    return;
+  }
   if (!gesto) return;
   const dx = e.clientX - gesto.inicioX;
   const dy = e.clientY - gesto.inicioY;
@@ -340,19 +378,24 @@ corcho.addEventListener("pointermove", (e) => {
     if (!gesto.directo) return terminarGesto(); // se estaba desplazando por la página
     empezarArrastre();
   }
-  const ancho = corcho.clientWidth;
   const p = gesto.p;
   if (gesto.tipo === "mover") {
-    p.x = limitar(gesto.x0 + dx / ancho, 0, 1 - p.ancho);
-    p.y = Math.max(0, gesto.y0 + dy / ancho);
+    p.x = limitar(gesto.x0 + dx / unidad, -1, 2 - p.ancho);
+    p.y = Math.max(0, gesto.y0 + dy / unidad);
   } else {
-    p.ancho = limitar(gesto.ancho0 + dx / ancho, ANCHO_MINIMO, 1 - p.x);
+    p.ancho = limitar(gesto.ancho0 + dx / unidad, ANCHO_MINIMO, Math.min(1, 2 - p.x));
   }
   colocar(gesto.el, p);
   ajustarAlto(true);
 });
 
+function terminarPanoramica() {
+  panoramica = null;
+  corcho.classList.remove("panoramica");
+}
+
 corcho.addEventListener("pointerup", async () => {
+  if (panoramica) return terminarPanoramica();
   if (!gesto) return;
   const { activo, estabaSeleccionada, el, p } = gesto;
   terminarGesto();
@@ -367,6 +410,7 @@ corcho.addEventListener("pointerup", async () => {
 });
 
 corcho.addEventListener("pointercancel", () => {
+  if (panoramica) return terminarPanoramica();
   if (!gesto) return;
   if (gesto.activo) db.guardarPin(gesto.p);
   terminarGesto();
@@ -374,20 +418,21 @@ corcho.addEventListener("pointercancel", () => {
 
 // Tocar fuera del corcho también suelta la foto elegida
 document.addEventListener("pointerdown", (e) => {
-  if (!corcho.contains(e.target) && !e.target.closest("dialog")) deseleccionar();
+  if (!vista.contains(e.target) && !e.target.closest("dialog")) deseleccionar();
 });
 
 // Mientras se arrastra, que el dedo no desplace la página
 corcho.addEventListener("touchmove", (e) => gesto?.activo && e.preventDefault(), { passive: false });
 corcho.addEventListener("contextmenu", (e) => e.target.closest(".pin") && e.preventDefault());
 
-// Al girar el móvil cambia el ancho y, con él, el alto de las fotos
+// Al girar el móvil cambia el ancho de la pantalla y, con él, el tamaño de las fotos
 let anchoAnterior = 0;
 new ResizeObserver(() => {
-  if (!tableroActual || corcho.clientWidth === anchoAnterior) return;
-  anchoAnterior = corcho.clientWidth;
+  if (!tableroActual || vista.clientWidth === anchoAnterior) return;
+  anchoAnterior = vista.clientWidth;
+  medir();
   ajustarAlto();
-}).observe(corcho);
+}).observe(vista);
 
 // ---------- Tableros ----------
 
@@ -424,11 +469,11 @@ async function anadirImagenes(blobs, extra = {}) {
   if (!tableroActual) return;
   corcho.classList.add("cargando");
   // Una foto sola aparece en el centro de lo que se ve del corcho;
-  // varias, repartidas en dos columnas desde arriba de lo que se ve
-  const caja = corcho.getBoundingClientRect();
-  const ancho = caja.width || 1;
-  const arriba = Math.max(0, -caja.top) / ancho + 0.04;
-  const centro = ((Math.max(caja.top, 0) + Math.min(caja.bottom, innerHeight)) / 2 - caja.top) / ancho;
+  // varias, repartidas en dos columnas desde la esquina de arriba de lo que se ve
+  const izquierda = vista.scrollLeft / unidad - 1;
+  const arriba = vista.scrollTop / unidad + 0.04;
+  const centroX = izquierda + vista.clientWidth / unidad / 2;
+  const centroY = (vista.scrollTop + vista.clientHeight / 2) / unidad;
   const alturas = [arriba, arriba];
   let anadidas = 0;
   let ultima = null;
@@ -438,17 +483,17 @@ async function anadirImagenes(blobs, extra = {}) {
         const { imagen, proporcion } = await prepararImagen(blob);
         const anchoPin = extra.ancho ?? ANCHO_INICIAL;
         const alto = anchoPin * proporcion;
-        let x = 0.5 - anchoPin / 2;
-        let y = Math.max(0.03, centro - alto / 2);
+        let x = limitar(centroX - anchoPin / 2, -1, 2 - anchoPin);
+        let y = Math.max(0.03, centroY - alto / 2);
         // Si ya hay algo en ese mismo sitio, la nueva se desplaza en diagonal
         const ocupado = (x, y) => [...pinsActuales.values()].some((p) => Math.abs(p.x - x) < 0.01 && Math.abs(p.y - y) < 0.01);
         for (let paso = 0; paso < 8 && ocupado(x, y); paso++) {
-          x = limitar(x + 0.06, 0, 1 - anchoPin);
+          x = limitar(x + 0.06, -1, 2 - anchoPin);
           y += 0.06;
         }
         if (blobs.length > 1) {
           const col = alturas[0] <= alturas[1] ? 0 : 1;
-          x = col === 0 ? 0.05 : 0.53;
+          x = izquierda + (col === 0 ? 0.05 : 0.53);
           y = alturas[col];
           alturas[col] += alto + 0.1;
         }
@@ -719,7 +764,6 @@ async function anadirEsmalte(e, boton) {
 }
 
 $("#btn-esmaltes").addEventListener("click", () => {
-  $("#hoja-anadir").close();
   $("#hoja-esmaltes").showModal();
   mostrarEsmaltes();
 });

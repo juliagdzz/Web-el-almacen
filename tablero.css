@@ -71,14 +71,27 @@
 
 /* ---------- El corcho ---------- */
 
-.vista-corcho { position: relative; }
+/* En el tablero la página no se desplaza: se desplaza el corcho */
+body.en-tablero {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.vista-corcho {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
 
 .barra-tablero {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  max-width: 780px;
-  margin: 0 auto 0.5rem;
+  margin: 0 0 0.5rem;
 }
 .barra-tablero h1 {
   flex: 1;
@@ -104,54 +117,40 @@
   cursor: pointer;
 }
 .ayuda {
-  max-width: 780px;
-  margin: 0 auto 0.75rem;
+  margin: 0 0 0.75rem;
   font-size: 0.85rem;
   color: var(--t-oliva);
 }
 
-/* Tablero de corcho con marco de madera pintada de oliva */
-.marco {
-  position: relative;
-  max-width: 760px;
-  margin: 0 auto;
+/* Corcho continuo: tres pantallas de ancho y crece hacia abajo */
+.corcho-vista {
+  flex: 1;
+  min-height: 0;
+  margin: 0 -1rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #c49a64;
 }
 .corcho {
   position: relative;
-  container-type: inline-size; /* las fotos se miden en cqw, % del ancho del corcho */
-  isolation: isolate; /* el orden de las fotos no tapa el botón + ni las hojas */
-  border: 10px solid;
-  border-color: #5f6f2f #3f4c1b #36421a #56662a;
-  border-radius: 4px;
+  isolation: isolate; /* el orden de las fotos no tapa los botones ni las hojas */
+  min-height: 100%;
   background-color: #c49a64;
   background-image:
     radial-gradient(rgb(90 55 20 / 0.25) 1px, transparent 1.5px),
     radial-gradient(rgb(255 240 210 / 0.25) 1px, transparent 1.5px);
   background-size: 7px 7px, 11px 11px;
   background-position: 0 0, 3px 5px;
-  box-shadow:
-    inset 0 2px 10px rgb(40 20 0 / 0.45),
-    0 1px 0 1px rgb(0 0 0 / 0.15),
-    0 10px 24px rgb(40 30 10 / 0.3);
+  box-shadow: inset 0 6px 8px -6px rgb(40 20 0 / 0.4);
+  cursor: grab;
 }
-
-/* Maranta colgando por el lateral del marco: solo decora */
-.planta {
-  position: absolute;
-  top: -19px;
-  left: -15px;
-  width: 66px;
-  height: auto;
-  z-index: 1;
-  pointer-events: none;
-  filter: drop-shadow(1px 3px 2px rgb(30 20 0 / 0.3));
-}
+.corcho.panoramica { cursor: grabbing; }
 
 .pin {
   position: absolute;
-  left: calc(var(--x) * 100cqw);
-  top: calc(var(--y) * 100cqw);
-  width: calc(var(--w) * 100cqw);
+  left: calc((var(--x) + 1) * var(--u));
+  top: calc(var(--y) * var(--u));
+  width: calc(var(--w) * var(--u));
   box-sizing: border-box;
   padding: 6px 6px 10px;
   background: #fffdf7;
@@ -387,7 +386,7 @@
 
 .corcho-vacio {
   position: absolute;
-  top: 12rem;
+  top: 14rem;
   left: 50%;
   transform: translateX(-50%);
   width: min(22rem, calc(100% - 4rem));
@@ -403,22 +402,45 @@
   .lista-tableros { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 }
 
-.fab {
+/* Botones de añadir: foto (oliva) y esmalte (óxido) */
+.botones-anadir {
   position: fixed;
   right: 1.25rem;
   bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 5;
+}
+.fab {
+  display: grid;
+  place-items: center;
   width: 3.75rem;
   height: 3.75rem;
-  border: 0;
+  padding: 0;
+  border: 3px solid #fffdf7;
   border-radius: 50%;
   background: var(--t-oliva);
   color: var(--t-crema);
-  font-size: 2rem;
-  line-height: 1;
   box-shadow: 0 4px 10px rgb(0 0 0 / 0.3);
   cursor: pointer;
-  z-index: 5;
 }
+.fab svg { width: 1.9rem; height: 1.9rem; }
+.fab-esmalte { background: var(--t-oxido); }
+.fab-esmalte .brillo { stroke: var(--t-oxido); }
+.mini {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  vertical-align: middle;
+  color: var(--t-crema);
+  background: var(--t-oliva);
+}
+.mini svg { width: 1rem; height: 1rem; }
+.mini-esmalte { background: var(--t-oxido); }
+.mini-esmalte .brillo { stroke: var(--t-oxido); }
 
 /* ---------- Hojas inferiores ---------- */
 
@@ -535,6 +557,7 @@
 .pagina-tableros .tarjeta-nuevo:hover { background: transparent; }
 .pagina-tableros .fila button:hover,
 .pagina-tableros .acciones button:hover,
-.pagina-tableros .fab:hover,
 .pagina-tableros .pin .editar:hover { background: var(--t-oliva); }
 .pagina-tableros .acciones .peligro:hover { background: white; }
+.pagina-tableros .fab:hover { background: var(--t-oliva); }
+.pagina-tableros .fab-esmalte:hover { background: var(--t-oxido); }
