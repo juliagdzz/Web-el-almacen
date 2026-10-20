@@ -1,0 +1,339 @@
+/* Piezas terminadas y recetas propias */
+
+.piezas [hidden], dialog [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .contenedor.piezas { padding: 1rem 1rem 3rem; }
+}
+.piezas h1 { margin: 0.25rem 0 0.5rem; }
+.aviso { font-size: 0.85rem; opacity: 0.75; }
+.ayuda { font-size: 0.85rem; color: var(--verde); margin: 0 0 0.75rem; }
+.vacio { text-align: center; padding: 2rem 1rem; opacity: 0.7; }
+
+/* Pestañas Piezas / Mis esmaltes */
+.pestanas {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.pestanas a {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--verde) !important;
+  text-decoration: none;
+}
+.pestanas a.activa { background: var(--verde); color: var(--crema) !important; }
+
+.boton.nueva { margin: 0.25rem 0 1rem; }
+
+/* Tarjetas de la lista */
+.tarjetas-piezas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+.tarjeta-pieza {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 14px;
+  border-bottom: 4px solid var(--verde-claro);
+  background: white;
+  color: inherit !important;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.tarjeta-pieza > img, .tarjeta-pieza > .sin-foto {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+.sin-foto {
+  display: grid;
+  place-items: center;
+  background: #efd9ca;
+  font-size: 2.5rem;
+}
+.tarjeta-pieza .info { display: grid; gap: 0.15rem; padding: 0.5rem 0.75rem 0.75rem; }
+.tarjeta-pieza strong { line-height: 1.3; }
+.tarjeta-pieza small { font-size: 0.78rem; color: var(--verde); line-height: 1.3; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+.chip {
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  font-size: 0.7rem;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Ficha */
+.barra-ficha { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+.barra-ficha .volver { color: var(--verde) !important; text-decoration: none; font-weight: 500; }
+.estado-guardado { color: var(--verde); opacity: 0.8; }
+
+.bloque {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.bloque h2 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+.bloque h2::after { display: none; }
+.bloque h3 { margin: 1rem 0 0.25rem; font-size: 1rem; color: var(--terracota-oscuro); }
+
+.campo { display: grid; gap: 0.25rem; margin-bottom: 0.75rem; }
+.campo small { font-size: 0.75rem; opacity: 0.7; }
+.etiqueta { display: block; font-size: 0.85rem; font-weight: 500; }
+.piezas input[type="text"], .piezas input[type="number"], .piezas input[type="date"],
+.piezas select, .piezas textarea, dialog input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #d6c7bd;
+  border-radius: 8px;
+  background: white;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 1rem; /* 16px: sin zoom automático en iPhone */
+}
+.piezas textarea { resize: vertical; }
+.fila-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0 0.75rem; }
+.con-unidad { display: flex; align-items: center; gap: 0.35rem; }
+
+.piezas button.secundario {
+  padding: 0.45rem 0.9rem;
+  background: white;
+  color: var(--verde);
+  box-shadow: inset 0 0 0 2px var(--verde);
+  font-size: 0.9rem;
+}
+.piezas button.secundario:hover { background: var(--verde); color: var(--crema); }
+.piezas button.peligro, .piezas button.peligro:hover {
+  background: white;
+  color: #a3261b;
+  box-shadow: inset 0 0 0 2px #a3261b;
+}
+
+/* Fotos */
+.fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 0.5rem; margin: 0.25rem 0 0.75rem; }
+.foto { position: relative; margin: 0; aspect-ratio: 1; }
+.foto img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.foto .quitar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: white;
+  font-size: 0.8rem;
+}
+.anadir-foto {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  aspect-ratio: 1;
+  border: 2px dashed var(--verde-claro);
+  border-radius: 8px;
+  color: var(--verde);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.anadir-foto span { font-size: 1.5rem; }
+
+/* Capas de esmalte */
+.capas { display: grid; gap: 0.75rem; }
+.capa {
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: var(--fondo);
+  border-left: 4px solid var(--terracota);
+}
+.capa header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.orden {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--terracota);
+  color: var(--crema);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.muestra { flex: none; width: 2.75rem; height: 2.75rem; border-radius: 50%; object-fit: cover; border: 2px solid white; font-size: 1.3rem; }
+.titulo-capa { flex: 1; min-width: 0; display: grid; line-height: 1.3; }
+.titulo-capa small { font-size: 0.75rem; color: var(--verde); }
+.titulo-capa .ver { font-size: 0.8rem; font-weight: 400; color: var(--verde) !important; }
+.mover { display: flex; justify-content: flex-end; gap: 0.35rem; }
+.mover button {
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border-radius: 50%;
+  background: white;
+  color: var(--verde);
+  font-size: 0.9rem;
+}
+.mover button:hover { background: white; }
+.mover button:disabled { opacity: 0.3; }
+.mover .quitar-capa { width: auto; padding: 0 0.9rem; border-radius: 999px; color: #a3261b; font-size: 0.85rem; }
+.rejilla-capa { display: grid; grid-template-columns: 5rem 1fr; gap: 0 0.5rem; }
+.rejilla-capa .campo:nth-child(n + 3) { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .rejilla-capa { grid-template-columns: 5rem 1fr 1fr 1fr; }
+  .rejilla-capa .campo:nth-child(n + 3) { grid-column: auto; }
+}
+.anadir-capa { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+
+/* Técnicas */
+.chips-elegir { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-elegir {
+  padding: 0.3rem 0.75rem;
+  border: 1.5px solid var(--verde-claro);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.chip-elegir input { position: absolute; opacity: 0; pointer-events: none; }
+.chip-elegir:has(input:checked) { background: var(--verde); border-color: var(--verde); color: var(--crema); }
+.chip-elegir:has(input:focus-visible) { outline: 2px solid var(--terracota); }
+.piezas .otra-tecnica { width: auto; flex: 1 1 10rem; padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.9rem; }
+
+.estrellas { display: flex; gap: 0.25rem; margin-bottom: 0.75rem; }
+.estrellas button { padding: 0; background: none; color: #d8c8bb; font-size: 1.9rem; line-height: 1; }
+.estrellas button:hover { background: none; }
+.estrellas button.llena { color: var(--terracota); }
+
+.acciones-ficha { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 1.5rem; }
+
+/* Receta */
+/* En el móvil: material en una línea y debajo cantidad, «Añadido» y quitar */
+.fila-ingrediente {
+  display: grid;
+  grid-template-columns: 1fr auto 2.4rem;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee2d9;
+}
+.fila-ingrediente .material { grid-column: 1 / -1; }
+.cabecera-ingredientes { display: none; }
+.marcar-anadido { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; cursor: pointer; }
+.fila-ingrediente input[type="checkbox"] { width: 1.3rem; height: 1.3rem; margin: 0; accent-color: var(--verde); }
+@media (min-width: 640px) {
+  .fila-ingrediente { grid-template-columns: 1fr 6rem 4.5rem 2.4rem; margin-bottom: 0.4rem; padding-bottom: 0; border-bottom: 0; align-items: start; }
+  .fila-ingrediente .material { grid-column: auto; }
+  .cabecera-ingredientes { display: grid; font-size: 0.75rem; font-weight: 600; color: var(--verde); align-items: end; }
+  .marcar-anadido { justify-content: center; padding-top: 0.6rem; }
+  .marcar-anadido span { display: none; }
+}
+.material { display: grid; min-width: 0; }
+.peligro-material, .aviso-peligro { color: #a3261b; font-size: 0.75rem; }
+.aviso-peligro { padding: 0.5rem 0.75rem; border-radius: 8px; background: #f8e3df; font-size: 0.85rem; }
+.quitar-fila { width: 2.4rem; height: 2.4rem; padding: 0; border-radius: 8px; background: white; color: #a3261b; box-shadow: inset 0 0 0 1px #e6d3cf; }
+.quitar-fila:hover { background: white; }
+.lote { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.5rem 0; font-weight: 500; }
+.lote input { width: 6rem !important; }
+.tabla-receta { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tabla-receta th { font-size: 0.75rem; color: var(--verde); text-align: right; border-bottom: 2px solid var(--verde-claro); padding: 0.3rem; }
+.tabla-receta th:first-child, .tabla-receta td:first-child { text-align: left; }
+.tabla-receta td { padding: 0.35rem 0.3rem; text-align: right; border-top: 1px solid #eee2d9; }
+.tabla-receta td:last-child { font-weight: 700; color: var(--terracota); }
+.tabla-receta tr.anadido td:first-child { padding-left: 0.9rem; font-style: italic; }
+.usada-en { margin: 0; padding-left: 1.2rem; }
+
+/* Hojas (elegir esmalte o receta) */
+.hoja {
+  width: 100%;
+  max-width: 32rem;
+  max-height: 90dvh;
+  margin: auto auto 0;
+  padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--fondo);
+  color: var(--tinta);
+}
+.hoja[open] { display: flex; flex-direction: column; }
+#hoja-prodesco[open] { height: 90dvh; }
+.hoja::backdrop { background: rgb(0 0 0 / 0.45); }
+@media (min-width: 640px) { .hoja { margin: auto; border-radius: 18px; } }
+.hoja h2 { margin: 0 0 1rem; color: var(--terracota-oscuro); }
+.hoja h2::after { display: none; }
+.hoja-cierre { position: absolute; top: 0.75rem; right: 0.75rem; margin: 0; }
+.hoja-cierre .icono { width: 2.5rem; height: 2.5rem; padding: 0; background: none; color: var(--verde); font-size: 1.2rem; }
+.hoja-cierre .icono:hover { background: none; }
+.cuenta { margin: 0.5rem 0; font-size: 0.85rem; color: var(--verde); }
+.rejilla-prodesco {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem 0.5rem;
+  align-content: start;
+}
+.opcion-prodesco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  text-align: center;
+}
+.opcion-prodesco:hover { background: none; }
+.opcion-prodesco img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: #e8dcc6; }
+.opcion-prodesco strong { font-size: 0.85rem; }
+.opcion-prodesco span { font-size: 0.72rem; line-height: 1.25; overflow-wrap: anywhere; }
+.lista-elegir { display: grid; gap: 0.5rem; overflow-y: auto; }
+.lista-elegir .opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 12px;
+  background: white;
+  color: inherit;
+  text-align: left;
+}
+.lista-elegir .opcion:hover { background: white; }
+.lista-elegir img, .lista-elegir .sin-foto { width: 3rem; height: 3rem; border-radius: 8px; object-fit: cover; font-size: 1.5rem; }
+.lista-elegir small { color: var(--verde); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(2rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  max-width: calc(100% - 2rem);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--crema);
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.visible { opacity: 1; }

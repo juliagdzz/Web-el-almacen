@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#A44E26">
+  <title>Piezas · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="inspiracion.html">Miembros</a>
+      <a href="piezas.html">Piezas</a>
+      <a href="medidas.html">Medidas</a>
+    </nav>
+  </header>
+
+  <main id="app" class="contenedor piezas"></main>
+
+  <!-- Elegir un esmalte de Prodesco -->
+  <dialog id="hoja-prodesco" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Esmalte de Prodesco</h2>
+    <input id="buscar-prodesco" type="search" placeholder="Número o nombre: 5546, azul…" autocomplete="off" aria-label="Buscar esmalte">
+    <p id="cuenta-prodesco" class="cuenta">Cargando el catálogo…</p>
+    <div id="lista-prodesco" class="rejilla-prodesco"></div>
+  </dialog>
+
+  <!-- Elegir una receta propia -->
+  <dialog id="hoja-recetas" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Mis esmaltes</h2>
+    <div id="lista-recetas-elegir" class="lista-elegir"></div>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="piezas.js"></script>
+</body>
+</html>
