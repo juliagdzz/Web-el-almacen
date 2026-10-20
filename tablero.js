@@ -120,13 +120,13 @@ async function mostrarLista() {
     tarjeta.className = "tarjeta-tablero";
     tarjeta.href = `#/t/${t.id}`;
 
-    const portada = document.createElement("div");
-    portada.className = "portada";
+    const collage = document.createElement("div");
+    collage.className = "collage";
     for (const p of pins.slice(0, 4)) {
       const img = document.createElement("img");
       img.src = urlDe(p.imagen);
       img.alt = "";
-      portada.append(img);
+      collage.append(img);
     }
 
     const info = document.createElement("div");
@@ -137,7 +137,7 @@ async function mostrarLista() {
     cuenta.textContent = pins.length === 1 ? "1 foto" : `${pins.length} fotos`;
     info.append(nombre, cuenta);
 
-    tarjeta.append(portada, info);
+    tarjeta.append(collage, info);
     lista.append(tarjeta);
   }
 

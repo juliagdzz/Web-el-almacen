@@ -1,33 +1,13 @@
 /* Tableros de inspiración. Usa los colores de style.css si existen. */
 
 .pagina-tableros {
-  --t-granate: var(--granate, #7b2d26);
-  --t-crema: var(--crema, #f5ecdf);
-  --t-oliva: var(--oliva, #6b7041);
-  --t-oxido: var(--oxido, #b5562e);
-  --t-tinta: #2b211d;
+  --t-granate: var(--granate, #551c25);
+  --t-crema: var(--crema, #f3e9d8);
+  --t-oliva: var(--oliva-oscuro, #4a5a23);
+  --t-oxido: var(--oxido, #b85a2b);
+  --t-tinta: var(--tinta, #2a1a1a);
   --t-corcho: #c49a64;
-  margin: 0;
-  background: var(--t-crema);
-  color: var(--t-tinta);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-tap-highlight-color: transparent;
-}
-
-/* Cabecera de reserva: en una capa para que style.css siempre mande */
-@layer reserva {
-  .cabecera {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem 1rem;
-    padding: 0.75rem 1rem;
-    background: var(--t-granate);
-  }
-  .cabecera a { color: var(--t-crema); text-decoration: none; }
-  .cabecera .logo { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.25rem; }
-  .cabecera nav { display: flex; gap: 1rem; font-size: 0.95rem; }
 }
 
 .vista { padding: 1rem; padding-bottom: 6rem; }
@@ -55,7 +35,7 @@
   overflow: hidden;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
-.tarjeta-tablero .portada {
+.tarjeta-tablero .collage {
   aspect-ratio: 1;
   background: var(--t-corcho);
   display: grid;
@@ -64,11 +44,11 @@
   gap: 2px;
   overflow: hidden;
 }
-.tarjeta-tablero .portada img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tarjeta-tablero .portada img:only-child { grid-column: span 2; grid-row: span 2; }
-.tarjeta-tablero .portada img:nth-child(1):nth-last-child(2),
-.tarjeta-tablero .portada img:nth-child(2):nth-last-child(1) { grid-row: span 2; }
-.tarjeta-tablero .portada img:nth-child(1):nth-last-child(3) { grid-row: span 2; }
+.tarjeta-tablero .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tarjeta-tablero .collage img:only-child { grid-column: span 2; grid-row: span 2; }
+.tarjeta-tablero .collage img:nth-child(1):nth-last-child(2),
+.tarjeta-tablero .collage img:nth-child(2):nth-last-child(1) { grid-row: span 2; }
+.tarjeta-tablero .collage img:nth-child(1):nth-last-child(3) { grid-row: span 2; }
 .tarjeta-tablero .info { padding: 0.5rem 0.75rem 0.75rem; }
 .tarjeta-tablero strong { display: block; font-size: 1rem; }
 .tarjeta-tablero small { opacity: 0.7; }
@@ -152,6 +132,7 @@
   box-shadow: 0 3px 6px rgb(0 0 0 / 0.25);
   transform: rotate(var(--giro, 0deg));
   position: relative;
+  border-radius: 2px;
   font: inherit;
   text-align: left;
   color: inherit;
@@ -311,3 +292,13 @@
 .toast.visible { opacity: 1; }
 
 .cargando { opacity: 0.6; pointer-events: none; }
+
+/* style.css pone fondo naranja a todos los botones al pasar por encima */
+.pagina-tableros .pin:hover,
+.pagina-tableros .opcion:hover { background: white; }
+.pagina-tableros .icono:hover { background: var(--t-crema); }
+.pagina-tableros .hoja-cierre .icono:hover,
+.pagina-tableros .tarjeta-nuevo:hover { background: transparent; }
+.pagina-tableros .fila button:hover,
+.pagina-tableros .acciones button:hover { background: var(--t-granate); }
+.pagina-tableros .acciones .peligro:hover { background: white; }

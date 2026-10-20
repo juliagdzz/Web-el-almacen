@@ -4,8 +4,8 @@
   "start_url": "/inspiracion.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f5ecdf",
-  "theme_color": "#7b2d26",
+  "background_color": "#F3E9D8",
+  "theme_color": "#551C25",
   "icons": [
     { "src": "icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
