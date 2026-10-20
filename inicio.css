@@ -1,0 +1,118 @@
+/* Portada por secciones: cada una ocupa casi una pantalla y el contenido
+   aparece al llegar a ella */
+
+html:has(body.inicio) { scroll-behavior: smooth; }
+
+.seccion {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 88svh;
+  padding: 4rem 1.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.seccion-dentro { width: 100%; max-width: 900px; margin: 0 auto; }
+.seccion h2 { font-size: clamp(1.8rem, 6vw, 2.6rem); margin: 0 0 0.75rem; }
+.seccion h2::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  margin-top: 0.4rem;
+  border-radius: 2px;
+  background: var(--oliva);
+}
+.seccion p { font-size: 1.1rem; max-width: 38rem; }
+
+/* Portada */
+.portada-inicio {
+  min-height: calc(100svh - 5rem);
+  background: var(--terracota);
+  color: var(--crema);
+  text-align: center;
+}
+.portada-inicio .lazo { width: min(55vw, 260px); margin: 0 auto -0.5rem; display: block; }
+.portada-inicio h1 { color: var(--crema); font-size: clamp(2.4rem, 10vw, 4rem); line-height: 1.1; margin: 0 0 1rem; }
+.portada-inicio p { margin: 0 auto 1.5rem; }
+.portada-inicio .botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+.portada-inicio .boton.secundario { color: var(--crema); box-shadow: inset 0 0 0 2px var(--crema); }
+.portada-inicio .boton.secundario:hover { background: var(--crema); color: var(--terracota); }
+.boton.claro { background: var(--crema); color: var(--terracota-oscuro); }
+.boton.claro:hover { background: white; }
+
+.bajar {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-left: -1.375rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--crema);
+  color: var(--crema);
+  font-size: 1.3rem;
+  text-decoration: none;
+  animation: botar 2s ease-in-out infinite;
+}
+@keyframes botar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+/* Qué hacemos */
+.tarjetas-inicio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.tarjeta-inicio {
+  overflow: hidden;
+  border-radius: 16px;
+  border-bottom: 4px solid var(--terracota);
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.tarjeta-inicio img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: var(--oliva); }
+.tarjeta-inicio h3 { font-family: 'Fraunces', serif; color: var(--terracota-oscuro); margin: 0.75rem 1rem 0.25rem; }
+.tarjeta-inicio p { font-size: 0.95rem; margin: 0 1rem 1rem; color: var(--verde); }
+
+/* Secciones con dibujo y texto */
+.dos-columnas { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2.5rem; align-items: center; }
+.dos-columnas > img { width: 100%; border-radius: 24px; }
+.al-reves > img { order: 2; }
+
+.seccion-oliva { background: var(--oliva-oscuro); color: var(--crema); }
+.seccion-oliva h2 { color: var(--crema); }
+.seccion-oliva h2::after { background: var(--oliva); }
+.seccion-crema { background: var(--crema); }
+.seccion-terracota { background: var(--terracota); color: var(--crema); }
+.seccion-terracota h2 { color: var(--crema); }
+
+.contacto { display: grid; gap: 1rem; margin: 1.5rem 0 0; }
+.contacto div { padding: 1rem 1.25rem; border-radius: 14px; background: rgb(255 255 255 / 0.1); }
+.contacto dt { font-family: 'Fraunces', serif; font-size: 1.15rem; }
+.contacto dd { margin: 0; opacity: 0.85; }
+
+/* Animación al aparecer: solo si hay JS y el móvil no pide menos movimiento */
+@media (prefers-reduced-motion: no-preference) {
+  .js .aparece {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: calc(var(--orden, 0) * 110ms);
+  }
+  .js .aparece.visible { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bajar { animation: none; }
+  html:has(body.inicio) { scroll-behavior: auto; }
+}
+
+@media (max-width: 600px) {
+  .seccion { min-height: 85svh; padding: 3rem 1.25rem; }
+  .portada-inicio { min-height: calc(100svh - 7.5rem); padding-bottom: 5rem; }
+  .dos-columnas { grid-template-columns: 1fr; gap: 1.25rem; }
+  .dos-columnas > img { width: 70%; justify-self: center; }
+  .al-reves > img { order: 0; }
+}

@@ -11,8 +11,10 @@
   <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="inicio.css">
+  <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
+<body class="inicio">
 
   <header class="cabecera">
     <a href="index.html" class="logo">El Almacén</a>
@@ -25,31 +27,80 @@
     </nav>
   </header>
 
-  <main class="contenedor">
-    <section class="portada">
-      <h1>Taller de cerámica</h1>
-      <p>Barro, fuego y huerta. Clases de cerámica en un espacio con aire de Murcia y mirada actual.</p>
-      <a href="precios.html" class="boton">Ver precios</a>
-      <a href="creaciones.html" class="boton secundario">Mis creaciones</a>
+  <main>
+    <!-- Cada sección ocupa casi una pantalla y aparece al deslizar (inicio.js) -->
+    <section class="seccion portada-inicio">
+      <div class="seccion-dentro">
+        <img class="lazo aparece" src="icono.svg" alt="">
+        <h1 class="aparece">Taller de cerámica</h1>
+        <p class="aparece">Barro, fuego y huerta. Clases de cerámica en un espacio con aire de Murcia y mirada actual.</p>
+        <div class="botones aparece">
+          <a href="precios.html" class="boton claro">Ver precios</a>
+          <a href="creaciones.html" class="boton secundario">Mis creaciones</a>
+        </div>
+      </div>
+      <a href="#que-hacemos" class="bajar" aria-label="Bajar a la siguiente sección">↓</a>
     </section>
 
-    <section>
-      <h2>Qué hacemos</h2>
-      <p>Escribe aquí una breve presentación del taller.</p>
-      <ul>
-        <li>Torno</li>
-        <li>Modelado a mano</li>
-        <li>Esmaltado y cocción</li>
-      </ul>
+    <section id="que-hacemos" class="seccion">
+      <div class="seccion-dentro">
+        <h2 class="aparece">Qué hacemos</h2>
+        <p class="aparece">Escribe aquí una breve presentación del taller.</p>
+        <div class="tarjetas-inicio">
+          <article class="tarjeta-inicio aparece">
+            <img src="ilustracion-pieza.svg" alt="">
+            <h3>Torno</h3>
+            <p>Centrar el barro, abrir y subir paredes hasta sacar tu primera taza.</p>
+          </article>
+          <article class="tarjeta-inicio aparece">
+            <img src="ilustracion-medidas.svg" alt="">
+            <h3>Modelado a mano</h3>
+            <p>Pellizco, churros y planchas para piezas con forma propia.</p>
+          </article>
+          <article class="tarjeta-inicio aparece">
+            <img src="ilustracion-esmalte.svg" alt="">
+            <h3>Esmaltado y cocción</h3>
+            <p>Bizcocho, esmalte por inmersión o a pincel y cocción en nuestro horno.</p>
+          </article>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Horarios y contacto</h2>
-      <p>Dirección: pendiente de completar.</p>
-      <p>Horarios: pendiente de completar.</p>
-      <p>Teléfono o WhatsApp: pendiente de completar.</p>
+    <section class="seccion seccion-oliva">
+      <div class="seccion-dentro dos-columnas">
+        <img class="aparece" src="ilustracion-tablero.svg" alt="">
+        <div>
+          <h2 class="aparece">Mis creaciones</h2>
+          <p class="aparece">Guarda ideas en tableros de inspiración, apunta cada pieza con su pasta y sus esmaltes y calcula cuánto encoge el barro.</p>
+          <a href="creaciones.html" class="boton claro aparece">Entrar en Mis creaciones</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion seccion-crema">
+      <div class="seccion-dentro dos-columnas al-reves">
+        <img class="aparece" src="ilustracion-pieza.svg" alt="">
+        <div>
+          <h2 class="aparece">Servicio de horneado</h2>
+          <p class="aparece">¿Haces cerámica en casa y no tienes horno? Cocemos tus piezas en baja o alta temperatura y pagas solo el espacio que ocupan.</p>
+          <a href="horno.html" class="boton aparece">Calcular precio</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion seccion-terracota">
+      <div class="seccion-dentro">
+        <h2 class="aparece">Horarios y contacto</h2>
+        <dl class="contacto">
+          <div class="aparece"><dt>Dirección</dt><dd>Pendiente de completar</dd></div>
+          <div class="aparece"><dt>Horarios</dt><dd>Pendiente de completar</dd></div>
+          <div class="aparece"><dt>Teléfono o WhatsApp</dt><dd>Pendiente de completar</dd></div>
+        </dl>
+      </div>
     </section>
   </main>
+
+  <script src="inicio.js"></script>
 
 </body>
 </html>
