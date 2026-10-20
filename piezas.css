@@ -514,3 +514,27 @@
   color: white;
   font-size: 0.85rem;
 }
+
+/* Tarjeta de «Añadir pieza»: la taza sobre fondo oliva con un + */
+.tarjeta-anadir { border-bottom-color: var(--terracota); }
+.tarjeta-anadir .ilustracion { position: relative; display: block; aspect-ratio: 1; }
+.tarjeta-anadir .ilustracion img { width: 100%; height: 100%; display: block; }
+.tarjeta-anadir .mas {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: var(--crema);
+  color: var(--terracota);
+  font-size: 1.9rem;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  transition: transform 0.15s;
+}
+.tarjeta-anadir:hover .mas { transform: scale(1.08); }
+.tarjeta-anadir strong { color: var(--terracota-oscuro); }

@@ -552,17 +552,21 @@ async function vistaPiezas() {
     h("h1", {}, "Piezas"),
     pestanas("piezas"),
     h("p", { class: "aviso" }, "Apunta cómo hiciste cada pieza: pasta, esmaltes, capas, pinceles y técnicas. Se guarda en este móvil."),
-    h("a", { href: "#/pieza/nueva", class: "boton nueva" }, "＋ Nueva pieza"),
-    piezas.length
-      ? h("div", { class: "tarjetas-piezas" }, piezas.map((p) =>
-          h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verPieza(p); } },
-            p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🏺"),
-            h("span", { class: "info" },
-              h("strong", {}, p.nombre || "Pieza sin nombre"),
-              h("small", {}, [fecha(p.fecha), p.pasta].filter(Boolean).join(" · ")),
-              p.capas.length > 0 && h("span", { class: "chips" }, p.capas.slice(0, 3).map((c) =>
-                h("span", { class: "chip" }, nombreCapa(c), c.capas > 1 ? ` ×${c.capas}` : "")))))))
-      : h("p", { class: "vacio" }, "Aún no has apuntado ninguna pieza."),
+    h("div", { class: "tarjetas-piezas" },
+      // La primera tarjeta es la de añadir: la taza sobre fondo oliva
+      h("a", { href: "#/pieza/nueva", class: "tarjeta-pieza tarjeta-anadir" },
+        h("span", { class: "ilustracion" },
+          h("img", { src: "ilustracion-pieza.svg", alt: "" }),
+          h("span", { class: "mas", "aria-hidden": "true" }, "+")),
+        h("span", { class: "info" }, h("strong", {}, "＋ Añadir pieza"), piezas.length === 0 && h("small", {}, "Apunta tu primera pieza"))),
+      piezas.map((p) =>
+        h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verPieza(p); } },
+          p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🏺"),
+          h("span", { class: "info" },
+            h("strong", {}, p.nombre || "Pieza sin nombre"),
+            h("small", {}, [fecha(p.fecha), p.pasta].filter(Boolean).join(" · ")),
+            p.capas.length > 0 && h("span", { class: "chips" }, p.capas.slice(0, 3).map((c) =>
+              h("span", { class: "chip" }, nombreCapa(c), c.capas > 1 ? ` ×${c.capas}` : ""))))))),
   );
 }
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <!-- Taza terracota sobre fondo oliva: botón de «Añadir pieza» -->
+  <rect width="1200" height="1200" fill="#9B9A3A"/>
+  <path d="M849.4 525.5 A110 150 0 0 1 849.4 814.5" fill="none" stroke="#B5532C" stroke-width="55"/>
+  <rect x="370" y="410" width="420" height="560" fill="#B5532C"/>
+  <ellipse cx="580" cy="970" rx="210" ry="40" fill="#B5532C"/>
+  <ellipse cx="580" cy="410" rx="210" ry="45" fill="#C86A3E"/>
+</svg>
