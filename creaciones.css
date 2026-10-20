@@ -31,9 +31,10 @@
 
 /* En el móvil, tarjetas en fila: dibujo a la izquierda y texto al lado */
 @media (max-width: 600px) {
-  .opciones-creaciones { gap: 0.75rem; margin-top: 1rem; }
-  .opcion-creacion { flex-direction: row; align-items: center; }
-  .opcion-creacion img { width: 6.5rem; aspect-ratio: 1; flex: none; }
+  .opciones-creaciones { grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1rem; }
+  .opcion-creacion { flex-direction: row; align-items: stretch; }
+  .opcion-creacion img { width: 6.5rem; aspect-ratio: auto; min-height: 6.5rem; flex: none; }
+  .opcion-creacion .texto { align-self: center; }
   .opcion-creacion .texto { padding: 0.5rem 0.9rem; }
   .opcion-creacion strong { font-size: 1.05rem; }
   .opcion-creacion small { font-size: 0.8rem; }
