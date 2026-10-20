@@ -9,6 +9,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Que ningún display de abajo vuelva a mostrar algo con el atributo hidden */
+.pagina-tableros [hidden] { display: none !important; }
+
 .vista { padding: 1rem; padding-bottom: 6rem; }
 .vista h1 {
   font-family: 'Fraunces', serif;
@@ -239,6 +242,124 @@
   inset: -10px;
 }
 
+/* Chapa de esmalte: muestra redonda con el número debajo */
+.pin.chapa {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  border-radius: 12px;
+}
+.pin.chapa::before { display: none; }
+.chapa .muestra {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 3px solid #fffdf7;
+  border-radius: 50%;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 4px 8px rgb(40 20 0 / 0.35);
+}
+.chapa .muestra img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  scale: 1.25; /* recorta el borde del azulejo de muestra */
+}
+.chapa .etiqueta {
+  display: block;
+  width: max-content;
+  max-width: 170%; /* la etiqueta puede ser algo más ancha que la chapa */
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--t-crema);
+  color: var(--t-tinta);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.chapa.arrastrando { transform: scale(1.05); }
+.chapa .nota { background: #fffdf7; padding: 2px 6px; border-radius: 4px; }
+
+/* ---------- Catálogo de esmaltes ---------- */
+
+.hoja-esmaltes[open] {
+  display: flex;
+  flex-direction: column;
+  height: 90dvh;
+}
+.filtros { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.filtros input, .filtros select {
+  flex: 1 1 10rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+  font-size: 1rem;
+}
+.cuenta-esmaltes { margin: 0.5rem 0; font-size: 0.85rem; color: var(--t-oliva); }
+.lista-esmaltes {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.75rem 0.5rem;
+  align-content: start;
+  padding-bottom: 1rem;
+}
+.opcion-esmalte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+.opcion-esmalte img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #e8dcc6;
+  margin-bottom: 4px;
+}
+.opcion-esmalte strong { font-size: 0.85rem; }
+.opcion-esmalte span {
+  max-width: 100%;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.plomo {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f4dcd6;
+  color: #8a2a1e;
+  font-size: 0.68rem;
+}
+.detalle-esmalte { display: grid; gap: 0.25rem; margin-bottom: 0.75rem; text-align: center; }
+.detalle-esmalte strong { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--t-granate); }
+.detalle-esmalte span { color: var(--t-oliva); }
+.detalle-esmalte .plomo { justify-self: center; font-size: 0.8rem; padding: 2px 10px; }
+
 .corcho-vacio {
   position: absolute;
   top: 12rem;
@@ -383,6 +504,7 @@
 
 /* style.css pone fondo naranja a todos los botones al pasar por encima */
 .pagina-tableros .opcion:hover { background: white; }
+.pagina-tableros .opcion-esmalte:hover { background: none; }
 .pagina-tableros .icono:hover { background: var(--t-crema); }
 .pagina-tableros .hoja-cierre .icono:hover,
 .pagina-tableros .tarjeta-nuevo:hover { background: transparent; }

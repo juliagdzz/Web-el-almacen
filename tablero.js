@@ -188,7 +188,20 @@ function crearPin(p) {
   img.alt = "";
   img.draggable = false;
   img.style.aspectRatio = `1 / ${p.proporcion}`;
-  el.append(img);
+  if (p.esmalte) {
+    // Chapa redonda con la muestra y el número debajo
+    el.classList.add("chapa");
+    el.setAttribute("aria-label", `Esmalte ${nombreEsmalte(p.esmalte)}`);
+    const muestra = document.createElement("span");
+    muestra.className = "muestra";
+    muestra.append(img);
+    const etiqueta = document.createElement("span");
+    etiqueta.className = "etiqueta";
+    etiqueta.textContent = nombreEsmalte(p.esmalte);
+    el.append(muestra, etiqueta);
+  } else {
+    el.append(img);
+  }
   if (p.nota) {
     const nota = document.createElement("span");
     nota.className = "nota";
@@ -406,7 +419,8 @@ $("#btn-borrar-tablero").addEventListener("click", async () => {
 
 // ---------- Añadir fotos ----------
 
-async function anadirImagenes(blobs, origen = null) {
+// extra: datos que se guardan con la foto (origen, esmalte, ancho…)
+async function anadirImagenes(blobs, extra = {}) {
   if (!tableroActual) return;
   corcho.classList.add("cargando");
   // Una foto sola aparece en el centro de lo que se ve del corcho;
@@ -422,9 +436,16 @@ async function anadirImagenes(blobs, origen = null) {
     for (const blob of blobs) {
       try {
         const { imagen, proporcion } = await prepararImagen(blob);
-        const alto = ANCHO_INICIAL * proporcion;
-        let x = 0.5 - ANCHO_INICIAL / 2;
+        const anchoPin = extra.ancho ?? ANCHO_INICIAL;
+        const alto = anchoPin * proporcion;
+        let x = 0.5 - anchoPin / 2;
         let y = Math.max(0.03, centro - alto / 2);
+        // Si ya hay algo en ese mismo sitio, la nueva se desplaza en diagonal
+        const ocupado = (x, y) => [...pinsActuales.values()].some((p) => Math.abs(p.x - x) < 0.01 && Math.abs(p.y - y) < 0.01);
+        for (let paso = 0; paso < 8 && ocupado(x, y); paso++) {
+          x = limitar(x + 0.06, 0, 1 - anchoPin);
+          y += 0.06;
+        }
         if (blobs.length > 1) {
           const col = alturas[0] <= alturas[1] ? 0 : 1;
           x = col === 0 ? 0.05 : 0.53;
@@ -438,10 +459,11 @@ async function anadirImagenes(blobs, origen = null) {
           imagen,
           proporcion,
           nota: "",
-          origen,
+          origen: null,
           x,
           y,
-          ancho: ANCHO_INICIAL,
+          ancho: anchoPin,
+          ...extra,
           orden: Date.now() + anadidas,
           creado: Date.now(),
         });
@@ -455,7 +477,8 @@ async function anadirImagenes(blobs, origen = null) {
   }
   if (anadidas === 0) return avisar("No he podido leer esa imagen");
   $("#hoja-anadir").open && $("#hoja-anadir").close();
-  avisar(anadidas === 1 ? "Foto añadida: arrástrala donde quieras" : `${anadidas} fotos añadidas`);
+  if (extra.esmalte) avisar(`Esmalte ${nombreEsmalte(extra.esmalte)} añadido`);
+  else avisar(anadidas === 1 ? "Foto añadida: arrástrala donde quieras" : `${anadidas} fotos añadidas`);
   await mostrarTablero(tableroActual.id);
   const nueva = corcho.querySelector(`[data-id="${ultima}"]`);
   if (nueva) seleccionar(nueva);
@@ -473,7 +496,7 @@ async function anadirDesdeEnlace(texto) {
       throw new Error(error || "No se pudo traer la foto");
     }
     const esPin = !/i\.pinimg\.com/.test(new URL(url).hostname);
-    await anadirImagenes([await respuesta.blob()], esPin ? url : null);
+    await anadirImagenes([await respuesta.blob()], { origen: esPin ? url : null });
     $("#input-enlace").value = "";
   } catch (e) {
     avisar(e.message);
@@ -540,6 +563,116 @@ vistaTablero.addEventListener("drop", (e) => {
   if (url) anadirDesdeEnlace(url);
 });
 
+// ---------- Esmaltes de Prodesco ----------
+
+let catalogo = null; // promesa con la lista, se pide una sola vez
+
+const sinAcentos = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const soloLetrasYNumeros = (t) => sinAcentos(t).replace(/[^a-z0-9]/g, "");
+const nombreEsmalte = (e) => [e.codigo, e.nombre].filter(Boolean).join(" · ") || e.serie;
+
+function pedirCatalogo() {
+  return fetch("/api/esmaltes").then((r) => {
+    if (!r.ok) throw new Error();
+    return r.json();
+  });
+}
+
+// El catálogo se guarda también en el móvil: la segunda vez sale al momento
+// y se actualiza por detrás para la siguiente
+function cargarCatalogo() {
+  catalogo ??= (async () => {
+    let lista = null;
+    try { lista = JSON.parse(localStorage.getItem("catalogoEsmaltes")); } catch {}
+    const nueva = pedirCatalogo().then((l) => {
+      try { localStorage.setItem("catalogoEsmaltes", JSON.stringify(l)); } catch {}
+      return l;
+    });
+    if (lista) nueva.catch(() => {});
+    else lista = await nueva;
+    for (const e of lista) {
+      e.texto = sinAcentos(`${e.codigo} ${e.nombre} ${e.serie}`);
+      e.clave = soloLetrasYNumeros(e.codigo);
+    }
+    return lista;
+  })().catch((e) => {
+    catalogo = null; // se puede volver a intentar
+    throw e;
+  });
+  return catalogo;
+}
+
+// "o 10579", "O10579" y "o-10579" encuentran el O-10579
+function coincide(e, palabras) {
+  return palabras.every((p) => e.texto.includes(p) || (soloLetrasYNumeros(p) && e.clave.includes(soloLetrasYNumeros(p))));
+}
+
+async function mostrarEsmaltes() {
+  let lista;
+  try {
+    lista = await cargarCatalogo();
+  } catch {
+    $("#cuenta-esmaltes").textContent = "No he podido cargar el catálogo de Prodesco. Prueba otra vez en un rato.";
+    return;
+  }
+  const serie = $("#serie-esmalte");
+  if (serie.options.length === 1) {
+    for (const nombre of [...new Set(lista.map((e) => e.serie))].sort((a, b) => a.localeCompare(b, "es"))) {
+      serie.add(new Option(nombre, nombre));
+    }
+  }
+  const palabras = sinAcentos($("#buscar-esmalte").value).split(/\s+/).filter(Boolean);
+  const encontrados = lista.filter((e) => (!serie.value || e.serie === serie.value) && coincide(e, palabras));
+  $("#cuenta-esmaltes").textContent = encontrados.length === 1 ? "1 esmalte" : `${encontrados.length} esmaltes`;
+  $("#lista-esmaltes").replaceChildren(...encontrados.map(crearOpcionEsmalte));
+}
+
+function crearOpcionEsmalte(e) {
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = "opcion-esmalte";
+  const img = document.createElement("img");
+  img.src = e.miniatura;
+  img.alt = "";
+  img.loading = "lazy";
+  const codigo = document.createElement("strong");
+  codigo.textContent = e.codigo || e.nombre;
+  const nombre = document.createElement("span");
+  nombre.textContent = e.codigo ? e.nombre || e.serie : e.serie;
+  boton.append(img, codigo, nombre);
+  if (e.plomo) {
+    const plomo = document.createElement("small");
+    plomo.className = "plomo";
+    plomo.textContent = "Con plomo";
+    boton.append(plomo);
+  }
+  boton.addEventListener("click", () => anadirEsmalte(e, boton));
+  return boton;
+}
+
+async function anadirEsmalte(e, boton) {
+  boton.classList.add("cargando");
+  try {
+    const respuesta = await fetch(`/api/esmaltes?imagen=${encodeURIComponent(e.muestra)}`);
+    if (!respuesta.ok) throw new Error();
+    $("#hoja-esmaltes").close();
+    const { codigo, nombre, serie, plomo, url } = e;
+    await anadirImagenes([await respuesta.blob()], { esmalte: { codigo, nombre, serie, plomo, url }, ancho: 0.24 });
+  } catch {
+    avisar("No he podido traer la muestra de Prodesco");
+  } finally {
+    boton.classList.remove("cargando");
+  }
+}
+
+$("#btn-esmaltes").addEventListener("click", () => {
+  $("#hoja-anadir").close();
+  $("#hoja-esmaltes").showModal();
+  mostrarEsmaltes();
+});
+$("#buscar-esmalte").addEventListener("input", mostrarEsmaltes);
+$("#serie-esmalte").addEventListener("change", mostrarEsmaltes);
+
 // ---------- Detalle de una foto ----------
 
 let pinAbierto = null;
@@ -548,9 +681,20 @@ function abrirDetalle(id) {
   pinAbierto = pinsActuales.get(id);
   $("#detalle-img").src = urlDe(pinAbierto.imagen);
   $("#detalle-nota").value = pinAbierto.nota;
+  const esmalte = pinAbierto.esmalte;
+  $("#detalle-esmalte").hidden = !esmalte;
+  if (esmalte) {
+    $("#detalle-esmalte-nombre").textContent = nombreEsmalte(esmalte);
+    $("#detalle-esmalte-serie").textContent = esmalte.serie;
+    $("#detalle-esmalte-plomo").hidden = !esmalte.plomo;
+  }
   const origen = $("#detalle-origen");
-  origen.hidden = !pinAbierto.origen;
-  if (pinAbierto.origen) origen.href = pinAbierto.origen;
+  const enlace = esmalte?.url ?? pinAbierto.origen;
+  origen.hidden = !enlace;
+  if (enlace) {
+    origen.href = enlace;
+    origen.textContent = esmalte ? "Ver en Prodesco ↗" : "Ver en Pinterest ↗";
+  }
   $("#hoja-detalle").showModal();
 }
 
