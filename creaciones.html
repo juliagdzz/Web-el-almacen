@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis creaciones · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="creaciones.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="precios.html">Precios</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor creaciones">
+    <h1>Mis creaciones</h1>
+    <p class="entradilla">Tu rincón del taller: guarda ideas, apunta tus piezas y esmaltes y calcula medidas. Todo se queda guardado en este móvil.</p>
+
+    <div class="opciones-creaciones">
+      <a href="inspiracion.html" class="opcion-creacion">
+        <img src="ilustracion-tablero.svg" alt="">
+        <span class="texto">
+          <strong>Tableros de inspiración</strong>
+          <small>Fotos, pines de Pinterest y esmaltes en un corcho</small>
+          <span class="cuenta" id="cuenta-tableros"></span>
+        </span>
+      </a>
+      <a href="piezas.html#/" class="opcion-creacion">
+        <img src="ilustracion-pieza.svg" alt="">
+        <span class="texto">
+          <strong>Mis piezas</strong>
+          <small>Registra cada pieza con su pasta, capas y cocción</small>
+          <span class="cuenta" id="cuenta-piezas"></span>
+        </span>
+      </a>
+      <a href="piezas.html#/esmaltes" class="opcion-creacion">
+        <img src="ilustracion-esmalte.svg" alt="">
+        <span class="texto">
+          <strong>Mis esmaltes</strong>
+          <small>Tus recetas propias con sus ingredientes</small>
+          <span class="cuenta" id="cuenta-esmaltes"></span>
+        </span>
+      </a>
+      <a href="medidas.html" class="opcion-creacion">
+        <img src="ilustracion-medidas.svg" alt="">
+        <span class="texto">
+          <strong>Medidas y contracción</strong>
+          <small>A qué tamaño modelar para que salga como quieres</small>
+        </span>
+      </a>
+    </div>
+  </main>
+
+  <script src="creaciones.js"></script>
+</body>
+</html>

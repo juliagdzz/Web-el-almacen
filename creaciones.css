@@ -1,0 +1,40 @@
+.creaciones h1 { margin-bottom: 0.25rem; }
+.creaciones .entradilla { margin-top: 0; }
+
+.opciones-creaciones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0 3rem;
+}
+
+.opcion-creacion {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 14px;
+  border-bottom: 4px solid var(--terracota);
+  background: white;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  transition: transform 0.15s;
+}
+.opcion-creacion:hover { transform: translateY(-2px); }
+/* El dibujo es cuadrado: se encaja entero y el resto se rellena con su mismo oliva */
+.opcion-creacion img { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: var(--oliva); display: block; }
+.opcion-creacion .texto { display: grid; gap: 0.1rem; padding: 0.75rem 1rem 1rem; }
+.opcion-creacion strong { font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--terracota-oscuro); }
+.opcion-creacion small { color: var(--verde); line-height: 1.35; }
+.opcion-creacion .cuenta { font-size: 0.85rem; font-weight: 500; color: var(--granate); }
+.opcion-creacion .cuenta:empty { display: none; }
+
+/* En el móvil, tarjetas en fila: dibujo a la izquierda y texto al lado */
+@media (max-width: 600px) {
+  .opciones-creaciones { gap: 0.75rem; margin-top: 1rem; }
+  .opcion-creacion { flex-direction: row; align-items: center; }
+  .opcion-creacion img { width: 6.5rem; aspect-ratio: 1; flex: none; }
+  .opcion-creacion .texto { padding: 0.5rem 0.9rem; }
+  .opcion-creacion strong { font-size: 1.05rem; }
+  .opcion-creacion small { font-size: 0.8rem; }
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <!-- Jarrón con una regla al lado sobre fondo oliva: tarjeta de «Medidas» -->
+  <rect width="1200" height="1200" fill="#9B9A3A"/>
+  <!-- jarrón -->
+  <path d="M470 380c-10 0-18 8-16 18 4 22 10 44-4 66-46 70-80 140-80 220 0 120 90 200 210 200s210-80 210-200c0-80-34-150-80-220-14-22-8-44-4-66 2-10-6-18-16-18z" fill="#B5532C"/>
+  <rect x="450" y="352" width="220" height="40" rx="12" fill="#C86A3E"/>
+  <!-- regla -->
+  <rect x="820" y="300" width="110" height="600" rx="10" fill="#F3E9D8"/>
+  <g stroke="#4A5A23" stroke-width="8" stroke-linecap="round">
+    <path d="M820 360h50M820 420h30M820 480h50M820 540h30M820 600h50M820 660h30M820 720h50M820 780h30M820 840h50"/>
+  </g>
+  <!-- flecha de altura -->
+  <g stroke="#F3E9D8" stroke-width="12" stroke-linecap="round" fill="none">
+    <path d="M300 352v532"/>
+    <path d="M272 384l28-32 28 32M272 852l28 32 28-32"/>
+  </g>
+</svg>

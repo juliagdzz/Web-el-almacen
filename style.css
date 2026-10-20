@@ -158,3 +158,36 @@ button:hover, .boton:hover { background: var(--terracota-oscuro); }
 
 ::selection { background: var(--verde); color: var(--crema); }
 .portada .boton { margin: 0.25rem 0.5rem 0.25rem 0; }
+
+/* Página actual en el menú */
+.cabecera nav a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--verde-claro);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* Submenú de Mis creaciones: una fila que se desliza en el móvil */
+.subnav {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.5rem 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--crema);
+  border-bottom: 1px solid rgb(74 90 35 / 0.2);
+}
+.subnav::-webkit-scrollbar { display: none; }
+.subnav a {
+  flex: none;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  color: var(--verde);
+  font-size: 0.88rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.subnav a.subnav-inicio { color: var(--terracota-oscuro); font-weight: 500; padding-left: 0; }
+.subnav a[aria-current="page"] { background: var(--verde); color: var(--crema); }
+/* Dentro de un tablero no cabe: el corcho necesita toda la pantalla */
+body.en-tablero .subnav { display: none; }
