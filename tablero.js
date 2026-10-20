@@ -482,10 +482,12 @@ async function anadirDesdeEnlace(texto) {
 
 $("#btn-anadir").addEventListener("click", () => $("#hoja-anadir").showModal());
 
-$("#input-fotos").addEventListener("change", (e) => {
-  anadirImagenes([...e.target.files]);
-  e.target.value = "";
-});
+for (const input of [$("#input-fotos"), $("#input-camara")]) {
+  input.addEventListener("change", (e) => {
+    anadirImagenes([...e.target.files]);
+    e.target.value = "";
+  });
+}
 
 $("#form-enlace").addEventListener("submit", (e) => {
   e.preventDefault();
