@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=DM+Sans:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=DM+Sans:wght@400;500&family=Ultra&display=swap');
 
 :root {
   --granate: #551C25;
@@ -277,3 +277,39 @@ body.en-tablero .subnav { display: none; }
 
 /* Dentro de un tablero la página no se desliza: la cabecera no necesita ser fija */
 body.en-tablero .cabecera { position: static; }
+
+/* Sello: «El Almacén» en granate pegado al fondo de la pantalla, siempre a la
+   vista al deslizar, como la marca de Dr. Martens (lo pone cabecera.js) */
+:root {
+  --tam-sello: min(calc((100vw - 2rem) / 6.95), 6.5rem); /* el texto mide 6,9 em: llena el ancho del móvil */
+  --alto-sello: calc(var(--tam-sello) * 0.84); /* letras de 0,76 em más un respiro arriba */
+}
+body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
+.sello {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  box-sizing: content-box;
+  height: var(--alto-sello);
+  padding-bottom: env(safe-area-inset-bottom); /* la barrita de inicio del iPhone */
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(246 231 220 / 0), var(--fondo) 22%);
+  text-align: center;
+}
+.sello span {
+  display: block;
+  font-family: 'Ultra', 'Fraunces', serif;
+  font-size: var(--tam-sello);
+  line-height: 1;
+  color: var(--granate);
+  white-space: nowrap;
+  /* con line-height 1 la línea base cae a 0,87 em: la bajamos para que las
+     letras apoyen justo en el borde de la pantalla */
+  transform: translateY(-0.06em);
+}
+/* En el corcho no: necesita toda la pantalla */
+body.en-tablero { --alto-sello: 0px; padding-bottom: 0; }
+body.en-tablero .sello { display: none; }

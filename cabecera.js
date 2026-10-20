@@ -4,6 +4,13 @@
   if (!cabecera) return;
   const nav = cabecera.querySelector("nav");
 
+  // Sello con el nombre pegado al fondo de la pantalla
+  const sello = document.createElement("div");
+  sello.className = "sello";
+  sello.setAttribute("aria-hidden", "true");
+  sello.innerHTML = "<span>El Almacén</span>";
+  document.body.append(sello);
+
   // Dos umbrales distintos para que no parpadee: al encogerse la cabecera
   // cambia un poco el desplazamiento
   let compacta = false;

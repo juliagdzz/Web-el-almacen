@@ -27,7 +27,7 @@ html:has(body.inicio) { scroll-behavior: smooth; }
 
 /* Portada */
 .portada-inicio {
-  min-height: calc(100svh - 5rem);
+  min-height: calc(100svh - 5rem - var(--alto-sello));
   background: var(--terracota);
   color: var(--crema);
   text-align: center;
@@ -111,7 +111,7 @@ html:has(body.inicio) { scroll-behavior: smooth; }
 
 @media (max-width: 600px) {
   .seccion { min-height: 85svh; padding: 3rem 1.25rem; }
-  .portada-inicio { min-height: calc(100svh - 7.5rem); padding-bottom: 5rem; }
+  .portada-inicio { min-height: calc(100svh - 4rem - var(--alto-sello)); padding-bottom: 5rem; }
   .dos-columnas { grid-template-columns: 1fr; gap: 1.25rem; }
   .dos-columnas > img { width: 70%; justify-self: center; }
   .al-reves > img { order: 0; }

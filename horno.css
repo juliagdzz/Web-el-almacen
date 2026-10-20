@@ -108,7 +108,7 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(2rem + env(safe-area-inset-bottom));
+  bottom: calc(2rem + var(--alto-sello, 0px) + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   padding: 0.6rem 1rem;
   border-radius: 999px;
