@@ -502,3 +502,15 @@
 .registrar-receta .fila { display: flex; gap: 0.5rem; }
 .registrar-receta input { flex: 1; min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid #d6c7bd; border-radius: 8px; font: inherit; font-size: 1rem; }
 .registrar-receta button { flex: none; border-radius: 8px; }
+.foto .editar-foto {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: white;
+  font-size: 0.85rem;
+}

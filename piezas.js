@@ -259,6 +259,7 @@ function editorFotos(obj, alCambiar) {
       ...obj.fotos.map((foto, i) =>
         h("figure", { class: "foto" },
           h("img", { src: urlDe(foto), alt: "" }),
+          h("button", { type: "button", class: "editar-foto", "aria-label": "Editar foto", onclick: () => editar(i) }, "✎"),
           h("button", { type: "button", class: "quitar", "aria-label": "Quitar foto", onclick: () => {
             if (!confirm("¿Quitar esta foto?")) return;
             obj.fotos.splice(i, 1);
@@ -269,14 +270,25 @@ function editorFotos(obj, alCambiar) {
       botonFoto("🖼️", "Galería", { multiple: true }),
     );
   }
+  // Recortar, girar o cambiar el fondo (editor-fotos.js)
+  async function editar(i) {
+    const nueva = await editarFoto(obj.fotos[i]);
+    if (!nueva) return;
+    obj.fotos[i] = nueva;
+    alCambiar();
+    pintar();
+  }
   function botonFoto(icono, texto, extra) {
     const input = h("input", { type: "file", accept: "image/*", hidden: true, ...extra, onchange: async (e) => {
-      for (const archivo of e.target.files) {
+      const archivos = [...e.target.files];
+      e.target.value = "";
+      for (const archivo of archivos) {
         try { obj.fotos.push(await prepararImagen(archivo)); } catch { avisar("No he podido leer esa imagen"); }
       }
-      e.target.value = "";
       alCambiar();
       pintar();
+      // Con una sola foto se abre el editor directamente
+      if (archivos.length === 1 && obj.fotos.length) await editar(obj.fotos.length - 1);
     } });
     return h("label", { class: "anadir-foto" }, h("span", { "aria-hidden": "true" }, icono), texto, input);
   }

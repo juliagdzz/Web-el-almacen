@@ -1,0 +1,72 @@
+/* Editor de fotos a pantalla completa */
+
+.editor-foto {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0 0 env(safe-area-inset-bottom);
+  border: 0;
+  background: #1f1814;
+  color: #f3e9d8;
+}
+.editor-foto[open] { display: flex; flex-direction: column; }
+.editor-foto [hidden] { display: none !important; }
+.editor-foto header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+}
+.editor-foto header strong { font-family: 'Fraunces', serif; font-size: 1.1rem; }
+.editor-foto button {
+  padding: 0.45rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  color: #f3e9d8;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.editor-foto button:hover { background: rgb(255 255 255 / 0.18); }
+.editor-foto button.activo { background: #f3e9d8; color: #1f1814; }
+.editor-foto button:disabled { opacity: 0.35; }
+.editor-foto button.texto { background: none; }
+.editor-foto button.guardar, .editor-foto button.principal { background: var(--terracota, #a44e26); color: #f3e9d8; font-weight: 600; }
+
+.editor-zona {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.editor-lienzo { touch-action: none; box-shadow: 0 4px 20px rgb(0 0 0 / 0.5); }
+.editor-aviso { margin: 0.25rem 1rem; min-height: 1.2em; font-size: 0.85rem; text-align: center; color: #d9cbb8; }
+
+.editor-pestanas { display: flex; justify-content: center; gap: 0.5rem; padding: 0.25rem; }
+.editor-pestanas button { min-width: 7rem; }
+.editor-panel { display: grid; gap: 0.6rem; padding: 0.5rem 0.75rem 0.75rem; }
+.editor-fila { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.4rem; }
+.editor-deslizador { display: flex; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.85rem; }
+.editor-deslizador input { width: 9rem; accent-color: var(--terracota, #a44e26); }
+
+.editor-fondos { gap: 0.45rem; }
+.editor-foto .muestra-fondo {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-radius: 50%;
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+.editor-foto .muestra-fondo.activo { outline: 3px solid #f3e9d8; outline-offset: 2px; }
+.editor-foto .muestra-fondo.es-original { background: #5a4c43; color: #f3e9d8; }
+.editor-foto .muestra-fondo.es-transparente { background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 50% / 10px 10px; }
+.editor-foto .muestra-fondo.es-color, .editor-foto .muestra-fondo.es-foto { background: rgb(255 255 255 / 0.12); font-size: 1rem; position: relative; overflow: hidden; }
+.muestra-fondo.es-color input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
