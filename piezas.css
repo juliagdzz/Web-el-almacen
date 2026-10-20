@@ -213,7 +213,6 @@
 .chip-elegir input { position: absolute; opacity: 0; pointer-events: none; }
 .chip-elegir:has(input:checked) { background: var(--verde); border-color: var(--verde); color: var(--crema); }
 .chip-elegir:has(input:focus-visible) { outline: 2px solid var(--terracota); }
-.piezas .otra-tecnica { width: auto; flex: 1 1 10rem; padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.9rem; }
 
 .estrellas { display: flex; gap: 0.25rem; margin-bottom: 0.75rem; }
 .estrellas button { padding: 0; background: none; color: #d8c8bb; font-size: 1.9rem; line-height: 1; }
@@ -444,3 +443,62 @@
 .compartir span { display: inline-flex; }
 .hoja-ver .chips { gap: 0.4rem; }
 .hoja-ver .chip { padding: 0.15rem 0.75rem; background: white; color: var(--verde); font-size: 0.85rem; }
+
+/* Desplegables con «Registrar» */
+.selector { position: relative; min-width: 0; }
+.piezas .selector input { padding-right: 2.6rem; }
+.selector .abrir, .selector .abrir:hover {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 2.5rem;
+  padding: 0;
+  border-radius: 0 8px 8px 0;
+  background: none;
+  color: var(--verde);
+  font-size: 1rem;
+}
+.desplegable {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid #d6c7bd;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 10px 24px rgb(40 20 0 / 0.18);
+}
+.desplegable button, .desplegable button:hover {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  background: none;
+  color: var(--tinta);
+  font-size: 0.95rem;
+  text-align: left;
+}
+.desplegable button:hover, .desplegable li[aria-selected="true"] button { background: var(--fondo); }
+.desplegable small { flex: none; max-width: 45%; font-size: 0.72rem; color: var(--verde); text-align: right; }
+.desplegable .registrar button { color: var(--terracota); font-weight: 600; border-top: 1px solid #eee2d9; border-radius: 0 0 8px 8px; }
+.vacio-lista { padding: 0.6rem 0.7rem; font-size: 0.85rem; opacity: 0.7; }
+
+.registrar-tecnica { display: flex; gap: 0.5rem; flex: 1 1 100%; margin-top: 0.25rem; }
+.registrar-tecnica input { flex: 1; }
+.registrar-tecnica button { flex: none; }
+
+.registrar-receta { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e8d6c9; }
+.registrar-receta label { display: block; font-size: 0.85rem; margin-bottom: 0.4rem; }
+.registrar-receta .fila { display: flex; gap: 0.5rem; }
+.registrar-receta input { flex: 1; min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid #d6c7bd; border-radius: 8px; font: inherit; font-size: 1rem; }
+.registrar-receta button { flex: none; border-radius: 8px; }

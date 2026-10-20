@@ -179,8 +179,76 @@ function campo(etiqueta, control, ayuda) {
   return h("label", { class: "campo" }, h("span", { class: "etiqueta" }, etiqueta), control, ayuda && h("small", {}, ayuda));
 }
 
-function listaDatos(id, valores) {
-  return h("datalist", { id }, valores.map((v) => (Array.isArray(v) ? h("option", { value: v[0] }, v[1]) : h("option", { value: v }))));
+// Lo que registras tú (pastas, pinceles, técnicas…) para que salga en las listas la próxima vez
+function leerPropias() {
+  try { return JSON.parse(localStorage.getItem("listasPropias")) ?? {}; } catch { return {}; }
+}
+const propias = (tipo) => leerPropias()[tipo] ?? [];
+function registrar(tipo, valor) {
+  const listas = leerPropias();
+  listas[tipo] = [...new Set([...(listas[tipo] ?? []), valor])];
+  try { localStorage.setItem("listasPropias", JSON.stringify(listas)); } catch {}
+}
+
+// Campo con desplegable: al tocarlo enseña la lista, al escribir la filtra y, si lo
+// escrito no está, ofrece registrarlo. alCambiar(valor, final): final al elegir o salir.
+function selector({ valor = "", opciones, tipo, etiqueta, placeholder, registrarComo, alCambiar }) {
+  const input = h("input", { type: "text", value: valor, placeholder, autocomplete: "off", role: "combobox", "aria-expanded": "false", "aria-label": etiqueta });
+  const lista = h("ul", { class: "desplegable", role: "listbox", hidden: true });
+  const sinPerderFoco = (e) => e.preventDefault(); // tocar la lista no cierra el teclado ni el desplegable
+
+  function todas() {
+    const vistas = new Set();
+    return [...(typeof opciones === "function" ? opciones() : opciones), ...propias(tipo).map((v) => ({ valor: v, detalle: "Registrado por ti" }))]
+      .filter((o) => o.valor && !vistas.has(sinAcentos(o.valor)) && vistas.add(sinAcentos(o.valor)));
+  }
+  function pintarLista(todo) {
+    const texto = input.value.trim();
+    const palabras = sinAcentos(texto).split(/\s+/).filter(Boolean);
+    const candidatas = todas().filter((o) => todo || palabras.every((pal) => sinAcentos(`${o.valor} ${o.detalle ?? ""}`).includes(pal)));
+    const yaEsta = todas().some((o) => sinAcentos(o.valor) === sinAcentos(texto));
+    lista.replaceChildren(...[
+      ...candidatas.slice(0, 80).map((o) => h("li", { role: "option", "aria-selected": sinAcentos(o.valor) === sinAcentos(texto) },
+        h("button", { type: "button", onpointerdown: sinPerderFoco, onclick: () => elegir(o.valor) },
+          h("span", {}, o.valor), o.detalle && h("small", {}, o.detalle)))),
+      texto && !yaEsta && h("li", { class: "registrar" },
+        h("button", { type: "button", onpointerdown: sinPerderFoco, onclick: () => {
+          registrar(tipo, texto);
+          elegir(texto);
+          avisar(`«${texto}» registrado: saldrá en la lista`);
+        } }, `＋ ${registrarComo} «${texto}»`)),
+      !candidatas.length && !texto && h("li", { class: "vacio-lista" }, "Escribe para registrar uno"),
+    ].filter(Boolean));
+  }
+  function abrir(todo) {
+    pintarLista(todo);
+    lista.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(() => lista.scrollIntoView({ block: "nearest" }));
+  }
+  function cerrar() {
+    lista.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+  }
+  function elegir(v) {
+    input.value = v;
+    cerrar();
+    alCambiar(v, true);
+  }
+
+  input.addEventListener("focus", () => abrir(true));
+  input.addEventListener("input", () => { alCambiar(input.value, false); abrir(false); });
+  input.addEventListener("blur", () => { cerrar(); alCambiar(input.value, true); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cerrar();
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    lista.querySelector("button")?.click();
+  });
+  return h("div", { class: "selector" }, input,
+    h("button", { type: "button", class: "abrir", tabIndex: -1, "aria-label": `Ver la lista de ${etiqueta.toLowerCase()}`, onpointerdown: sinPerderFoco,
+      onclick: () => (lista.hidden ? (input.focus(), abrir(true)) : cerrar()) }, "▾"),
+    lista);
 }
 
 // Fotos: miniaturas con botón de quitar, y botones de cámara y galería
@@ -306,7 +374,22 @@ async function elegirReceta(callback) {
       ? recetas.map((r) => h("button", { type: "button", class: "opcion", onclick: () => { $("#hoja-recetas").close(); callback(r); } },
           r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
           h("span", {}, h("strong", {}, r.nombre || "Sin nombre"), r.temperatura && h("small", {}, ` · ${r.temperatura} ºC`))))
-      : [h("p", {}, "Todavía no tienes recetas. Créalas en la pestaña «Mis esmaltes».")]));
+      : [h("p", {}, "Todavía no tienes recetas.")]),
+    h("form", { class: "registrar-receta", onsubmit: async (e) => {
+      e.preventDefault();
+      const nombre = e.target.elements.nombre.value.trim();
+      if (!nombre) return e.target.elements.nombre.focus();
+      const r = { id: nuevoId(), nombre, tipo: "Esmalte", temperatura: "", atmosfera: "", unidad: "g", lote: 500,
+        ingredientes: [], fotos: [], notas: "", creado: Date.now(), modificado: Date.now() };
+      await datos.guardar("recetas", r);
+      $("#hoja-recetas").close();
+      callback(r);
+      avisar(`«${nombre}» registrado en Mis esmaltes`);
+    } },
+      h("label", { for: "nombre-receta-nueva" }, "¿No está? Regístralo y completa la receta cuando quieras:"),
+      h("div", { class: "fila" },
+        h("input", { id: "nombre-receta-nueva", name: "nombre", type: "text", placeholder: "Nombre del esmalte", autocomplete: "off" }),
+        h("button", { type: "submit" }, "＋ Registrar"))));
   $("#hoja-recetas").showModal();
 }
 
@@ -505,6 +588,7 @@ async function vistaPieza(id) {
   const guardar = () => cambiado("piezas", p);
   // Pinceles ya usados en otras piezas, para no tener que escribirlos otra vez
   const pincelesUsados = [...new Set(piezas.flatMap((x) => x.capas.map((c) => c.pincel)).filter(Boolean))];
+  const otrosUsados = [...new Set(piezas.flatMap((x) => x.capas.filter((c) => c.origen === "otro").map((c) => c.nombre)).filter(Boolean))];
 
   const texto = (clave, props = {}) => h("input", { type: "text", value: p[clave] ?? "", ...props, oninput: (e) => { p[clave] = e.target.value; guardar(); } });
 
@@ -531,7 +615,9 @@ async function vistaPieza(id) {
     };
     const muestra = muestraCapa(c);
     const titulo = c.origen === "otro"
-      ? h("input", { type: "text", value: c.nombre, placeholder: "Nombre del esmalte", "aria-label": "Nombre del esmalte", oninput: cambia("nombre") })
+      ? selector({ valor: c.nombre, tipo: "esmalte", etiqueta: "Esmaltes", placeholder: "Nombre del esmalte", registrarComo: "Registrar esmalte",
+          opciones: () => otrosUsados.map((v) => ({ valor: v, detalle: "Usado antes" })),
+          alCambiar: (v) => { c.nombre = v; guardar(); } })
       : h("strong", {}, nombreCapa(c), c.origen === "propio" && h("a", { href: `#/esmalte/${c.receta}`, class: "ver" }, " ver receta"));
     return h("article", { class: "capa" },
       h("header", {},
@@ -541,8 +627,12 @@ async function vistaPieza(id) {
       h("div", { class: "rejilla-capa" },
         campo("Capas", h("input", { type: "number", min: 1, max: 10, step: 1, inputMode: "numeric", value: c.capas, oninput: cambia("capas") })),
         campo("Aplicación", h("select", { onchange: cambia("aplicacion") }, APLICACIONES.map((a) => h("option", { value: a, selected: a === c.aplicacion }, a)))),
-        campo("Pincel o herramienta", h("input", { type: "text", list: "lista-pinceles", value: c.pincel, placeholder: "Paletina 20 mm", oninput: cambia("pincel") })),
-        campo("Zona", h("input", { type: "text", list: "lista-zonas", value: c.zona, placeholder: "Exterior", oninput: cambia("zona") }))),
+        campo("Pincel o herramienta", selector({ valor: c.pincel, tipo: "pincel", etiqueta: "Pinceles", placeholder: "Paletina 20 mm", registrarComo: "Registrar pincel",
+          opciones: () => [...pincelesUsados.map((v) => ({ valor: v, detalle: "Usado antes" })), ...PINCELES.map((v) => ({ valor: v }))],
+          alCambiar: (v) => { c.pincel = v; guardar(); } })),
+        campo("Zona", selector({ valor: c.zona, tipo: "zona", etiqueta: "Zonas", placeholder: "Exterior", registrarComo: "Registrar zona",
+          opciones: ZONAS.map((v) => ({ valor: v })),
+          alCambiar: (v) => { c.zona = v; guardar(); } }))),
       campo("Nota", h("input", { type: "text", value: c.nota, placeholder: "Diluido, en dos direcciones, sobre engobe…", oninput: cambia("nota") })),
       h("footer", { class: "mover" },
         h("button", { type: "button", "aria-label": "Subir", disabled: i === 0, onclick: mover(-1) }, "↑"),
@@ -558,20 +648,28 @@ async function vistaPieza(id) {
 
   const tecnicas = h("div", { class: "chips-elegir" });
   function pintarTecnicas() {
-    const todas = [...new Set([...TECNICAS, ...p.tecnicas])];
+    const todas = [...new Set([...TECNICAS, ...propias("tecnica"), ...p.tecnicas])];
     tecnicas.replaceChildren(...todas.map((t) =>
       h("label", { class: "chip-elegir" },
         h("input", { type: "checkbox", checked: p.tecnicas.includes(t), onchange: (e) => {
           p.tecnicas = e.target.checked ? [...p.tecnicas, t] : p.tecnicas.filter((x) => x !== t);
           guardar();
         } }), t)),
-      h("input", { type: "text", class: "otra-tecnica", placeholder: "Otra técnica + Intro", "aria-label": "Otra técnica", onkeydown: (e) => {
-        if (e.key !== "Enter" || !e.target.value.trim()) return;
-        e.preventDefault();
-        p.tecnicas.push(e.target.value.trim());
-        guardar();
-        pintarTecnicas();
-      } }));
+      registrarTecnica);
+  }
+  const nuevaTecnica = h("input", { type: "text", placeholder: "Otra técnica", "aria-label": "Otra técnica",
+    onkeydown: (e) => { if (e.key === "Enter") { e.preventDefault(); anadirTecnica(); } } });
+  const registrarTecnica = h("div", { class: "registrar-tecnica" }, nuevaTecnica,
+    h("button", { type: "button", class: "secundario", onclick: anadirTecnica }, "＋ Registrar técnica"));
+  function anadirTecnica() {
+    const t = nuevaTecnica.value.trim();
+    if (!t) return nuevaTecnica.focus();
+    registrar("tecnica", t);
+    if (!p.tecnicas.includes(t)) p.tecnicas.push(t);
+    nuevaTecnica.value = "";
+    guardar();
+    pintarTecnicas();
+    avisar(`«${t}» registrada: saldrá en todas las piezas`);
   }
   pintarTecnicas();
 
@@ -580,9 +678,6 @@ async function vistaPieza(id) {
       h("a", { href: "#/", class: "volver" }, "← Piezas"),
       h("span", { class: "estado-guardado" }, existente ? "Guardado ✓" : "Se guarda solo")),
     h("h1", {}, existente ? "Pieza" : "Nueva pieza"),
-    listaDatos("lista-pastas", pastas.map((x) => [`${x.nombre} · ${x.descripcion}`, x.tipo])),
-    listaDatos("lista-pinceles", [...new Set([...pincelesUsados, ...PINCELES])]),
-    listaDatos("lista-zonas", ZONAS),
     h("section", { class: "bloque" },
       campo("Nombre", texto("nombre", { placeholder: "Taza de desayuno verde" })),
       campo("Fecha", h("input", { type: "date", value: p.fecha, oninput: (e) => { p.fecha = e.target.value; guardar(); } })),
@@ -590,7 +685,9 @@ async function vistaPieza(id) {
       editorFotos(p, guardar)),
     h("section", { class: "bloque" },
       h("h2", {}, "Pasta y cocción"),
-      campo("Pasta", texto("pasta", { list: "lista-pastas", placeholder: "PRAI · Arcilla blanca alta temperatura" }), "Elige una de SIO-2 o escribe la tuya"),
+      campo("Pasta", selector({ valor: p.pasta, tipo: "pasta", etiqueta: "Pastas", placeholder: "PRAI · Arcilla blanca alta temperatura", registrarComo: "Registrar pasta",
+        opciones: pastas.map((x) => ({ valor: `${x.nombre} · ${x.descripcion}`, detalle: x.tipo })),
+        alCambiar: (v) => { p.pasta = v; guardar(); } }), "Elige una de SIO-2 o registra la tuya"),
       h("div", { class: "fila-campos" },
         campo("Temperatura", h("span", { class: "con-unidad" }, h("input", { type: "number", inputMode: "numeric", value: p.temperatura, placeholder: "1250", oninput: (e) => { p.temperatura = e.target.value; guardar(); } }), " ºC")),
         campo("Atmósfera", h("select", { onchange: (e) => { p.atmosfera = e.target.value; guardar(); } },
@@ -636,18 +733,22 @@ async function vistaReceta(id) {
         h("span", {}, "Material"), h("span", {}, UNIDADES[r.unidad]), h("span", { title: "Se añade fuera del 100 % de la base" }, "Añadido"), h("span", {})),
       ...r.ingredientes.map((ing, i) => {
         const peligro = h("small", { class: "peligro-material", hidden: !material(ing.material)?.[2] }, "⚠ Tóxico: guantes y mascarilla");
+        let materialElegido = ing.material; // el último elegido o confirmado, no lo que se va tecleando
         const anadido = h("input", { type: "checkbox", checked: ing.anadido, title: "Se añade fuera del 100 %",
           onchange: (e) => { ing.anadido = e.target.checked; guardar(); pintarCalculo(); } });
         return h("div", { class: "fila-ingrediente" },
           h("span", { class: "material" },
-            h("input", { type: "text", list: "lista-materiales", value: ing.material, placeholder: "Feldespato potásico", "aria-label": "Material",
-              onchange: (e) => {
-                ing.material = e.target.value;
+            selector({ valor: ing.material, tipo: "material", etiqueta: "Materiales", placeholder: "Feldespato potásico", registrarComo: "Registrar material",
+              opciones: MATERIALES.map(([n, g, toxico]) => ({ valor: n, detalle: toxico ? `${g} ⚠` : g })),
+              alCambiar: (v, final) => {
+                ing.material = v;
+                guardar();
+                if (!final || v === materialElegido) return;
+                materialElegido = v;
                 // Colorantes, opacificantes y aditivos se suelen poner fuera del 100 %
-                const elegido = material(ing.material);
+                const elegido = material(v);
                 if (elegido) ing.anadido = anadido.checked = SE_AÑADEN.has(elegido[1]);
                 peligro.hidden = !elegido?.[2];
-                guardar();
                 pintarCalculo();
               } }),
             peligro),
@@ -702,7 +803,6 @@ async function vistaReceta(id) {
       h("a", { href: "#/esmaltes", class: "volver" }, "← Mis esmaltes"),
       h("span", { class: "estado-guardado" }, existente ? "Guardado ✓" : "Se guarda solo")),
     h("h1", {}, existente ? "Receta" : "Nueva receta"),
-    listaDatos("lista-materiales", MATERIALES.map(([n, g, peligro]) => [n, peligro ? `${g} ⚠` : g])),
     h("section", { class: "bloque" },
       campo("Nombre", texto("nombre", { placeholder: "Celadón de la casa" })),
       h("div", { class: "fila-campos" },
