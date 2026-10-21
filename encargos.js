@@ -133,10 +133,20 @@ async function imagenDeTablero(tablero) {
   canvas.height = Math.round(altoTotal * escala);
   const ctx = canvas.getContext("2d");
   ctx.scale(escala, escala);
-  ctx.fillStyle = "#c49a64";
-  ctx.fillRect(0, 0, ancho, altoTotal);
-  ctx.fillStyle = "rgb(90 55 20 / 0.25)";
-  for (let py = 0; py < altoTotal; py += 7) for (let px = 0; px < ancho; px += 7) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+  // El fondo que tenga el tablero: corcho, un color o una foto
+  const fondo = tablero.fondo;
+  const fotoFondo = fondo?.tipo === "foto" && fondo.imagen instanceof Blob ? await createImageBitmap(fondo.imagen).catch(() => null) : null;
+  if (fotoFondo) {
+    const e = Math.max(ancho / fotoFondo.width, altoTotal / fotoFondo.height);
+    ctx.drawImage(fotoFondo, (ancho - fotoFondo.width * e) / 2, (altoTotal - fotoFondo.height * e) / 2, fotoFondo.width * e, fotoFondo.height * e);
+    fotoFondo.close();
+  } else {
+    const color = fondo?.tipo === "color";
+    ctx.fillStyle = color ? fondo.color : "#c49a64";
+    ctx.fillRect(0, 0, ancho, altoTotal);
+    ctx.fillStyle = color ? "rgb(0 0 0 / 0.07)" : "rgb(90 55 20 / 0.25)";
+    for (let py = 0; py < altoTotal; py += 7) for (let px = 0; px < ancho; px += 7) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+  }
 
   for (const p of pins) {
     if (!(p.imagen instanceof Blob)) continue;

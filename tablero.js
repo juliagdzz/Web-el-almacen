@@ -138,6 +138,7 @@ async function mostrarLista() {
     tarjeta.className = "tarjeta-tablero";
     tarjeta.href = `#/t/${t.id}`;
     const collage = miniatura(pins);
+    pintarFondo([collage], t.fondo);
 
     const info = document.createElement("div");
     info.className = "info";
@@ -165,6 +166,7 @@ async function mostrarTablero(id) {
   tableroActual = tablero;
   try { localStorage.setItem("ultimoTablero", id); } catch {}
   liberarUrls();
+  pintarFondo([corcho, vista], tablero.fondo);
   $("#nombre-tablero").textContent = tablero.nombre;
   document.title = `${tablero.nombre} · El Almacén`;
 
@@ -643,17 +645,8 @@ async function imagenDelTablero({ sinCorcho = false } = {}) {
   const ctx = canvas.getContext("2d");
   ctx.scale(escala, escala);
 
-  // Corcho, con los mismos puntitos que en pantalla
-  if (!sinCorcho) {
-    ctx.fillStyle = "#c49a64";
-    ctx.fillRect(0, 0, ancho, alto);
-    for (const [paso, desfaseX, desfaseY, color] of [[7, 0, 0, "rgb(90 55 20 / 0.25)"], [11, 3, 5, "rgb(255 240 210 / 0.25)"]]) {
-      ctx.fillStyle = color;
-      for (let py = desfaseY; py < alto; py += paso) {
-        for (let px = desfaseX; px < ancho; px += paso) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
-      }
-    }
-  }
+  // El fondo del tablero (corcho, color o foto), igual que en pantalla
+  if (!sinCorcho) await pintarFondoEnCanvas(ctx, ancho, alto, MARGEN - izquierda, MARGEN - arriba);
 
   ctx.save();
   ctx.translate(MARGEN - izquierda, MARGEN - arriba);
@@ -696,6 +689,136 @@ $("#btn-renombrar").addEventListener("click", async () => {
   tableroActual.nombre = nombre;
   await db.guardarTablero(tableroActual);
   $("#nombre-tablero").textContent = nombre;
+});
+
+// ---------- Fondo del tablero: corcho, un color liso o una foto ----------
+// tablero.fondo: sin él, corcho; { tipo: "color", color } o { tipo: "foto", imagen: Blob }
+
+const FONDOS = [
+  { nombre: "Corcho", color: null },
+  { nombre: "Crema", color: "#f3e9d8" },
+  { nombre: "Lino", color: "#e3d9c6" },
+  { nombre: "Terracota", color: "#a44e26" },
+  { nombre: "Oliva", color: "#9b9a3a" },
+  { nombre: "Verde", color: "#4a5a23" },
+  { nombre: "Granate", color: "#551c25" },
+  { nombre: "Pizarra", color: "#33302e" },
+];
+
+// Un color claro necesita texto oscuro encima (el «Tablero vacío» de la miniatura)
+function esClaro(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6;
+}
+
+function pintarFondo(elementos, fondo) {
+  const url = fondo?.tipo === "foto" && fondo.imagen instanceof Blob ? urlDe(fondo.imagen) : null;
+  for (const el of elementos) {
+    el.classList.toggle("fondo-color", fondo?.tipo === "color");
+    el.classList.toggle("fondo-foto", Boolean(url));
+    el.classList.toggle("claro", fondo?.tipo === "color" && esClaro(fondo.color));
+    if (fondo?.tipo === "color") el.style.setProperty("--fondo-tablero", fondo.color);
+    else el.style.removeProperty("--fondo-tablero");
+    if (url) el.style.setProperty("--foto-tablero", `url("${url}")`);
+    else el.style.removeProperty("--foto-tablero");
+  }
+}
+
+// En la imagen que se comparte: dx, dy llevan del corcho al lienzo
+async function pintarFondoEnCanvas(ctx, ancho, alto, dx, dy) {
+  const fondo = tableroActual?.fondo;
+  if (fondo?.tipo === "foto" && fondo.imagen instanceof Blob) {
+    const bitmap = await createImageBitmap(fondo.imagen).catch(() => null);
+    if (bitmap) {
+      // La foto cubre el corcho entero, como en pantalla (background-size: cover)
+      ctx.fillStyle = "#2a1a1a";
+      ctx.fillRect(0, 0, ancho, alto);
+      const escala = Math.max(corcho.offsetWidth / bitmap.width, corcho.offsetHeight / bitmap.height);
+      const w = bitmap.width * escala;
+      const h = bitmap.height * escala;
+      ctx.drawImage(bitmap, dx + (corcho.offsetWidth - w) / 2, dy + (corcho.offsetHeight - h) / 2, w, h);
+      bitmap.close();
+      return;
+    }
+  }
+  const color = fondo?.tipo === "color";
+  ctx.fillStyle = color ? fondo.color : "#c49a64";
+  ctx.fillRect(0, 0, ancho, alto);
+  const puntos = color
+    ? [[7, 0, 0, "rgb(0 0 0 / 0.07)"], [11, 3, 5, "rgb(255 255 255 / 0.12)"]]
+    : [[7, 0, 0, "rgb(90 55 20 / 0.25)"], [11, 3, 5, "rgb(255 240 210 / 0.25)"]];
+  for (const [paso, desfaseX, desfaseY, tono] of puntos) {
+    ctx.fillStyle = tono;
+    for (let py = desfaseY; py < alto; py += paso) {
+      for (let px = desfaseX; px < ancho; px += paso) ctx.fillRect(px - 0.75, py - 0.75, 1.5, 1.5);
+    }
+  }
+}
+
+function pintarMuestrasFondo() {
+  const actual = tableroActual?.fondo;
+  const muestra = (nombre, elegida, disco, alElegir) => {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "muestra-fondo";
+    boton.setAttribute("aria-pressed", String(elegida));
+    boton.append(disco, nombre);
+    boton.addEventListener("click", alElegir);
+    return boton;
+  };
+  const botones = FONDOS.map((f) => {
+    const disco = document.createElement("span");
+    disco.className = f.color ? "disco" : "disco corcho-mini";
+    if (f.color) disco.style.background = f.color;
+    const elegida = f.color ? actual?.tipo === "color" && actual.color.toLowerCase() === f.color : !actual;
+    return muestra(f.nombre, elegida, disco, () => elegirFondo(f.color ? { tipo: "color", color: f.color } : null));
+  });
+  // Un color propio o la foto que ya tiene, como una muestra más
+  if (actual?.tipo === "color" && !FONDOS.some((f) => f.color === actual.color.toLowerCase())) {
+    const disco = document.createElement("span");
+    disco.className = "disco";
+    disco.style.background = actual.color;
+    botones.push(muestra("Tu color", true, disco, () => {}));
+  }
+  if (actual?.tipo === "foto" && actual.imagen instanceof Blob) {
+    const disco = document.createElement("span");
+    disco.className = "disco";
+    disco.style.backgroundImage = `url("${urlDe(actual.imagen)}")`;
+    botones.push(muestra("Tu foto", true, disco, () => {}));
+  }
+  $("#fondos").replaceChildren(...botones);
+  $("#fondo-color").value = actual?.tipo === "color" ? actual.color : "#c49a64";
+}
+
+async function elegirFondo(fondo) {
+  if (!tableroActual) return;
+  if (fondo) tableroActual.fondo = fondo;
+  else delete tableroActual.fondo;
+  pintarFondo([corcho, vista], tableroActual.fondo);
+  pintarMuestrasFondo();
+  await db.guardarTablero(tableroActual);
+}
+
+$("#btn-fondo-tablero").addEventListener("click", () => {
+  $("#hoja-opciones").close();
+  pintarMuestrasFondo();
+  $("#hoja-fondo").showModal();
+});
+// Mientras arrastras en el selector se ve en vivo; se guarda al soltar
+$("#fondo-color").addEventListener("input", (e) => pintarFondo([corcho, vista], { tipo: "color", color: e.target.value }));
+$("#fondo-color").addEventListener("change", (e) => elegirFondo({ tipo: "color", color: e.target.value }));
+$("#fondo-foto").addEventListener("change", async (e) => {
+  const archivo = e.target.files[0];
+  e.target.value = "";
+  if (!archivo) return;
+  try {
+    const { imagen } = await prepararImagen(archivo);
+    await elegirFondo({ tipo: "foto", imagen });
+    $("#hoja-fondo").close();
+    avisar("Foto de fondo puesta");
+  } catch {
+    avisar("No he podido leer esa imagen");
+  }
 });
 
 $("#btn-borrar-tablero").addEventListener("click", async () => {

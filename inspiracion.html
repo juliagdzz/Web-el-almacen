@@ -135,8 +135,19 @@
     <h2>Opciones</h2>
     <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir tablero</button>
     <button id="btn-paleta-tablero" class="opcion" type="button">🎨 Paleta del tablero</button>
+    <button id="btn-fondo-tablero" class="opcion" type="button">🖼️ Fondo del tablero</button>
     <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
     <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
+  </dialog>
+
+  <!-- Fondo del tablero: corcho, un color o una foto -->
+  <dialog id="hoja-fondo" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Fondo del tablero</h2>
+    <div id="fondos" class="fondos" role="group" aria-label="Fondos"></div>
+    <label class="opcion opcion-color" for="fondo-color">🎨 Otro color <input id="fondo-color" type="color" value="#c49a64"></label>
+    <label class="opcion" for="fondo-foto">📷 Poner una foto de fondo</label>
+    <input id="fondo-foto" type="file" accept="image/*" hidden>
   </dialog>
 
   <div id="aviso" class="toast" role="status" aria-live="polite"></div>
