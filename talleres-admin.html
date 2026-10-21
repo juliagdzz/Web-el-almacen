@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Gestión de talleres · El Almacén</title>
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="talleres.css">
+  <link rel="stylesheet" href="talleres-admin.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor talleres gestion">
+    <h1>Gestión de talleres</h1>
+    <p id="estado-gestion" class="ayuda">Un momento…</p>
+
+    <div id="gestion" hidden>
+      <div class="pestanas-gestion" role="tablist">
+        <button type="button" role="tab" data-pestana="agenda" aria-selected="true">Agenda</button>
+        <button type="button" role="tab" data-pestana="alumnos" aria-selected="false">Alumnos <span id="pendientes" class="globo-pestana" hidden></span></button>
+        <button type="button" role="tab" data-pestana="horarios" aria-selected="false">Horarios</button>
+        <button type="button" role="tab" data-pestana="talleres" aria-selected="false">Talleres de un día</button>
+        <button type="button" role="tab" data-pestana="cierres" aria-selected="false">Días cerrados</button>
+      </div>
+
+      <section id="pestana-agenda" class="pestana">
+        <p class="ayuda">Las próximas dos semanas: quién tiene puesto fijo y quién ha reservado.</p>
+        <div id="agenda-admin" class="agenda"></div>
+      </section>
+
+      <section id="pestana-alumnos" class="pestana" hidden>
+        <p class="ayuda">Cuando alguien te paga en el taller, activa su petición. Cancelar un bono libera sus clases futuras.</p>
+        <div id="lista-alumnos" class="lista-alumnos"></div>
+      </section>
+
+      <section id="pestana-horarios" class="pestana" hidden>
+        <form id="form-horario" class="bloque form-gestion">
+          <h2>Nuevo horario semanal</h2>
+          <div class="fila-campos">
+            <label class="campo">Día <select id="h-dia"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option></select></label>
+            <label class="campo">Hora <input id="h-hora" type="time" value="18:00" required></label>
+            <label class="campo">Duración (min) <input id="h-duracion" type="number" min="30" max="480" step="15" value="120" required></label>
+            <label class="campo">Plazas <input id="h-plazas" type="number" min="1" max="50" value="6" required></label>
+          </div>
+          <label class="campo">Actividad <input id="h-actividad" type="text" maxlength="80" value="Torno y modelado" required></label>
+          <button type="submit" class="boton">Añadir horario</button>
+        </form>
+        <div id="lista-horarios" class="lista-gestion"></div>
+      </section>
+
+      <section id="pestana-talleres" class="pestana" hidden>
+        <form id="form-taller-dia" class="bloque form-gestion">
+          <h2>Nuevo taller de un día</h2>
+          <label class="campo">Título <input id="t-titulo" type="text" maxlength="120" placeholder="Taller de raku al aire libre" required></label>
+          <label class="campo">Descripción <small>opcional</small><textarea id="t-descripcion" rows="3" maxlength="2000" placeholder="Qué se hace, qué te llevas a casa, si hay que traer algo…"></textarea></label>
+          <div class="fila-campos">
+            <label class="campo">Fecha <input id="t-fecha" type="date" required></label>
+            <label class="campo">Hora <input id="t-hora" type="time" value="11:00" required></label>
+            <label class="campo">Duración (min) <input id="t-duracion" type="number" min="30" max="720" step="15" value="180" required></label>
+            <label class="campo">Plazas <input id="t-plazas" type="number" min="1" max="100" value="8" required></label>
+            <label class="campo">Precio (€) <input id="t-precio" type="number" min="0" step="0.5" placeholder="45"></label>
+          </div>
+          <label class="casilla"><input id="t-publicado" type="checkbox" checked> Publicarlo ya en la web</label>
+          <button type="submit" class="boton">Crear taller</button>
+        </form>
+        <div id="lista-talleres-admin" class="lista-gestion"></div>
+      </section>
+
+      <section id="pestana-cierres" class="pestana" hidden>
+        <form id="form-cierre" class="bloque form-gestion">
+          <h2>Cerrar un día</h2>
+          <p class="ayuda">Festivos, vacaciones o días que no abres. Ese día no se puede reservar y no cuenta para las mensualidades nuevas.</p>
+          <div class="fila-campos">
+            <label class="campo">Fecha <input id="c-fecha" type="date" required></label>
+            <label class="campo">Qué se cierra <select id="c-horario"><option value="">Todo el día</option></select></label>
+          </div>
+          <label class="campo">Motivo <small>opcional</small><input id="c-motivo" type="text" maxlength="120" placeholder="Festivo"></label>
+          <button type="submit" class="boton">Cerrar ese día</button>
+        </form>
+        <div id="lista-cierres" class="lista-gestion"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="talleres-admin.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

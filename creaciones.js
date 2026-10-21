@@ -87,6 +87,14 @@ async function pintarEncargos() {
     globo.hidden = !n;
     document.getElementById("enlace-encargos").setAttribute("aria-label", `Encargos recibidos: ${n === 1 ? "1 nuevo" : `${n} nuevos`}`);
     document.getElementById("enlace-encargos").hidden = false;
+    // Gestión de talleres: mensualidades y bonos pedidos sin activar
+    const { data: bonos } = await nube.cliente.from("bonos").select("id").eq("estado", "pendiente");
+    const p = bonos?.length ?? 0;
+    document.getElementById("texto-gestion").textContent = p ? (p === 1 ? "1 petición por activar" : `${p} peticiones por activar`) : "Agenda, horarios y alumnos";
+    const globoGestion = document.getElementById("globo-gestion");
+    globoGestion.textContent = p > 99 ? "99+" : String(p);
+    globoGestion.hidden = !p;
+    document.getElementById("enlace-gestion").hidden = false;
   } catch {}
 }
 

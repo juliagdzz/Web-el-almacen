@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Talleres · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="talleres.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">El Almacén</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html" aria-current="page">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor talleres">
+    <h1>Talleres</h1>
+    <p class="entradilla">Talleres de un día para probar algo nuevo y clases cada semana para ir aprendiendo a tu ritmo. <span id="incluye"></span></p>
+
+    <!-- Lo tuyo: bonos, sesiones y reservas (solo con cuenta) -->
+    <section id="mi-plan" class="bloque mi-plan" hidden>
+      <h2>Mi plan</h2>
+      <div id="mis-bonos" class="mis-bonos"></div>
+      <h3>Próximas clases</h3>
+      <ul id="mis-reservas" class="mis-reservas"></ul>
+    </section>
+    <p id="aviso-cuenta" class="aviso-cuenta" hidden></p>
+
+    <section class="seccion-talleres">
+      <h2>Talleres de un día</h2>
+      <div id="lista-talleres" class="lista-talleres"><p class="ayuda">Cargando…</p></div>
+    </section>
+
+    <section class="seccion-talleres">
+      <h2>Clases cada semana</h2>
+      <p class="ayuda">Elige cómo quieres venir. Lo pides aquí, lo pagas en el taller y queda activo.</p>
+      <div id="modalidades" class="modalidades"></div>
+    </section>
+
+    <section class="seccion-talleres">
+      <h2>Horarios y plazas</h2>
+      <p id="texto-horarios" class="ayuda"></p>
+      <div id="semana" class="semana"></div>
+      <div id="agenda" class="agenda"><p class="ayuda">Cargando…</p></div>
+    </section>
+  </main>
+
+  <!-- Pedir mensualidad o bono -->
+  <dialog id="hoja-pedir" class="hoja-talleres">
+    <form id="form-pedir" class="form-talleres">
+      <h2 id="titulo-pedir">Pedir</h2>
+      <p id="texto-pedir" class="ayuda"></p>
+      <fieldset id="caja-horario" class="campo-grupo">
+        <legend>Tu horario fijo</legend>
+        <div id="opciones-horario" class="opciones-horario"></div>
+      </fieldset>
+      <fieldset id="caja-mes" class="campo-grupo">
+        <legend>¿Desde qué mes?</legend>
+        <div id="opciones-mes" class="opciones-horario"></div>
+      </fieldset>
+      <label class="campo">Tu nombre <input id="pedir-nombre" type="text" maxlength="120" autocomplete="name" required></label>
+      <label class="campo">Teléfono o WhatsApp <small>para avisarte</small><input id="pedir-telefono" type="tel" maxlength="40" autocomplete="tel"></label>
+      <p id="error-pedir" class="error" role="alert" hidden></p>
+      <div class="acciones-hoja">
+        <button type="button" class="boton secundario" data-cerrar>Volver</button>
+        <button id="enviar-pedir" type="submit" class="boton">Pedir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Apuntarse a un taller de un día -->
+  <dialog id="hoja-taller" class="hoja-talleres">
+    <form id="form-taller" class="form-talleres">
+      <h2 id="titulo-taller"></h2>
+      <p id="texto-taller" class="ayuda"></p>
+      <label class="campo">Tu nombre <input id="taller-nombre" type="text" maxlength="120" autocomplete="name" required></label>
+      <label class="campo">Teléfono o WhatsApp <small>para avisarte</small><input id="taller-telefono" type="tel" maxlength="40" autocomplete="tel"></label>
+      <p id="error-taller" class="error" role="alert" hidden></p>
+      <div class="acciones-hoja">
+        <button type="button" class="boton secundario" data-cerrar>Volver</button>
+        <button id="enviar-taller" type="submit" class="boton">Apuntarme</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="talleres-tarifas.js"></script>
+  <script src="talleres.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

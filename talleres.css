@@ -1,0 +1,183 @@
+.talleres [hidden] { display: none !important; }
+.talleres .entradilla { margin-top: 0; }
+.talleres h2 { margin-bottom: 0.5rem; }
+.talleres h3 { font-family: 'Fraunces', serif; }
+.ayuda { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--verde); line-height: 1.45; }
+.seccion-talleres { margin: 2.25rem 0; }
+
+.bloque {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.bloque h2::after { display: none; }
+
+.boton.pequeno { padding: 0.35rem 0.9rem; font-size: 0.9rem; }
+.boton.texto, .boton.texto:hover { padding: 0.25rem 0.5rem; background: none; color: var(--verde); font-size: 0.85rem; text-decoration: underline; }
+.boton.claro { background: var(--crema); color: var(--terracota-oscuro); }
+.boton.claro:hover { background: white; }
+
+.aviso-cuenta { padding: 0.75rem 1rem; border-radius: 14px; background: white; font-size: 0.9rem; }
+
+/* Mi plan */
+.mi-plan { border-bottom: 4px solid var(--verde-claro); }
+.mi-plan h2 { margin-top: 0; }
+.mi-plan h3 { margin: 1rem 0 0.4rem; font-size: 1rem; color: var(--terracota-oscuro); }
+.mis-bonos { display: grid; gap: 0.6rem; }
+.bono-mio { display: grid; gap: 0.2rem; padding: 0.75rem 0.9rem; border-radius: 12px; background: var(--fondo); }
+.bono-mio small { color: var(--verde); line-height: 1.4; }
+.bono-mio.pendiente { background: #fbf1e8; }
+.bono-mio.pendiente small { color: var(--terracota-oscuro); }
+.barra-sesiones { display: flex; gap: 4px; margin-top: 0.3rem; }
+.barra-sesiones span { flex: 1; max-width: 2.5rem; height: 6px; border-radius: 3px; background: var(--verde); }
+.barra-sesiones span.usada { background: #d9c3b4; }
+.mis-reservas { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.mis-reservas li { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.92rem; }
+.mis-reservas li strong::first-letter { text-transform: uppercase; }
+.mis-reservas .vacio { color: var(--verde); font-size: 0.85rem; }
+
+/* Talleres de un día */
+.lista-talleres { display: grid; gap: 0.75rem; }
+.taller-dia {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border-bottom: 4px solid var(--terracota);
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.fecha-taller {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 4rem;
+  height: 4.25rem;
+  border-radius: 12px;
+  background: var(--terracota);
+  color: var(--crema);
+  line-height: 1;
+}
+.dia-num { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 700; }
+.mes-corto { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.info-taller h3 { margin: 0; font-size: 1.2rem; color: var(--terracota-oscuro); line-height: 1.25; }
+.cuando { margin: 0.15rem 0 0; font-size: 0.9rem; }
+.cuando::first-letter { text-transform: uppercase; }
+.descripcion { margin: 0.4rem 0 0; font-size: 0.92rem; line-height: 1.5; white-space: pre-line; }
+.datos-taller { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.5rem 0 0; }
+.datos-taller strong { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--granate); }
+.accion-taller { grid-column: 2; margin-top: 0.4rem; }
+.vacio-talleres { padding: 1rem; border-radius: 14px; border: 2px dashed var(--verde-claro); color: var(--verde); text-align: center; }
+
+.plazas { padding: 0.1rem 0.6rem; border-radius: 999px; background: #eef0de; color: var(--verde); font-size: 0.8rem; font-weight: 500; white-space: nowrap; }
+.plazas.completo { background: #f4dcd6; color: #8a2414; }
+.etiqueta-mia { padding: 0.15rem 0.7rem; border-radius: 999px; background: var(--verde); color: var(--crema); font-size: 0.8rem; font-weight: 500; white-space: nowrap; }
+
+/* Modalidades */
+.modalidades { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; }
+.modalidad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: white;
+  box-shadow: inset 0 0 0 2px var(--verde-claro);
+}
+.modalidad h3 { margin: 0; font-size: 1.15rem; color: var(--terracota-oscuro); }
+.modalidad.destacada { background: var(--verde); color: var(--crema); box-shadow: none; }
+.modalidad.destacada h3, .modalidad.destacada .precio-modalidad { color: var(--crema); }
+.precio-modalidad { margin: 0; font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 700; color: var(--granate); line-height: 1.1; }
+.precio-modalidad span { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 400; }
+.resumen { margin: 0; font-size: 0.95rem; line-height: 1.45; }
+.modalidad ul { margin: 0.25rem 0 0.75rem; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.45; }
+.modalidad.destacada li::marker { color: var(--crema); }
+.modalidad .boton { margin-top: auto; text-align: center; }
+
+/* Horarios y plazas */
+.semana { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.chip-horario { padding: 0.3rem 0.75rem; border-radius: 999px; background: white; font-size: 0.85rem; box-shadow: inset 0 0 0 1.5px #d9c3b4; }
+.agenda { display: grid; gap: 0.75rem; }
+.dia-agenda { padding: 0.75rem 1rem; border-radius: 14px; background: white; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
+.dia-agenda h3 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--terracota-oscuro); }
+.dia-agenda h3::first-letter { text-transform: uppercase; }
+.dia-agenda ul { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.clase {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  min-height: 2.5rem;
+  font-size: 0.92rem;
+}
+.clase .hora { font-variant-numeric: tabular-nums; font-weight: 500; }
+.clase .actividad { color: var(--verde); }
+@media (max-width: 480px) {
+  .clase { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .clase .actividad { grid-column: 1 / -1; grid-row: 2; font-size: 0.82rem; margin-top: -0.4rem; }
+  .clase .boton { grid-row: 1 / span 2; grid-column: 3; }
+  .clase:has(.boton) > .plazas, .clase:has(.boton) > .etiqueta-mia { grid-column: 2; justify-self: end; }
+}
+
+/* Hojas para pedir y apuntarse */
+.hoja-talleres {
+  box-sizing: border-box;
+  width: min(30rem, 100%);
+  max-width: 100%;
+  max-height: 92dvh;
+  margin: auto auto 0;
+  padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  border: none;
+  border-radius: 20px 20px 0 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  overflow-y: auto;
+}
+@media (min-width: 640px) { .hoja-talleres { margin: auto; border-radius: 20px; } }
+.hoja-talleres::backdrop { background: rgb(42 26 26 / 0.45); }
+.hoja-talleres h2 { margin: 0 0 0.25rem; }
+.hoja-talleres h2::after { display: none; }
+.form-talleres { display: grid; gap: 0.25rem; }
+.campo-grupo { margin: 0 0 0.9rem; padding: 0; border: 0; }
+.campo-grupo legend { margin-bottom: 0.35rem; font-weight: 500; font-size: 0.95rem; }
+.opciones-horario { display: grid; gap: 0.4rem; }
+.opcion-radio { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 12px; background: white; font-size: 0.92rem; cursor: pointer; }
+.opcion-radio:has(input:checked) { box-shadow: inset 0 0 0 2px var(--verde); }
+.opcion-radio input { accent-color: var(--verde); }
+.campo { display: grid; gap: 0.25rem; margin-bottom: 0.9rem; font-size: 0.95rem; font-weight: 500; }
+.campo small { font-weight: 400; color: var(--verde); }
+.campo input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #d9c3b4;
+  border-radius: 12px;
+  background: white;
+  font: inherit;
+  font-weight: 400;
+}
+.campo input:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
+.error { margin: 0 0 0.75rem; padding: 0.6rem 0.8rem; border-radius: 10px; background: #fbe4df; color: #8a2414; font-size: 0.9rem; }
+.acciones-hoja { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(2rem + var(--alto-sello, 0px) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 2rem);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--crema);
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.visible { opacity: 1; }

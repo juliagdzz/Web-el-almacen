@@ -72,6 +72,7 @@
   text-decoration: none;
 }
 .enlace-encargos[hidden] { display: none; }
+.enlace-encargos + .enlace-encargos { margin-top: 0.5rem; }
 .enlace-encargos > span:nth-child(2) { flex: 1; display: grid; line-height: 1.3; }
 .enlace-encargos small { opacity: 0.85; }
 .icono-encargos { position: relative; font-size: 1.4rem; line-height: 1; }
