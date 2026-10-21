@@ -161,6 +161,11 @@
     ver("vista-sin-nube");
     return;
   }
+  // «Continuar con Google» solo si está activado en Supabase (nube-config.js)
+  if (!window.NUBE_CONFIG?.google) {
+    $("#con-google").hidden = true;
+    $("#con-google").nextElementSibling.hidden = true; // «o con tu correo»
+  }
   window.addEventListener("nube:sesion", (e) => {
     if (e.detail?.evento === "PASSWORD_RECOVERY") ver("vista-nueva-clave");
   });

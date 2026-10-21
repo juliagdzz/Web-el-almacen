@@ -1,7 +1,9 @@
-// Datos del proyecto de Supabase (Project Settings → API / Data API).
+// Datos del proyecto de Supabase (Project Settings → API Keys).
 // Los dos son públicos: la seguridad la ponen las reglas de supabase/esquema.sql.
-// Mientras estén vacíos, la web funciona como siempre: todo solo en el móvil.
+// Si se dejan vacíos, la web funciona como antes: todo solo en el móvil.
 window.NUBE_CONFIG = {
-  url: "",   // https://xxxxxxxx.supabase.co
-  clave: "", // anon public (eyJ…) o publishable (sb_publishable_…)
+  url: "https://gzhvetzlzhkapvvoelly.supabase.co",
+  clave: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6aHZldHpsemhrYXB2dm9lbGx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODgzNDMsImV4cCI6MjEwODA2NDM0M30.0ZM_GAYktN6NhvMYrGSGoy3v0yz_mriwXlj-T-fUZrA",
+  // Ponlo a true cuando actives Google en Authentication → Sign In / Providers
+  google: false,
 };
