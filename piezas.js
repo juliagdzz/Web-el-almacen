@@ -495,6 +495,15 @@ function textoReceta(r) {
   ].filter(Boolean).join("\n\n");
 }
 
+// Abre la comunidad con la pieza o la receta ya puesta en «Publicar»
+function botonComunidad(almacen, id) {
+  return h("button", { type: "button", class: "boton secundario", onclick: async () => {
+    await guardarYa();
+    try { sessionStorage.setItem("compartirComunidad", JSON.stringify({ almacen, id })); } catch {}
+    location.href = "comunidad.html#publicar";
+  } }, "A la comunidad");
+}
+
 function abrirFicha(...contenido) {
   const hoja = $("#hoja-ver");
   hoja.replaceChildren(botonCerrar(), ...contenido.flat().filter((x) => x != null && x !== false));
@@ -526,6 +535,7 @@ function verPieza(p) {
       p.notas && [h("h3", {}, "Notas"), h("p", { class: "notas-ver" }, p.notas)]),
     h("div", { class: "acciones-ver" },
       botonCompartir(() => compartir({ titulo: p.nombre || "Pieza", texto: textoPieza(p), imagenes: p.fotos, avisar })),
+      botonComunidad("piezas", p.id),
       h("a", { href: `#/pieza/${p.id}`, class: "boton" }, "Editar")),
   );
 }
@@ -549,6 +559,7 @@ function verReceta(r, piezas) {
         h("ul", { class: "usada-en" }, usadaEn.map((p) => h("li", {}, h("a", { href: "#/", onclick: (e) => { e.preventDefault(); verPieza(p); } }, p.nombre || "Pieza sin nombre"))))]),
     h("div", { class: "acciones-ver" },
       botonCompartir(() => compartir({ titulo: r.nombre || "Receta", texto: textoReceta(r), imagenes: r.fotos, avisar })),
+      botonComunidad("recetas", r.id),
       h("a", { href: `#/esmalte/${r.id}`, class: "boton" }, "Editar")),
   );
 }

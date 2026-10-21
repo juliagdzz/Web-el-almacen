@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Comunidad · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="comunidad.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">Julia Godinez</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="comunidad.html" aria-current="page">Comunidad</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor comunidad">
+    <!-- Portada del foro -->
+    <section id="vista-feed" hidden>
+      <div class="cabeza-comunidad">
+        <div>
+          <h1>Comunidad</h1>
+          <p class="entradilla">Comparte tus esmaltes, recetas y piezas, y pregunta lo que no te sale: alguien del taller habrá pasado por lo mismo.</p>
+        </div>
+        <a href="#publicar" class="boton boton-publicar">＋ Publicar</a>
+      </div>
+      <div class="barra-comunidad">
+        <div id="categorias" class="categorias" role="tablist" aria-label="Categorías"></div>
+        <div class="filtros-comunidad">
+          <label class="buscar"><span class="solo-lectores">Buscar</span><input id="buscar" type="search" placeholder="Buscar: celadón, cuarteado, 1250…"></label>
+          <select id="orden" aria-label="Ordenar">
+            <option value="recientes">Recientes</option>
+            <option value="utiles">Más útiles</option>
+          </select>
+        </div>
+      </div>
+      <div id="lista-comunidad" class="lista-comunidad"></div>
+      <button id="cargar-mas" type="button" class="boton secundario cargar-mas" hidden>Ver más</button>
+    </section>
+
+    <!-- Una publicación -->
+    <section id="vista-publicacion" hidden>
+      <a href="#" class="volver-comunidad">← Comunidad</a>
+      <article id="publicacion" class="publicacion"></article>
+      <section class="comentarios">
+        <h2 id="titulo-comentarios">Comentarios</h2>
+        <ol id="lista-comentarios" class="lista-comentarios"></ol>
+        <form id="form-comentario" class="form-comentario" hidden>
+          <label class="campo">Tu comentario
+            <textarea id="texto-comentario" rows="3" maxlength="4000" required placeholder="Cuenta lo que te funcionó: pasta, temperatura, proporciones…"></textarea>
+          </label>
+          <button type="submit" class="boton">Comentar</button>
+        </form>
+        <p id="entrar-comentar" class="aviso-entrar" hidden></p>
+      </section>
+    </section>
+
+    <!-- Publicar -->
+    <section id="vista-publicar" hidden>
+      <a href="#" class="volver-comunidad">← Comunidad</a>
+      <h1>Publicar</h1>
+      <form id="form-publicar" class="form-publicar bloque" novalidate>
+        <fieldset class="campo-grupo">
+          <legend>¿De qué va?</legend>
+          <div id="elegir-categoria" class="categorias"></div>
+        </fieldset>
+        <div id="adjuntar" class="adjuntar">
+          <p class="ayuda">¿Quieres compartir una pieza o un esmalte de Mis creaciones? Elígelo y se rellena solo.</p>
+          <div id="lista-adjuntar" class="lista-adjuntar"></div>
+        </div>
+        <div id="adjunto-elegido" class="adjunto-elegido" hidden></div>
+        <label class="campo">Título <input id="p-titulo" type="text" maxlength="140" required placeholder="Celadón que me sale lechoso a 1250 ºC"></label>
+        <label class="campo">Cuéntalo <textarea id="p-cuerpo" rows="7" maxlength="10000" placeholder="Pasta, temperatura, cómo lo aplicaste, qué esperabas y qué salió…"></textarea></label>
+        <div id="p-fotos" class="fotos-publicar"></div>
+        <label class="boton secundario subir-fotos">＋ Añadir fotos
+          <input id="p-input-fotos" type="file" accept="image/*" multiple hidden>
+        </label>
+        <p id="error-publicar" class="error" role="alert" hidden></p>
+        <button id="enviar-publicar" type="submit" class="boton">Publicar</button>
+      </form>
+    </section>
+
+    <p id="cargando" class="ayuda">Cargando…</p>
+  </main>
+
+  <!-- Nombre público, la primera vez -->
+  <dialog id="hoja-alias" class="hoja-comunidad">
+    <form id="form-alias" class="form-publicar">
+      <h2>¿Con qué nombre quieres aparecer?</h2>
+      <p class="ayuda">Es lo que verá la gente en tus publicaciones y comentarios. Tu correo no se enseña nunca.</p>
+      <label class="campo">Nombre público <input id="alias" type="text" minlength="2" maxlength="40" required placeholder="Marta del torno"></label>
+      <p id="error-alias" class="error" role="alert" hidden></p>
+      <div class="acciones-hoja">
+        <button type="button" class="boton secundario" data-cerrar>Volver</button>
+        <button type="submit" class="boton">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Avisar al taller -->
+  <dialog id="hoja-aviso" class="hoja-comunidad">
+    <form id="form-aviso" class="form-publicar">
+      <h2>Avisar al taller</h2>
+      <p class="ayuda">Si algo no debería estar aquí (spam, faltas de respeto, datos personales), el taller lo revisa.</p>
+      <label class="campo">Qué pasa <small>opcional</small><textarea id="motivo-aviso" rows="3" maxlength="500"></textarea></label>
+      <div class="acciones-hoja">
+        <button type="button" class="boton secundario" data-cerrar>Volver</button>
+        <button type="submit" class="boton">Avisar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="compartir.js"></script>
+  <script src="comunidad.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

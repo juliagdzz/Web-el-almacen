@@ -706,6 +706,219 @@ begin
     'encargos', (select count(*) from encargos where estado = 'nuevo'),
     'horneados', (select count(*) from horneados where estado = 'nuevo'),
     'bonos', (select count(*) from bonos where estado = 'pendiente'),
+    'avisos', (select count(distinct publicacion_id) from avisos),
     'clases_hoy', (select count(*) from horarios h where h.activo and h.dia = extract(isodow from hoy_madrid())::int
                      and not cerrado(h.id, hoy_madrid())));
+end $$;
+
+-- ============================================================
+-- Comunidad: un foro para compartir esmaltes, recetas, piezas y problemas
+-- ============================================================
+-- Leer es público. Publicar, comentar, votar y avisar al taller necesitan
+-- cuenta y un nombre público (nunca se enseña el correo). Cada cual cambia
+-- y borra lo suyo; el taller puede borrar cualquier cosa.
+
+create table if not exists public.perfiles (
+  user_id uuid primary key default auth.uid() references auth.users on delete cascade,
+  alias text not null check (length(btrim(alias)) between 2 and 40),
+  creado timestamptz not null default now()
+);
+
+create table if not exists public.publicaciones (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  categoria text not null check (categoria in ('esmaltes', 'recetas', 'problemas', 'piezas', 'charla')),
+  titulo text not null check (length(btrim(titulo)) between 3 and 140),
+  cuerpo text not null default '' check (length(cuerpo) <= 10000),
+  fotos text[] not null default '{}' check (cardinality(fotos) <= 6),
+  adjunto jsonb check (adjunto is null or pg_column_size(adjunto) < 20000),
+  solucion uuid,
+  creado timestamptz not null default now(),
+  editado timestamptz
+);
+create index if not exists publicaciones_por_fecha on public.publicaciones (creado desc);
+create index if not exists publicaciones_por_categoria on public.publicaciones (categoria, creado desc);
+
+create table if not exists public.comentarios (
+  id uuid primary key default gen_random_uuid(),
+  publicacion_id uuid not null references public.publicaciones on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  cuerpo text not null check (length(btrim(cuerpo)) between 1 and 4000),
+  creado timestamptz not null default now()
+);
+create index if not exists comentarios_por_publicacion on public.comentarios (publicacion_id, creado);
+
+create table if not exists public.votos (
+  publicacion_id uuid not null references public.publicaciones on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  creado timestamptz not null default now(),
+  primary key (publicacion_id, user_id)
+);
+
+create table if not exists public.avisos (
+  id uuid primary key default gen_random_uuid(),
+  publicacion_id uuid not null references public.publicaciones on delete cascade,
+  comentario_id uuid references public.comentarios on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  motivo text check (length(motivo) <= 500),
+  creado timestamptz not null default now()
+);
+
+-- La fecha de edición la pone el servidor
+create or replace function public.marcar_editado() returns trigger
+language plpgsql as $$ begin new.editado := now(); return new; end $$;
+drop trigger if exists marcar_editado on public.publicaciones;
+create trigger marcar_editado before update of titulo, cuerpo on public.publicaciones
+  for each row execute function public.marcar_editado();
+
+-- Qué columnas puede escribir cada cual (el resto, solo las funciones de abajo)
+revoke insert, update on public.perfiles, public.publicaciones, public.comentarios, public.votos, public.avisos from anon, authenticated;
+grant insert (alias), update (alias) on public.perfiles to authenticated;
+grant insert (categoria, titulo, cuerpo, fotos, adjunto), update (titulo, cuerpo) on public.publicaciones to authenticated;
+grant insert (publicacion_id, cuerpo), update (cuerpo) on public.comentarios to authenticated;
+grant insert (publicacion_id, comentario_id, motivo) on public.avisos to authenticated;
+
+alter table public.perfiles enable row level security;
+alter table public.publicaciones enable row level security;
+alter table public.comentarios enable row level security;
+alter table public.votos enable row level security;
+alter table public.avisos enable row level security;
+
+drop policy if exists "Perfiles: todos los ven" on public.perfiles;
+create policy "Perfiles: todos los ven" on public.perfiles for select to anon, authenticated using (true);
+drop policy if exists "Perfiles: el tuyo" on public.perfiles;
+create policy "Perfiles: el tuyo" on public.perfiles for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "Perfiles: cambiar el tuyo" on public.perfiles;
+create policy "Perfiles: cambiar el tuyo" on public.perfiles for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+drop policy if exists "Publicaciones: todos las ven" on public.publicaciones;
+create policy "Publicaciones: todos las ven" on public.publicaciones for select to anon, authenticated using (true);
+drop policy if exists "Publicaciones: publicar" on public.publicaciones;
+create policy "Publicaciones: publicar" on public.publicaciones for insert to authenticated
+  with check (user_id = auth.uid()
+              and exists (select 1 from public.perfiles where user_id = auth.uid())
+              and (select count(*) from public.publicaciones x where x.user_id = auth.uid() and x.creado > now() - interval '1 day') < 20);
+drop policy if exists "Publicaciones: cambiar las tuyas" on public.publicaciones;
+create policy "Publicaciones: cambiar las tuyas" on public.publicaciones for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "Publicaciones: borrar" on public.publicaciones;
+create policy "Publicaciones: borrar" on public.publicaciones for delete to authenticated using (user_id = auth.uid() or public.es_admin());
+
+drop policy if exists "Comentarios: todos los ven" on public.comentarios;
+create policy "Comentarios: todos los ven" on public.comentarios for select to anon, authenticated using (true);
+drop policy if exists "Comentarios: comentar" on public.comentarios;
+create policy "Comentarios: comentar" on public.comentarios for insert to authenticated
+  with check (user_id = auth.uid()
+              and exists (select 1 from public.perfiles where user_id = auth.uid())
+              and (select count(*) from public.comentarios x where x.user_id = auth.uid() and x.creado > now() - interval '1 day') < 200);
+drop policy if exists "Comentarios: cambiar los tuyos" on public.comentarios;
+create policy "Comentarios: cambiar los tuyos" on public.comentarios for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "Comentarios: borrar" on public.comentarios;
+create policy "Comentarios: borrar" on public.comentarios for delete to authenticated using (user_id = auth.uid() or public.es_admin());
+
+drop policy if exists "Votos: todos los ven" on public.votos;
+create policy "Votos: todos los ven" on public.votos for select to anon, authenticated using (true);
+
+drop policy if exists "Avisos: avisar" on public.avisos;
+create policy "Avisos: avisar" on public.avisos for insert to authenticated
+  with check (user_id = auth.uid()
+              and (select count(*) from public.avisos x where x.user_id = auth.uid() and x.creado > now() - interval '1 day') < 20);
+drop policy if exists "Avisos: el taller" on public.avisos;
+create policy "Avisos: el taller" on public.avisos for select to authenticated using (public.es_admin());
+drop policy if exists "Avisos: el taller los borra" on public.avisos;
+create policy "Avisos: el taller los borra" on public.avisos for delete to authenticated using (public.es_admin());
+
+-- Fotos de la comunidad: públicas para leer; cada cual sube en su carpeta
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('comunidad', 'comunidad', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+drop policy if exists "Comunidad: subir fotos" on storage.objects;
+create policy "Comunidad: subir fotos" on storage.objects for insert to authenticated
+  with check (bucket_id = 'comunidad' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Comunidad: borrar fotos" on storage.objects;
+create policy "Comunidad: borrar fotos" on storage.objects for delete to authenticated
+  using (bucket_id = 'comunidad' and ((storage.foldername(name))[1] = auth.uid()::text or public.es_admin()));
+
+-- Portada del foro: publicaciones con autor, votos y comentarios
+create or replace function public.comunidad_feed(p_categoria text default null, p_orden text default 'recientes',
+                                                 p_buscar text default null, p_desde int default 0) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(x.datos order by x.peso desc, x.creado desc), '[]'::jsonb) from (
+    select p.creado,
+           case when p_orden = 'utiles' then (select count(*) from votos v where v.publicacion_id = p.id) else 0 end as peso,
+           jsonb_build_object(
+             'id', p.id, 'categoria', p.categoria, 'titulo', p.titulo, 'extracto', left(p.cuerpo, 200),
+             'foto', p.fotos[1], 'fotos', cardinality(p.fotos), 'adjunto', p.adjunto ->> 'tipo',
+             'autor', coalesce(pe.alias, 'Alguien'), 'creado', p.creado, 'resuelto', p.solucion is not null,
+             'votos', (select count(*) from votos v where v.publicacion_id = p.id),
+             'comentarios', (select count(*) from comentarios c where c.publicacion_id = p.id),
+             'mi_voto', auth.uid() is not null and exists (select 1 from votos v where v.publicacion_id = p.id and v.user_id = auth.uid()),
+             'avisos', case when es_admin() then (select count(*) from avisos a where a.publicacion_id = p.id) end
+           ) as datos
+      from publicaciones p left join perfiles pe on pe.user_id = p.user_id
+     where (p_categoria is null or p.categoria = p_categoria)
+       and (coalesce(p_buscar, '') = '' or position(lower(p_buscar) in lower(p.titulo || ' ' || p.cuerpo)) > 0)
+       and (p_orden <> 'avisos' or (es_admin() and exists (select 1 from avisos a where a.publicacion_id = p.id)))
+     order by peso desc, p.creado desc
+     offset greatest(p_desde, 0) limit 30
+  ) x
+$$;
+
+-- Una publicación con sus comentarios
+create or replace function public.comunidad_publicacion(p_id uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'id', p.id, 'categoria', p.categoria, 'titulo', p.titulo, 'cuerpo', p.cuerpo, 'fotos', to_jsonb(p.fotos),
+    'adjunto', p.adjunto, 'solucion', p.solucion, 'creado', p.creado, 'editado', p.editado,
+    'autor', coalesce(pe.alias, 'Alguien'),
+    'es_mia', coalesce(p.user_id = auth.uid(), false), 'puede_borrar', coalesce(p.user_id = auth.uid(), false) or es_admin(),
+    'votos', (select count(*) from votos v where v.publicacion_id = p.id),
+    'mi_voto', auth.uid() is not null and exists (select 1 from votos v where v.publicacion_id = p.id and v.user_id = auth.uid()),
+    'avisos', case when es_admin() then coalesce((select jsonb_agg(jsonb_build_object('motivo', a.motivo, 'comentario', a.comentario_id, 'creado', a.creado))
+                                                    from avisos a where a.publicacion_id = p.id), '[]'::jsonb) end,
+    'comentarios', coalesce((
+      select jsonb_agg(jsonb_build_object(
+          'id', c.id, 'cuerpo', c.cuerpo, 'creado', c.creado, 'autor', coalesce(cp.alias, 'Alguien'),
+          'del_autor', c.user_id = p.user_id, 'es_mio', coalesce(c.user_id = auth.uid(), false),
+          'puede_borrar', coalesce(c.user_id = auth.uid(), false) or es_admin()
+        ) order by c.creado)
+      from comentarios c left join perfiles cp on cp.user_id = c.user_id
+      where c.publicacion_id = p.id), '[]'::jsonb)
+  )
+  from publicaciones p left join perfiles pe on pe.user_id = p.user_id
+  where p.id = p_id
+$$;
+
+-- «Útil»: se pone y se quita; en lo propio no
+create or replace function public.votar(p_publicacion uuid) returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Entra con tu cuenta para votar'; end if;
+  if exists (select 1 from publicaciones where id = p_publicacion and user_id = auth.uid()) then
+    raise exception 'Es tu propia publicación';
+  end if;
+  if not exists (select 1 from publicaciones where id = p_publicacion) then raise exception 'Esa publicación ya no existe'; end if;
+  if exists (select 1 from votos where publicacion_id = p_publicacion and user_id = auth.uid()) then
+    delete from votos where publicacion_id = p_publicacion and user_id = auth.uid();
+  else
+    insert into votos (publicacion_id, user_id) values (p_publicacion, auth.uid());
+  end if;
+  return jsonb_build_object(
+    'votos', (select count(*) from votos where publicacion_id = p_publicacion),
+    'mi_voto', exists (select 1 from votos where publicacion_id = p_publicacion and user_id = auth.uid()));
+end $$;
+
+-- Quien preguntó marca el comentario que le resolvió el problema (o lo desmarca con null)
+create or replace function public.marcar_solucion(p_publicacion uuid, p_comentario uuid) returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from publicaciones where id = p_publicacion and user_id = auth.uid()) then
+    raise exception 'Solo quien publicó puede marcar la solución';
+  end if;
+  if p_comentario is not null and not exists (select 1 from comentarios where id = p_comentario and publicacion_id = p_publicacion) then
+    raise exception 'Ese comentario no es de esta publicación';
+  end if;
+  update publicaciones set solucion = p_comentario where id = p_publicacion;
+  return jsonb_build_object('ok', true);
 end $$;

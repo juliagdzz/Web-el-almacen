@@ -429,6 +429,7 @@
 .notas-ver { white-space: pre-line; margin: 0; }
 .hoja-ver .tabla-receta { margin-top: 1rem; }
 .acciones-ver {
+  flex-wrap: wrap;
   position: sticky;
   bottom: calc(-1.25rem - env(safe-area-inset-bottom));
   display: flex;

@@ -12,6 +12,7 @@
   };
   poner("encargos", data.encargos, "1 encargo nuevo", "N encargos nuevos", "Ningún encargo nuevo");
   poner("horneados", data.horneados, "1 horneado nuevo", "N horneados nuevos", "Ningún horneado nuevo");
+  poner("avisos", data.avisos ?? 0, "1 publicación con avisos", "N publicaciones con avisos", "Sin avisos");
   poner("bonos", data.bonos, "1 bono o mensualidad por activar", "N bonos o mensualidades por activar",
     data.clases_hoy ? `Hoy hay ${data.clases_hoy === 1 ? "1 clase" : `${data.clases_hoy} clases`}` : "Agenda, alumnos y horarios");
 })();
