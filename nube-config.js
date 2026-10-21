@@ -4,6 +4,7 @@
 window.NUBE_CONFIG = {
   url: "https://gzhvetzlzhkapvvoelly.supabase.co",
   clave: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6aHZldHpsemhrYXB2dm9lbGx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODgzNDMsImV4cCI6MjEwODA2NDM0M30.0ZM_GAYktN6NhvMYrGSGoy3v0yz_mriwXlj-T-fUZrA",
-  // Ponlo a true cuando actives Google en Authentication → Sign In / Providers
+  // El botón de Google aparece solo cuando está activado en Supabase
+  // (entrar.js lo pregunta); esto solo se usa si no se puede preguntar
   google: false,
 };

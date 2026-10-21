@@ -161,11 +161,17 @@
     ver("vista-sin-nube");
     return;
   }
-  // «Continuar con Google» solo si está activado en Supabase (nube-config.js)
-  if (!window.NUBE_CONFIG?.google) {
-    $("#con-google").hidden = true;
-    $("#con-google").nextElementSibling.hidden = true; // «o con tu correo»
-  }
+  // «Continuar con Google» solo si está activado en Supabase: se pregunta a
+  // Supabase, así aparece solo en cuanto lo actives en el panel
+  const mostrarGoogle = (si) => {
+    $("#con-google").hidden = !si;
+    $("#con-google").nextElementSibling.hidden = !si; // «o con tu correo»
+  };
+  mostrarGoogle(false);
+  fetch(`${window.NUBE_CONFIG.url}/auth/v1/settings`, { headers: { apikey: window.NUBE_CONFIG.clave } })
+    .then((r) => r.json())
+    .then((ajustes) => mostrarGoogle(Boolean(ajustes?.external?.google)))
+    .catch(() => mostrarGoogle(Boolean(window.NUBE_CONFIG.google)));
   window.addEventListener("nube:sesion", (e) => {
     if (e.detail?.evento === "PASSWORD_RECOVERY") ver("vista-nueva-clave");
   });
