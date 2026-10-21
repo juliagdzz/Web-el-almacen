@@ -151,7 +151,8 @@
       <ul id="lista-presupuesto" class="lista-presupuesto"></ul>
       <p class="total">Total <strong id="total">0,00 €</strong></p>
       <div class="acciones-presupuesto">
-        <button id="compartir-presupuesto" type="button" class="secundario">📤 Enviar presupuesto</button>
+        <button id="enviar-taller" type="button">Enviar al taller</button>
+        <button id="compartir-presupuesto" type="button" class="secundario">📤 Compartir</button>
         <button id="vaciar" type="button" class="texto">Vaciar</button>
       </div>
     </section>
@@ -160,8 +161,35 @@
     <p class="nota-horno">Precio orientativo. Las piezas tienen que venir bien secas. Si una pieza es muy grande o tiene una forma rara, la miramos contigo antes de meterla.</p>
   </main>
 
+  <!-- Enviar el presupuesto al taller -->
+  <dialog id="hoja-enviar" class="hoja-horno">
+    <form id="form-enviar" class="form-horno" novalidate>
+      <h2>Enviar al taller</h2>
+      <p id="resumen-envio" class="ayuda-horno"></p>
+      <label class="campo-horno">Tu nombre <input id="e-nombre" type="text" maxlength="120" autocomplete="name" required></label>
+      <label class="campo-horno">Teléfono o WhatsApp <input id="e-telefono" type="tel" maxlength="40" autocomplete="tel"></label>
+      <label class="campo-horno">Correo <small>opcional</small><input id="e-correo" type="email" maxlength="200" autocomplete="email"></label>
+      <fieldset class="contestar-horno">
+        <legend>¿Cómo prefieres que te conteste?</legend>
+        <label><input type="radio" name="contestar_por" value="whatsapp" checked> WhatsApp</label>
+        <label><input type="radio" name="contestar_por" value="correo"> Correo</label>
+      </fieldset>
+      <label class="campo-horno">¿Cuándo puedes traerlas? <small>opcional</small><input id="e-cuando" type="text" maxlength="120" placeholder="El sábado por la mañana"></label>
+      <label class="campo-horno">Algo más <small>opcional</small><textarea id="e-notas" rows="3" maxlength="2000" placeholder="Esmaltes que usas, si alguna pieza es delicada…"></textarea></label>
+      <label class="acepto-horno"><input id="e-acepto" type="checkbox" required> Acepto que El Almacén guarde estos datos para organizar la cocción.</label>
+      <p id="error-enviar" class="error-horno" role="alert" hidden></p>
+      <div class="acciones-presupuesto">
+        <button type="button" class="secundario" id="cancelar-enviar">Volver</button>
+        <button id="confirmar-enviar" type="submit">Enviar</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="aviso" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
   <script src="horno-tarifas.js"></script>
   <script src="compartir.js"></script>
   <script src="horno.js"></script>

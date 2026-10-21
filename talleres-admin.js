@@ -217,19 +217,10 @@ $("#form-cierre").addEventListener("submit", async (e) => {
 // ---------- Arranque ----------
 
 (async () => {
-  const nube = window.nube;
-  const estado = $("#estado-gestion");
-  if (!nube?.activa) return (estado.textContent = "Esta página necesita la web conectada a Supabase.");
-  await nube.listo;
-  if (!nube.usuario) {
-    estado.replaceChildren("Entra con tu cuenta del taller. ", h("a", { href: `entrar.html?volver=${encodeURIComponent("/talleres-admin.html")}` }, "Entrar"));
-    return;
-  }
-  const { data: esAdmin } = await nube.cliente.rpc("es_admin");
-  if (!esAdmin) return (estado.textContent = "Esta página es solo para el taller.");
+  await window.accesoTaller;
   $("#t-fecha").min = hoyIso();
   $("#c-fecha").min = hoyIso();
-  estado.hidden = true;
+  $("#estado-gestion").hidden = true;
   $("#gestion").hidden = false;
   await Promise.all([pintarAgenda(), pintarAlumnos()]);
 })();

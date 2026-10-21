@@ -202,23 +202,8 @@ $("#ficha-encargo").addEventListener("click", (e) => e.target === e.currentTarge
 // ---------- Arranque ----------
 
 (async () => {
-  const nube = window.nube;
+  await window.accesoTaller;
   const estado = $("#estado-panel");
-  if (!nube?.activa) {
-    estado.textContent = "Los encargos se activan cuando la web esté conectada a Supabase.";
-    return;
-  }
-  await nube.listo;
-  if (!nube.usuario) {
-    estado.replaceChildren("Entra con tu cuenta del taller para ver los encargos. ",
-      h("a", { href: `entrar.html?volver=${encodeURIComponent("/encargos-recibidos.html")}` }, "Entrar"));
-    return;
-  }
-  const { data: esAdmin } = await nube.cliente.rpc("es_admin");
-  if (!esAdmin) {
-    estado.textContent = "Esta página es solo para el taller.";
-    return;
-  }
   try {
     await cargar();
     estado.hidden = true;

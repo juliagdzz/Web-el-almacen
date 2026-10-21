@@ -344,3 +344,6 @@ body { padding-bottom: calc(var(--alto-sello) + env(safe-area-inset-bottom)); }
 /* En el corcho no: necesita toda la pantalla */
 body.en-tablero { --alto-sello: 0px; padding-bottom: 0; }
 body.en-tablero .sello { display: none; }
+
+/* Panel del taller: nada se ve hasta comprobar que eres tú (panel-acceso.js) */
+html.comprobando-acceso main, html.comprobando-acceso .subnav { visibility: hidden; }

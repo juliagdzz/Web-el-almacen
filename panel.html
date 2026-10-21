@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Panel del taller · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="encargos.css">
+  <link rel="stylesheet" href="encargos-recibidos.css">
+  <link rel="stylesheet" href="creaciones.css">
+  <meta name="robots" content="noindex">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">Julia Godinez</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <nav class="subnav" aria-label="Panel del taller">
+    <a href="panel.html" aria-current="page">Panel</a>
+    <a href="encargos-recibidos.html">Encargos</a>
+    <a href="horneados-recibidos.html">Horneados</a>
+    <a href="talleres-admin.html">Talleres</a>
+  </nav>
+
+  <main class="contenedor encargos recibidos">
+    <h1>Panel del taller</h1>
+    <p class="ayuda">Solo lo ves tú. Desde aquí gestionas lo que te piden.</p>
+    <div class="opciones-panel">
+      <a href="encargos-recibidos.html" class="enlace-encargos"><span class="icono-encargos" aria-hidden="true">📬<span id="globo-encargos" class="globo" hidden></span></span><span><strong>Encargos</strong> <small id="texto-encargos">Piezas a medida</small></span><span aria-hidden="true">›</span></a>
+      <a href="horneados-recibidos.html" class="enlace-encargos"><span class="icono-encargos" aria-hidden="true">🔥<span id="globo-horneados" class="globo" hidden></span></span><span><strong>Horneados</strong> <small id="texto-horneados">Piezas para cocer</small></span><span aria-hidden="true">›</span></a>
+      <a href="talleres-admin.html" class="enlace-encargos"><span class="icono-encargos" aria-hidden="true">🗓️<span id="globo-bonos" class="globo" hidden></span></span><span><strong>Talleres</strong> <small id="texto-talleres">Agenda, alumnos y horarios</small></span><span aria-hidden="true">›</span></a>
+    </div>
+  </main>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="panel-acceso.js"></script>
+  <script src="panel.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

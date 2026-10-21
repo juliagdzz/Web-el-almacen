@@ -171,7 +171,7 @@ begin
     end,
     '',
     'Míralo y contesta desde tu panel:',
-    'https://webelalmacen.vercel.app/encargos-recibidos.html'
+    'https://webelalmacen.vercel.app/panel.html'
   );
 
   perform net.http_post(
@@ -608,4 +608,104 @@ begin
       ) order by (b.estado = 'pendiente') desc, b.creado desc)
     from bonos b left join auth.users u on u.id = b.user_id left join horarios h on h.id = b.horario_id
     where b.estado <> 'cancelado' and (b.caduca is null or b.caduca >= hoy_madrid() - 31)), '[]'::jsonb);
+end $$;
+
+-- ============================================================
+-- Horneados: presupuestos que la gente envía desde la página del horno
+-- ============================================================
+-- Como los encargos: cualquiera puede enviar uno; solo el taller lo ve y lo cambia.
+
+create table if not exists public.horneados (
+  id uuid primary key default gen_random_uuid(),
+  creado timestamptz not null default now(),
+  user_id uuid default auth.uid() references auth.users on delete set null,
+  nombre text not null check (length(nombre) between 1 and 120),
+  correo text check (length(correo) <= 200),
+  telefono text check (length(telefono) <= 40),
+  contestar_por text not null default 'whatsapp' check (contestar_por in ('correo', 'whatsapp')),
+  -- [{ "descripcion": "2 piezas de 10 × 9 ⌀ cm · esmaltado · alta temperatura", "total": 6.8 }, …]
+  piezas jsonb not null check (jsonb_typeof(piezas) = 'array' and jsonb_array_length(piezas) between 1 and 50
+                               and pg_column_size(piezas) < 20000),
+  total numeric(8, 2) check (total >= 0 and total < 100000),
+  cuando text check (length(cuando) <= 120),  -- cuándo puede traer las piezas
+  notas text check (length(notas) <= 2000),
+  -- lo rellenas tú
+  estado text not null default 'nuevo'
+    check (estado in ('nuevo', 'aceptado', 'en-horno', 'listo', 'recogido', 'descartado')),
+  precio_final numeric(8, 2),
+  notas_taller text,
+  constraint horneado_con_contacto check (coalesce(correo, '') <> '' or coalesce(telefono, '') <> '')
+);
+create index if not exists horneados_por_fecha on public.horneados (creado desc);
+alter table public.horneados enable row level security;
+
+drop policy if exists "Cualquiera puede enviar un horneado" on public.horneados;
+create policy "Cualquiera puede enviar un horneado" on public.horneados for insert to anon, authenticated
+  with check (estado = 'nuevo' and precio_final is null and notas_taller is null
+              and (user_id is null or user_id = auth.uid()));
+drop policy if exists "El taller ve los horneados" on public.horneados;
+create policy "El taller ve los horneados" on public.horneados for select to authenticated using (public.es_admin());
+drop policy if exists "El taller cambia los horneados" on public.horneados;
+create policy "El taller cambia los horneados" on public.horneados for update to authenticated
+  using (public.es_admin()) with check (public.es_admin());
+drop policy if exists "El taller borra los horneados" on public.horneados;
+create policy "El taller borra los horneados" on public.horneados for delete to authenticated using (public.es_admin());
+
+-- Aviso por correo, con la misma clave de Resend que los encargos
+create or replace function public.avisar_horneado() returns trigger
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  clave text;
+  destinatarios text[];
+  limpio text := regexp_replace(coalesce(new.nombre, ''), '\s+', ' ', 'g');
+  lineas text;
+begin
+  select decrypted_secret into clave from vault.decrypted_secrets where name = 'resend_api_key';
+  select array_agg(correo) into destinatarios from public.admins;
+  if clave is null or destinatarios is null then
+    return new;
+  end if;
+  select string_agg('· ' || left(coalesce(p ->> 'descripcion', ''), 200) || coalesce(': ' || (p ->> 'total') || ' €', ''), E'\n')
+    into lineas from jsonb_array_elements(new.piezas) p;
+  perform net.http_post(
+    url := 'https://api.resend.com/emails',
+    headers := jsonb_build_object('Authorization', 'Bearer ' || clave, 'Content-Type', 'application/json'),
+    body := jsonb_strip_nulls(jsonb_build_object(
+      'from', 'El Almacén <onboarding@resend.dev>',
+      'to', to_jsonb(destinatarios),
+      'reply_to', nullif(new.correo, ''),
+      'subject', left('Nuevo horneado de ' || limpio || coalesce(' · ' || new.total || ' €', ''), 150),
+      'text', concat_ws(E'\n',
+        'Te han enviado un presupuesto de horneado.', '',
+        lineas,
+        'Total orientativo: ' || new.total || ' €', '',
+        'De: ' || limpio,
+        'Teléfono: ' || new.telefono,
+        'Correo: ' || new.correo,
+        'Prefiere que le contestes por ' || case new.contestar_por when 'whatsapp' then 'WhatsApp' else 'correo' end,
+        'Puede traerlas: ' || new.cuando,
+        case when coalesce(new.notas, '') <> '' then E'\n' || left(new.notas, 1500) end,
+        '', 'Míralo en tu panel:', 'https://webelalmacen.vercel.app/panel.html')
+    ))
+  );
+  return new;
+exception when others then
+  return new;
+end $$;
+revoke all on function public.avisar_horneado() from public, anon, authenticated;
+drop trigger if exists avisar_horneado on public.horneados;
+create trigger avisar_horneado after insert on public.horneados
+  for each row execute function public.avisar_horneado();
+
+-- Cuántas cosas esperan en el panel del taller (solo para el taller)
+create or replace function public.resumen_panel() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not es_admin() then raise exception 'Solo para el taller'; end if;
+  return jsonb_build_object(
+    'encargos', (select count(*) from encargos where estado = 'nuevo'),
+    'horneados', (select count(*) from horneados where estado = 'nuevo'),
+    'bonos', (select count(*) from bonos where estado = 'pendiente'),
+    'clases_hoy', (select count(*) from horarios h where h.activo and h.dia = extract(isodow from hoy_madrid())::int
+                     and not cerrado(h.id, hoy_madrid())));
 end $$;

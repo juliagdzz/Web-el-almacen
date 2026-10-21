@@ -150,6 +150,56 @@ $("#compartir-presupuesto").addEventListener("click", () => {
   compartir({ titulo: "Presupuesto de horneado", texto, avisar });
 });
 
+// ---------- Enviar el presupuesto al taller ----------
+// Con la web conectada a Supabase se guarda en «horneados» (lo ve el taller en
+// su panel); si no, se comparte como antes.
+
+$("#enviar-taller").addEventListener("click", () => {
+  if (!window.nube?.activa) return $("#compartir-presupuesto").click();
+  const total = presupuesto.reduce((s, p) => s + p.total, 0);
+  $("#resumen-envio").textContent = `${presupuesto.length === 1 ? "1 línea" : `${presupuesto.length} líneas`} · ${euros.format(total)} orientativo. Te confirmamos el precio y cuándo traerlas.`;
+  $("#error-enviar").hidden = true;
+  $("#hoja-enviar").showModal();
+});
+$("#cancelar-enviar").addEventListener("click", () => $("#hoja-enviar").close());
+
+$("#form-enviar").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const valor = (id) => $(`#${id}`).value.trim();
+  const contestarPor = document.querySelector('input[name="contestar_por"]:checked').value;
+  const error = (texto) => { $("#error-enviar").textContent = texto; $("#error-enviar").hidden = false; };
+  if (!valor("e-nombre")) return error("Escribe tu nombre.");
+  if (contestarPor === "whatsapp" && !/\d{6,}/.test(valor("e-telefono").replace(/\D/g, ""))) return error("Para contestarte por WhatsApp necesito tu teléfono.");
+  if (contestarPor === "correo" && (!valor("e-correo") || !$("#e-correo").checkValidity())) return error("Para contestarte por correo necesito un correo válido.");
+  if (!$("#e-acepto").checked) return error("Marca la casilla para que pueda guardar tus datos.");
+  const boton = $("#confirmar-enviar");
+  boton.disabled = true;
+  try {
+    await window.nube.listo;
+    const { error: fallo } = await window.nube.cliente.from("horneados").insert({
+      user_id: window.nube.usuario?.id ?? null,
+      nombre: valor("e-nombre"),
+      telefono: valor("e-telefono") || null,
+      correo: valor("e-correo") || null,
+      contestar_por: contestarPor,
+      piezas: presupuesto.map((p) => ({ descripcion: describir(p), total: Math.round(p.total * 100) / 100 })),
+      total: Math.round(presupuesto.reduce((s, p) => s + p.total, 0) * 100) / 100,
+      cuando: valor("e-cuando") || null,
+      notas: valor("e-notas") || null,
+    });
+    if (fallo) throw fallo;
+    $("#hoja-enviar").close();
+    presupuesto = [];
+    guardarPresupuesto();
+    pintarPresupuesto();
+    avisar(`Enviado. Te contestamos por ${contestarPor === "whatsapp" ? "WhatsApp" : "correo"}`);
+  } catch (err) {
+    error(/fetch|network/i.test(String(err?.message)) ? "No hay conexión. Vuelve a probar: no se ha perdido nada." : "No se ha podido enviar. Prueba otra vez en un momento.");
+  } finally {
+    boton.disabled = false;
+  }
+});
+
 // ---------- Animación del horno ----------
 
 const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Horneados · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="encargos.css">
+  <link rel="stylesheet" href="encargos-recibidos.css">
+  <meta name="robots" content="noindex">
+</head>
+<body>
+
+  <header class="cabecera">
+    <a href="index.html" class="logo">Julia Godinez</a>
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <nav class="subnav" aria-label="Panel del taller">
+    <a href="panel.html" class="subnav-inicio">← Panel</a>
+    <a href="encargos-recibidos.html">Encargos</a>
+    <a href="horneados-recibidos.html" aria-current="page">Horneados</a>
+    <a href="talleres-admin.html">Talleres</a>
+  </nav>
+
+  <main class="contenedor encargos recibidos">
+    <h1>Horneados</h1>
+    <p id="estado-panel" class="ayuda">Un momento…</p>
+    <div id="panel" hidden>
+      <div id="filtros" class="filtros" role="tablist" aria-label="Filtrar por estado"></div>
+      <div id="lista-encargos" class="lista-encargos"></div>
+    </div>
+  </main>
+
+  <dialog id="ficha-encargo" class="ficha-encargo">
+    <div class="ficha-cabecera">
+      <button id="cerrar-ficha" type="button" class="cerrar" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="contenido-ficha"></div>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="panel-acceso.js"></script>
+  <script src="horneados-recibidos.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>

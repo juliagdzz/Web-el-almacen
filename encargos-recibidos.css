@@ -74,3 +74,17 @@
 .contestar { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
 .contestar .boton { text-align: center; padding: 0.7rem 1rem; }
 .borrar-encargo, .borrar-encargo:hover { display: block; margin: 1.25rem auto 0.5rem; background: none; color: #a3261b; text-decoration: underline; font-size: 0.9rem; }
+
+/* Portada del panel */
+.opciones-panel { display: grid; gap: 0.6rem; margin: 1rem 0 3rem; }
+.opciones-panel .enlace-encargos { margin: 0; }
+
+/* Horneados */
+.tarjeta-encargo.estado-recogido, .tarjeta-encargo.estado-descartado { opacity: 0.7; border-left-color: #c9b9ad; }
+.etiqueta-estado.estado-aceptado { background: #f6e1c9; color: var(--terracota-oscuro); }
+.etiqueta-estado.estado-en-horno { background: var(--terracota-oscuro); color: var(--crema); }
+.etiqueta-estado.estado-listo { background: var(--verde); color: var(--crema); }
+.lineas-horneado { display: grid; gap: 0.35rem; margin: 0.5rem 0; padding: 0.75rem 1rem; border-radius: 12px; background: white; list-style: none; font-size: 0.92rem; }
+.lineas-horneado li { display: flex; justify-content: space-between; gap: 0.75rem; }
+.total-horneado { display: flex; justify-content: space-between; margin: 0 0 0.5rem; padding: 0 1rem; }
+.total-horneado strong { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--granate); }
