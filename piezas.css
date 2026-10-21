@@ -217,6 +217,9 @@
 .estrellas { display: flex; gap: 0.25rem; margin-bottom: 0.75rem; }
 .estrellas button { padding: 0; background: none; color: #d8c8bb; font-size: 1.9rem; line-height: 1; }
 .estrellas button:hover { background: none; }
+.salio-mal { margin-bottom: 0.75rem; }
+.marcar-fallo { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; cursor: pointer; }
+.marcar-fallo input { width: 1.15rem; height: 1.15rem; accent-color: var(--terracota); }
 .estrellas button.llena { color: var(--terracota); }
 
 .acciones-ficha { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 1.5rem; }

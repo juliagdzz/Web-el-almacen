@@ -720,9 +720,16 @@ end $$;
 
 create table if not exists public.perfiles (
   user_id uuid primary key default auth.uid() references auth.users on delete cascade,
-  alias text not null check (length(btrim(alias)) between 2 and 40),
+  alias text check (length(btrim(alias)) between 2 and 40),
   creado timestamptz not null default now()
 );
+-- El nombre público solo hace falta para publicar: el perfil también guarda la
+-- foto (en el cubo «comunidad», dentro de tu carpeta) y si enseñas tus insignias
+alter table public.perfiles alter column alias drop not null;
+alter table public.perfiles add column if not exists foto text
+  check (foto is null or (length(foto) < 200 and foto like user_id::text || '/%'));
+alter table public.perfiles add column if not exists insignias text not null default 'privadas'
+  check (insignias in ('privadas', 'publicas', 'ocultas'));
 
 create table if not exists public.publicaciones (
   id uuid primary key default gen_random_uuid(),
@@ -773,7 +780,7 @@ create trigger marcar_editado before update of titulo, cuerpo on public.publicac
 
 -- Qué columnas puede escribir cada cual (el resto, solo las funciones de abajo)
 revoke insert, update on public.perfiles, public.publicaciones, public.comentarios, public.votos, public.avisos from anon, authenticated;
-grant insert (alias), update (alias) on public.perfiles to authenticated;
+grant insert (alias, foto, insignias), update (alias, foto, insignias) on public.perfiles to authenticated;
 grant insert (categoria, titulo, cuerpo, fotos, adjunto), update (titulo, cuerpo) on public.publicaciones to authenticated;
 grant insert (publicacion_id, cuerpo), update (cuerpo) on public.comentarios to authenticated;
 grant insert (publicacion_id, comentario_id, motivo) on public.avisos to authenticated;
@@ -796,7 +803,7 @@ create policy "Publicaciones: todos las ven" on public.publicaciones for select 
 drop policy if exists "Publicaciones: publicar" on public.publicaciones;
 create policy "Publicaciones: publicar" on public.publicaciones for insert to authenticated
   with check (user_id = auth.uid()
-              and exists (select 1 from public.perfiles where user_id = auth.uid())
+              and exists (select 1 from public.perfiles where user_id = auth.uid() and alias is not null)
               and (select count(*) from public.publicaciones x where x.user_id = auth.uid() and x.creado > now() - interval '1 day') < 20);
 drop policy if exists "Publicaciones: cambiar las tuyas" on public.publicaciones;
 create policy "Publicaciones: cambiar las tuyas" on public.publicaciones for update to authenticated
@@ -809,7 +816,7 @@ create policy "Comentarios: todos los ven" on public.comentarios for select to a
 drop policy if exists "Comentarios: comentar" on public.comentarios;
 create policy "Comentarios: comentar" on public.comentarios for insert to authenticated
   with check (user_id = auth.uid()
-              and exists (select 1 from public.perfiles where user_id = auth.uid())
+              and exists (select 1 from public.perfiles where user_id = auth.uid() and alias is not null)
               and (select count(*) from public.comentarios x where x.user_id = auth.uid() and x.creado > now() - interval '1 day') < 200);
 drop policy if exists "Comentarios: cambiar los tuyos" on public.comentarios;
 create policy "Comentarios: cambiar los tuyos" on public.comentarios for update to authenticated
@@ -850,7 +857,7 @@ language sql stable security definer set search_path = public as $$
            jsonb_build_object(
              'id', p.id, 'categoria', p.categoria, 'titulo', p.titulo, 'extracto', left(p.cuerpo, 200),
              'foto', p.fotos[1], 'fotos', cardinality(p.fotos), 'adjunto', p.adjunto ->> 'tipo',
-             'autor', coalesce(pe.alias, 'Alguien'), 'creado', p.creado, 'resuelto', p.solucion is not null,
+             'autor', coalesce(pe.alias, 'Alguien'), 'autor_id', p.user_id, 'autor_foto', pe.foto, 'creado', p.creado, 'resuelto', p.solucion is not null,
              'votos', (select count(*) from votos v where v.publicacion_id = p.id),
              'comentarios', (select count(*) from comentarios c where c.publicacion_id = p.id),
              'mi_voto', auth.uid() is not null and exists (select 1 from votos v where v.publicacion_id = p.id and v.user_id = auth.uid()),
@@ -871,7 +878,7 @@ language sql stable security definer set search_path = public as $$
   select jsonb_build_object(
     'id', p.id, 'categoria', p.categoria, 'titulo', p.titulo, 'cuerpo', p.cuerpo, 'fotos', to_jsonb(p.fotos),
     'adjunto', p.adjunto, 'solucion', p.solucion, 'creado', p.creado, 'editado', p.editado,
-    'autor', coalesce(pe.alias, 'Alguien'),
+    'autor', coalesce(pe.alias, 'Alguien'), 'autor_id', p.user_id, 'autor_foto', pe.foto,
     'es_mia', coalesce(p.user_id = auth.uid(), false), 'puede_borrar', coalesce(p.user_id = auth.uid(), false) or es_admin(),
     'votos', (select count(*) from votos v where v.publicacion_id = p.id),
     'mi_voto', auth.uid() is not null and exists (select 1 from votos v where v.publicacion_id = p.id and v.user_id = auth.uid()),
@@ -879,7 +886,7 @@ language sql stable security definer set search_path = public as $$
                                                     from avisos a where a.publicacion_id = p.id), '[]'::jsonb) end,
     'comentarios', coalesce((
       select jsonb_agg(jsonb_build_object(
-          'id', c.id, 'cuerpo', c.cuerpo, 'creado', c.creado, 'autor', coalesce(cp.alias, 'Alguien'),
+          'id', c.id, 'cuerpo', c.cuerpo, 'creado', c.creado, 'autor', coalesce(cp.alias, 'Alguien'), 'autor_id', c.user_id, 'autor_foto', cp.foto,
           'del_autor', c.user_id = p.user_id, 'es_mio', coalesce(c.user_id = auth.uid(), false),
           'puede_borrar', coalesce(c.user_id = auth.uid(), false) or es_admin()
         ) order by c.creado)
@@ -922,3 +929,145 @@ begin
   update publicaciones set solucion = p_comentario where id = p_publicacion;
   return jsonb_build_object('ok', true);
 end $$;
+
+-- ============================================================
+-- Insignias: pequeños logros que se ganan solos al registrar cosas
+-- ============================================================
+-- Se calculan aquí, en el servidor, cada vez que se guarda una pieza, una
+-- receta, una publicación o un comentario. Nunca se quitan (aunque borres la
+-- pieza). Son privadas salvo que la persona elija enseñarlas en su perfil.
+
+create table if not exists public.insignias (
+  id text primary key,
+  grupo text not null check (grupo in ('hitos', 'exploracion', 'comunidad', 'error')),
+  nombre text not null,
+  descripcion text not null,
+  orden int not null
+);
+insert into public.insignias (id, grupo, nombre, descripcion, orden) values
+  ('torno',       'hitos',       'Primera vuelta',     'Registra una pieza hecha en el torno.', 1),
+  ('esmalte',     'hitos',       'Recién horneada',    'Registra una pieza esmaltada con una foto de cómo salió del horno.', 2),
+  ('asa',         'hitos',       'Primer asa',         'Registra una pieza con asas.', 3),
+  ('grande',      'hitos',       'Pieza grande',       'Registra una pieza de 25 cm o más de alto o de ancho.', 4),
+  ('cinco',       'exploracion', 'Cinco esmaltes',     'Usa 5 esmaltes distintos entre todas tus piezas.', 5),
+  ('pasta',       'exploracion', 'Otra pasta',         'Prueba una segunda pasta distinta.', 6),
+  ('mezcla',      'exploracion', 'Mezcla',             'Pon dos esmaltes distintos en una misma pieza.', 7),
+  ('receta',      'exploracion', 'Receta propia',      'Apunta una receta de esmalte con al menos dos materiales.', 8),
+  ('probeta',     'comunidad',   'A la carta',         'Comparte en la comunidad un esmalte con la foto de su probeta cocida.', 9),
+  ('consejo',     'comunidad',   'Buen consejo',       'Deja un comentario en la publicación de otra persona.', 10),
+  ('solucion',    'comunidad',   'Problema resuelto',  'Tu comentario resuelve el problema de alguien.', 11),
+  ('error',       'error',       'Aprender del error', 'Registra una pieza que salió mal y apunta qué pasó.', 12)
+on conflict (id) do update set grupo = excluded.grupo, nombre = excluded.nombre,
+  descripcion = excluded.descripcion, orden = excluded.orden;
+
+create table if not exists public.insignias_ganadas (
+  user_id uuid not null references auth.users on delete cascade,
+  insignia_id text not null references public.insignias on delete cascade,
+  ganada timestamptz not null default now(),
+  vista boolean not null default false,
+  primary key (user_id, insignia_id)
+);
+
+-- Las da solo el servidor; cada cual solo puede marcarlas como vistas
+revoke insert, update, delete on public.insignias, public.insignias_ganadas from anon, authenticated;
+grant select on public.insignias, public.insignias_ganadas to anon, authenticated;
+grant update (vista) on public.insignias_ganadas to authenticated;
+alter table public.insignias enable row level security;
+alter table public.insignias_ganadas enable row level security;
+drop policy if exists "Insignias: todos las ven" on public.insignias;
+create policy "Insignias: todos las ven" on public.insignias for select to anon, authenticated using (true);
+drop policy if exists "Ganadas: las tuyas y las que se enseñan" on public.insignias_ganadas;
+create policy "Ganadas: las tuyas y las que se enseñan" on public.insignias_ganadas for select to anon, authenticated
+  using (user_id = auth.uid()
+         or exists (select 1 from public.perfiles p where p.user_id = insignias_ganadas.user_id and p.insignias = 'publicas'));
+drop policy if exists "Ganadas: marcar como vistas" on public.insignias_ganadas;
+create policy "Ganadas: marcar como vistas" on public.insignias_ganadas for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Ayudas para leer lo que guarda la web sin que un dato raro rompa nada
+create or replace function public.lista_json(j jsonb) returns jsonb
+language sql immutable as $$ select case when jsonb_typeof(j) = 'array' then j else '[]'::jsonb end $$;
+create or replace function public.numero_json(t text) returns numeric
+language sql immutable as $$ select case when btrim(t) ~ '^\d{1,6}([.,]\d+)?$' then replace(btrim(t), ',', '.')::numeric end $$;
+-- Un nombre para cada esmalte de una capa: el mismo esmalte cuenta una vez
+create or replace function public.esmalte_de_capa(c jsonb) returns text
+language sql immutable as $$
+  select case c ->> 'origen'
+    when 'prodesco' then nullif('p:' || coalesce(c ->> 'codigo', ''), 'p:')
+    when 'propio' then nullif('r:' || coalesce(c ->> 'receta', ''), 'r:')
+    else nullif('o:' || lower(btrim(coalesce(c ->> 'nombre', ''))), 'o:') end
+$$;
+
+create or replace function public.revisar_insignias(p_user uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_user is null then return; end if;
+  with piezas as (
+    select datos d from registros where user_id = p_user and almacen = 'piezas' and not borrado and jsonb_typeof(datos) = 'object'
+  ), capas as (
+    select d, esmalte_de_capa(c) esmalte from piezas, jsonb_array_elements(lista_json(d -> 'capas')) c
+  ), logros(id, conseguido) as (values
+    ('torno',   exists (select 1 from piezas where lista_json(d -> 'tecnicas') ? 'Torno')),
+    ('esmalte', exists (select 1 from piezas where jsonb_array_length(lista_json(d -> 'capas')) > 0
+                                               and jsonb_array_length(lista_json(d -> 'fotos')) > 0)),
+    ('asa',     exists (select 1 from piezas where lista_json(d -> 'tecnicas') ? 'Asas')),
+    ('grande',  exists (select 1 from piezas where greatest(numero_json(d ->> 'alto'), numero_json(d ->> 'ancho')) >= 25)),
+    ('cinco',   (select count(distinct esmalte) from capas) >= 5),
+    ('pasta',   (select count(distinct lower(btrim(d ->> 'pasta'))) from piezas where btrim(coalesce(d ->> 'pasta', '')) <> '') >= 2),
+    ('mezcla',  exists (select 1 from capas group by d having count(distinct esmalte) >= 2)),
+    ('receta',  exists (select 1 from registros r where r.user_id = p_user and r.almacen = 'recetas' and not r.borrado
+                          and (select count(*) from jsonb_array_elements(lista_json(r.datos -> 'ingredientes')) i
+                                where btrim(coalesce(i ->> 'material', '')) <> '' and numero_json(i ->> 'cantidad') > 0) >= 2)),
+    ('probeta', exists (select 1 from publicaciones where user_id = p_user and categoria = 'esmaltes' and cardinality(fotos) > 0)),
+    ('consejo', exists (select 1 from comentarios c join publicaciones p on p.id = c.publicacion_id
+                         where c.user_id = p_user and p.user_id <> p_user)),
+    ('solucion', exists (select 1 from publicaciones p join comentarios c on c.id = p.solucion
+                          where c.user_id = p_user and p.user_id <> p_user)),
+    ('error',   exists (select 1 from piezas where d ->> 'fallo' = 'true' and length(btrim(coalesce(d ->> 'que_paso', ''))) >= 10))
+  )
+  insert into insignias_ganadas (user_id, insignia_id)
+  select p_user, id from logros where conseguido
+  on conflict do nothing;
+exception when others then
+  -- Una insignia nunca debe impedir guardar una pieza
+  raise warning 'revisar_insignias: %', sqlerrm;
+end $$;
+revoke execute on function public.revisar_insignias(uuid) from public, anon, authenticated;
+
+-- Al guardar piezas o recetas (de una en una o muchas a la vez al sincronizar)
+create or replace function public.insignias_por_registros() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  perform revisar_insignias(u.user_id) from (select distinct user_id from nuevos where almacen in ('piezas', 'recetas')) u;
+  return null;
+end $$;
+drop trigger if exists insignias_al_crear on public.registros;
+create trigger insignias_al_crear after insert on public.registros
+  referencing new table as nuevos for each statement execute function public.insignias_por_registros();
+drop trigger if exists insignias_al_cambiar on public.registros;
+create trigger insignias_al_cambiar after update on public.registros
+  referencing new table as nuevos for each statement execute function public.insignias_por_registros();
+
+-- Al publicar, comentar o marcar una solución
+create or replace function public.insignias_por_comunidad() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_table_name = 'publicaciones' and tg_op = 'UPDATE' then
+    perform revisar_insignias((select user_id from comentarios where id = new.solucion));
+  else
+    perform revisar_insignias(new.user_id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists insignias_al_publicar on public.publicaciones;
+create trigger insignias_al_publicar after insert on public.publicaciones
+  for each row execute function public.insignias_por_comunidad();
+drop trigger if exists insignias_al_resolver on public.publicaciones;
+create trigger insignias_al_resolver after update of solucion on public.publicaciones
+  for each row when (new.solucion is not null) execute function public.insignias_por_comunidad();
+drop trigger if exists insignias_al_comentar on public.comentarios;
+create trigger insignias_al_comentar after insert on public.comentarios
+  for each row execute function public.insignias_por_comunidad();
+
+-- Lo que ya estaba guardado antes de existir las insignias también cuenta
+do $$ begin perform public.revisar_insignias(id) from auth.users; end $$;

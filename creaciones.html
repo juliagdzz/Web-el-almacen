@@ -38,6 +38,13 @@
       <button id="cuenta-salir" type="button" class="boton secundario" hidden>Cerrar sesión</button>
     </div>
 
+    <!-- Tu perfil, con las insignias nuevas (lo rellena creaciones.js) -->
+    <a id="enlace-perfil" href="perfil.html" class="enlace-perfil" hidden>
+      <span id="avatar-perfil" class="avatar mediana" aria-hidden="true"></span>
+      <span><strong id="nombre-perfil">Tu perfil</strong> <small id="texto-perfil">Foto e insignias</small></span>
+      <span aria-hidden="true">›</span>
+    </a>
+
     <!-- Solo para el taller -->
     <a id="enlace-panel" href="panel.html" class="enlace-encargos" hidden>
       <span class="icono-encargos" aria-hidden="true">🔒<span id="globo-panel" class="globo" hidden></span></span>
@@ -83,6 +90,7 @@
   <script src="vendor/supabase-2.49.4.js"></script>
   <script src="nube-config.js"></script>
   <script src="nube.js"></script>
+  <script src="insignias.js"></script>
   <script src="creaciones.js"></script>
   <script src="cabecera.js"></script>
 </body>

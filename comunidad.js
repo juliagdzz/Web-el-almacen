@@ -120,6 +120,37 @@ function pintarCategorias() {
       } }, nombre)));
 }
 
+// ---------- Autores: foto y perfil ----------
+
+function avatar(nombre, foto, tamano = "") {
+  return h("span", { class: `avatar ${tamano}`, "aria-hidden": "true" },
+    foto ? h("img", { src: urlFoto(foto), alt: "", loading: "lazy" }) : (nombre || "?").trim()[0].toUpperCase());
+}
+
+function botonAutor(x) {
+  return h("button", { type: "button", class: "autor", onclick: () => verPerfil(x) }, avatar(x.autor, x.autor_foto), h("strong", {}, x.autor));
+}
+
+// Ficha de una persona: su foto y, si las enseña, sus insignias
+async function verPerfil(x) {
+  const hoja = $("#hoja-perfil");
+  const insignias = h("div", { class: "insignias-publicas" }, h("p", { class: "ayuda" }, "Cargando…"));
+  $("#contenido-perfil").replaceChildren(avatar(x.autor, x.autor_foto, "grande"), h("h2", {}, x.autor), insignias);
+  hoja.showModal();
+  const { data: perfiles } = await nube.cliente.from("perfiles").select("insignias").eq("user_id", x.autor_id);
+  const ensena = perfiles?.[0]?.insignias === "publicas";
+  if (!ensena) return insignias.replaceChildren(h("p", { class: "ayuda" }, "Sus insignias son privadas."));
+  try {
+    const ganadas = (await window.insignias.cargar(nube.cliente, x.autor_id)).filter((i) => i.tiene);
+    insignias.replaceChildren(ganadas.length
+      ? h("ul", {}, ganadas.map((i) => h("li", { title: i.descripcion },
+          h("span", { class: "medalla", innerHTML: window.insignias.dibujo(i.id) }), h("small", {}, i.nombre))))
+      : h("p", { class: "ayuda" }, "Aún no tiene insignias."));
+  } catch {
+    insignias.replaceChildren(h("p", { class: "ayuda" }, "No se han podido cargar."));
+  }
+}
+
 function tarjeta(p) {
   const cat = CATEGORIAS[p.categoria];
   return h("article", { class: "tarjeta-post" },
@@ -132,7 +163,7 @@ function tarjeta(p) {
         p.avisos > 0 && h("span", { class: "con-avisos" }, `⚑ ${p.avisos}`)),
       h("strong", { class: "titulo-post" }, p.titulo),
       p.extracto && h("span", { class: "extracto" }, p.extracto),
-      h("span", { class: "pie-post" }, `${p.autor} · ${haceCuanto(p.creado)} · 💬 ${p.comentarios}${p.fotos > 1 ? ` · 📷 ${p.fotos}` : ""}`)),
+      h("span", { class: "pie-post" }, avatar(p.autor, p.autor_foto), `${p.autor} · ${haceCuanto(p.creado)} · 💬 ${p.comentarios}${p.fotos > 1 ? ` · 📷 ${p.fotos}` : ""}`)),
     p.foto && h("a", { class: "miniatura-post", href: `#p/${p.id}`, tabindex: "-1" }, h("img", { src: urlFoto(p.foto), alt: "", loading: "lazy" })));
 }
 
@@ -243,7 +274,7 @@ async function abrirPublicacion(id) {
   $("#publicacion").replaceChildren(...[
     h("p", { class: "meta-post" }, h("span", { class: `etiqueta-cat cat-${p.categoria}` }, `${cat.icono} ${cat.nombre}`), p.solucion && h("span", { class: "resuelto" }, "✓ Resuelto")),
     h("h1", {}, p.titulo),
-    h("p", { class: "autor-post" }, `${p.autor} · ${haceCuanto(p.creado)}${p.editado ? " · editado" : ""}`),
+    h("p", { class: "autor-post" }, botonAutor(p), ` · ${haceCuanto(p.creado)}${p.editado ? " · editado" : ""}`),
     p.fotos.length > 0 && h("div", { class: `fotos-post n${Math.min(p.fotos.length, 3)}` },
       p.fotos.map((f, i) => h("a", { href: urlFoto(f), target: "_blank", rel: "noopener" }, h("img", { src: urlFoto(f), alt: `Foto ${i + 1}` })))),
     p.cuerpo && h("p", { class: "texto-post" }, p.cuerpo),
@@ -274,7 +305,7 @@ function pintarComentarios(p) {
   const orden = [...p.comentarios].sort((a, b) => (b.id === p.solucion) - (a.id === p.solucion));
   $("#lista-comentarios").replaceChildren(...orden.map((c) => h("li", { class: `comentario${c.id === p.solucion ? " solucion" : ""}` },
     c.id === p.solucion && h("span", { class: "marca-solucion" }, "✓ Esto lo resolvió"),
-    h("p", { class: "autor-comentario" }, h("strong", {}, c.autor), c.del_autor && h("span", { class: "insignia" }, "autor"), ` · ${haceCuanto(c.creado)}`),
+    h("p", { class: "autor-comentario" }, botonAutor(c), c.del_autor && h("span", { class: "insignia" }, "autor"), ` · ${haceCuanto(c.creado)}`),
     h("p", { class: "texto-comentario" }, c.cuerpo),
     h("div", { class: "acciones-comentario" },
       p.es_mia && p.categoria === "problemas" && !c.del_autor && h("button", { type: "button", class: "boton texto", onclick: async () => {

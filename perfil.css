@@ -1,0 +1,92 @@
+.perfil h1 { margin-bottom: 0.75rem; }
+.perfil h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+.perfil .nota { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--verde); line-height: 1.4; }
+.estado-perfil[hidden] { display: none; }
+
+.tarjeta-perfil, .seccion-insignias, .ajustes-insignias {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.seccion-insignias[hidden] { display: none; }
+
+/* Foto y nombre */
+.foto-perfil { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.botones-foto { display: grid; justify-items: start; gap: 0.25rem; }
+.botones-foto .boton { padding: 0.45rem 1rem; font-size: 0.9rem; cursor: pointer; }
+.boton.texto, .boton.texto:hover { padding: 0.3rem 0.25rem; background: none; color: var(--verde); font-size: 0.85rem; text-decoration: underline; }
+.form-alias { display: flex; align-items: flex-end; gap: 0.5rem; }
+.form-alias .campo { flex: 1; display: grid; gap: 0.25rem; margin: 0; }
+.form-alias .etiqueta { font-size: 0.85rem; font-weight: 500; }
+.form-alias input { width: 100%; }
+
+/* Insignias */
+.titulo-insignias { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.cuenta-insignias { color: var(--granate); font-weight: 500; font-size: 0.9rem; }
+.grupo-insignias h3 { margin: 1.25rem 0 0.6rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--verde); font-family: 'DM Sans', sans-serif; }
+.rejilla-insignias { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.insignia-perfil {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.2rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 12px;
+  background: var(--fondo);
+  text-align: center;
+}
+.insignia-perfil strong { font-family: 'Fraunces', serif; font-size: 0.95rem; color: var(--granate); line-height: 1.2; }
+.insignia-perfil small { font-size: 0.75rem; line-height: 1.3; color: var(--tinta); opacity: 0.75; }
+.medalla { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; background: white; }
+.medalla svg { width: 3.4rem; height: 3.4rem; }
+/* Las que faltan, en sombra: se ve qué hay que hacer, sin agobiar */
+.insignia-perfil:not(.ganada) .medalla { background: transparent; border: 2px dashed rgb(42 26 26 / 0.15); }
+.insignia-perfil:not(.ganada) .medalla svg { filter: grayscale(1); opacity: 0.25; }
+.insignia-perfil:not(.ganada) strong { color: var(--tinta); opacity: 0.6; }
+.insignia-perfil.nueva { outline: 2px solid var(--oliva); }
+.etiqueta-nueva {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--oliva-oscuro);
+  color: var(--crema);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Quién las ve */
+.opciones-insignias { display: grid; gap: 0.5rem; }
+.opciones-insignias label { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.6rem 0.75rem; border-radius: 10px; background: var(--fondo); cursor: pointer; }
+.opciones-insignias label:has(input:checked) { outline: 2px solid var(--terracota); }
+.opciones-insignias input { margin-top: 0.2rem; accent-color: var(--terracota); }
+.opciones-insignias span { display: grid; line-height: 1.35; }
+.opciones-insignias small { font-size: 0.8rem; opacity: 0.75; }
+
+@media (max-width: 600px) {
+  .tarjeta-perfil, .seccion-insignias, .ajustes-insignias { padding: 1rem; }
+  .rejilla-insignias { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .form-alias { flex-direction: column; align-items: stretch; }
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(2rem + var(--alto-sello, 0px) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 2rem);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--crema);
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.visible { opacity: 1; }

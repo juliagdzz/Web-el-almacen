@@ -8,7 +8,7 @@
   const activa = Boolean(CONFIG.url && CONFIG.clave && window.supabase);
   const CLAVE_SESION = "almacen-sesion";
   // Las páginas de Mis creaciones piden elegir cuenta o invitado
-  const PRIVADA = /\/(creaciones|inspiracion|piezas|medidas)(\.html)?$/.test(location.pathname);
+  const PRIVADA = /\/(creaciones|inspiracion|piezas|medidas|perfil)(\.html)?$/.test(location.pathname);
 
   const ls = {
     leer(clave, porDefecto) {

@@ -333,3 +333,24 @@ body.en-tablero .sello { display: none; }
 
 /* Panel del taller: nada se ve hasta comprobar que eres tú (panel-acceso.js) */
 html.comprobando-acceso main, html.comprobando-acceso .subnav { visibility: hidden; }
+
+/* Foto de perfil (perfil, Mis creaciones y comunidad): la inicial si no hay foto */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--oliva);
+  color: var(--crema);
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar.grande { width: 6rem; height: 6rem; font-size: 2.6rem; }
+.avatar.mediana { width: 3rem; height: 3rem; font-size: 1.3rem; }

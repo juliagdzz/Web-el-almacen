@@ -52,7 +52,7 @@ const SE_AÑADEN = new Set(["Colorantes", "Opacificantes", "Aditivos"]); // van 
 const material = (nombre) => MATERIALES.find(([n]) => n.toLowerCase() === nombre.trim().toLowerCase());
 
 const UNIDADES = { g: "gramos", "%": "%", cucharadas: "cucharadas", partes: "partes" };
-const TECNICAS = ["Torno", "Pellizco", "Churros", "Planchas", "Molde o colada", "Modelado", "Esgrafiado", "Engobe",
+const TECNICAS = ["Torno", "Pellizco", "Churros", "Planchas", "Molde o colada", "Modelado", "Asas", "Esgrafiado", "Engobe",
   "Bajo cubierta", "Cera de reserva", "Mishima", "Nerikomi", "Bruñido", "Sigillata", "Estampado", "Esponjado",
   "Salpicado", "Calcomanía", "Lustre u oro", "Raku", "Craquelado"];
 const APLICACIONES = ["Pincel", "Inmersión", "Vertido", "Pulverizado", "Esponja", "Pera o jeringa", "Salpicado"];
@@ -314,6 +314,24 @@ function estrellas(obj, alCambiar) {
   return caja;
 }
 
+// «Salió mal»: apuntar los fallos también cuenta (y da la insignia Aprender del error)
+function salioMal(p, alCambiar) {
+  const nota = h("textarea", { rows: 3, value: p.que_paso, placeholder: "Se escurrió el esmalte y se pegó a la placa; la próxima, 1 cm sin esmaltar en el pie",
+    oninput: (e) => { p.que_paso = e.target.value; alCambiar(); } });
+  const campoNota = campo("¿Qué pasó?", nota, "Así la próxima vez sabes qué cambiar.");
+  campoNota.hidden = !p.fallo;
+  return h("div", { class: "salio-mal" },
+    h("label", { class: "marcar-fallo" },
+      h("input", { type: "checkbox", checked: p.fallo, onchange: (e) => {
+        p.fallo = e.target.checked;
+        campoNota.hidden = !p.fallo;
+        alCambiar();
+        if (p.fallo) nota.focus();
+      } }),
+      h("span", {}, "Esta pieza salió mal")),
+    campoNota);
+}
+
 // ---------- Catálogo de Prodesco (el mismo que en los tableros) ----------
 
 const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
@@ -471,10 +489,13 @@ const botonCerrar = () => h("form", { method: "dialog", class: "hoja-cierre" }, 
 const botonCompartir = (onclick) => h("button", { type: "button", class: "secundario compartir", onclick },
   h("span", { innerHTML: ICONO_COMPARTIR }), "Compartir");
 
+const tamano = (p) => [p.alto && `${p.alto} cm de alto`, p.ancho && `${p.ancho} cm de ancho`].filter(Boolean).join(" × ");
+
 function textoPieza(p) {
   const coccion = [p.temperatura && `${p.temperatura} ºC`, p.atmosfera?.toLowerCase()].filter(Boolean).join(", ");
   return [
     `${p.nombre || "Pieza"}${p.fecha ? ` (${fecha(p.fecha)})` : ""}`,
+    tamano(p) && `Tamaño: ${tamano(p)}`,
     p.pasta && `Pasta: ${p.pasta}`,
     coccion && `Cocción: ${coccion}`,
     p.capas.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? " (Prodesco)" : ""}: ${detalleCapa(c)}${c.nota ? `. ${c.nota}` : ""}`).join("\n")}`,
@@ -519,7 +540,8 @@ function verPieza(p) {
       h("h2", {}, p.nombre || "Pieza sin nombre"),
       h("p", { class: "subtitulo" }, fecha(p.fecha),
         p.valoracion > 0 && h("span", { class: "valoracion", "aria-label": `${p.valoracion} de 5` }, "★".repeat(p.valoracion) + "☆".repeat(5 - p.valoracion))),
-      (p.pasta || coccion) && h("dl", { class: "datos" },
+      (p.pasta || coccion || tamano(p)) && h("dl", { class: "datos" },
+        tamano(p) && [h("dt", {}, "Tamaño"), h("dd", {}, tamano(p))],
         p.pasta && [h("dt", {}, "Pasta"), h("dd", {}, p.pasta)],
         coccion && [h("dt", {}, "Cocción"), h("dd", {}, coccion)]),
       p.capas.length > 0 && [
@@ -532,6 +554,7 @@ function verPieza(p) {
             c.nota && h("small", { class: "nota" }, c.nota))))),
       ],
       p.tecnicas.length > 0 && [h("h3", {}, "Técnicas"), h("div", { class: "chips" }, p.tecnicas.map((t) => h("span", { class: "chip" }, t)))],
+      p.fallo && [h("h3", {}, "Salió mal"), h("p", { class: "notas-ver" }, p.que_paso || "Sin apuntar qué pasó.")],
       p.notas && [h("h3", {}, "Notas"), h("p", { class: "notas-ver" }, p.notas)]),
     h("div", { class: "acciones-ver" },
       botonCompartir(() => compartir({ titulo: p.nombre || "Pieza", texto: textoPieza(p), imagenes: p.fotos, avisar })),
@@ -622,6 +645,10 @@ async function vistaPieza(id) {
   ]);
   if (id !== "nueva" && !existente) return (location.hash = "#/");
   const p = existente ?? { id: nuevoId(), nombre: "", fecha: hoy(), fotos: [], pasta: "", temperatura: "", atmosfera: "", tecnicas: [], capas: [], notas: "", valoracion: 0, creado: Date.now() };
+  p.alto ??= "";
+  p.ancho ??= "";
+  p.fallo ??= false;
+  p.que_paso ??= "";
   const guardar = () => cambiado("piezas", p);
   // Pinceles ya usados en otras piezas, para no tener que escribirlos otra vez
   const pincelesUsados = [...new Set(piezas.flatMap((x) => x.capas.map((c) => c.pincel)).filter(Boolean))];
@@ -718,6 +745,9 @@ async function vistaPieza(id) {
     h("section", { class: "bloque" },
       campo("Nombre", texto("nombre", { placeholder: "Taza de desayuno verde" })),
       campo("Fecha", h("input", { type: "date", value: p.fecha, oninput: (e) => { p.fecha = e.target.value; guardar(); } })),
+      h("div", { class: "fila-campos" },
+        campo("Alto", h("span", { class: "con-unidad" }, texto("alto", { inputMode: "decimal", placeholder: "12" }), " cm")),
+        campo("Ancho", h("span", { class: "con-unidad" }, texto("ancho", { inputMode: "decimal", placeholder: "9" }), " cm"))),
       h("span", { class: "etiqueta" }, "Fotos"),
       editorFotos(p, guardar)),
     h("section", { class: "bloque" },
@@ -739,6 +769,7 @@ async function vistaPieza(id) {
     h("section", { class: "bloque" },
       h("h2", {}, "Resultado"),
       estrellas(p, guardar),
+      salioMal(p, guardar),
       campo("Notas", h("textarea", { rows: 4, value: p.notas, placeholder: "Qué salió bien, qué cambiarías, defectos…", oninput: (e) => { p.notas = e.target.value; guardar(); } }))),
     h("div", { class: "acciones-ficha" },
       h("a", { href: "#/", class: "boton" }, "Listo"),

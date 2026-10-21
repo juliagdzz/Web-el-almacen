@@ -89,6 +89,33 @@ async function pintarEncargos() {
   } catch {}
 }
 
+// Tu perfil: foto, nombre y, si las ves, las insignias nuevas desde la última vez
+async function pintarPerfil() {
+  if (!nube?.usuario) return;
+  try {
+    const [{ data: perfiles }, { data: nuevas }] = await Promise.all([
+      nube.cliente.from("perfiles").select("alias,foto,insignias").eq("user_id", nube.usuario.id),
+      nube.cliente.from("insignias_ganadas").select("insignia_id").eq("user_id", nube.usuario.id).eq("vista", false),
+    ]);
+    const perfil = perfiles?.[0] ?? {};
+    const avatar = document.getElementById("avatar-perfil");
+    if (perfil.foto) {
+      const img = document.createElement("img");
+      img.src = nube.cliente.storage.from("comunidad").getPublicUrl(perfil.foto).data.publicUrl;
+      img.alt = "";
+      avatar.replaceChildren(img);
+    } else {
+      avatar.textContent = (perfil.alias || nube.usuario.email || "?").trim()[0].toUpperCase();
+    }
+    document.getElementById("nombre-perfil").textContent = perfil.alias || "Tu perfil";
+    const n = perfil.insignias === "ocultas" ? 0 : nuevas?.length ?? 0;
+    const texto = document.getElementById("texto-perfil");
+    texto.textContent = n ? (n === 1 ? "¡Tienes 1 insignia nueva!" : `¡Tienes ${n} insignias nuevas!`) : perfil.insignias === "ocultas" ? "Foto y nombre" : "Foto e insignias";
+    texto.classList.toggle("hay-nuevas", n > 0);
+    document.getElementById("enlace-perfil").hidden = false;
+  } catch {}
+}
+
 // Al volver a la app se actualiza el número de encargos nuevos
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && pintarEncargos());
 
@@ -96,6 +123,7 @@ Promise.resolve(nube?.listo).then(() => {
   pintarCuenta();
   pintarCuentas();
   pintarEncargos();
+  pintarPerfil();
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

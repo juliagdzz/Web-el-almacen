@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tu perfil · El Almacén</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="perfil.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <nav>
+      <a href="index.html">Info</a>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="comunidad.html">Comunidad</a>
+      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
+    </nav>
+  </header>
+
+    <nav class="subnav" aria-label="Mis creaciones">
+    <a href="creaciones.html" class="subnav-inicio">← Mis creaciones</a>
+    <a href="perfil.html" aria-current="page">Perfil</a>
+    <a href="inspiracion.html">Tableros</a>
+    <a href="piezas.html">Piezas</a>
+    <a href="medidas.html">Medidas</a>
+  </nav>
+
+  <main class="contenedor perfil">
+    <h1>Tu perfil</h1>
+    <p id="estado-perfil" class="estado-perfil">Cargando…</p>
+
+    <div id="contenido-perfil" hidden>
+      <section class="tarjeta-perfil">
+        <div class="foto-perfil">
+          <span id="avatar" class="avatar grande" aria-hidden="true"></span>
+          <div class="botones-foto">
+            <label class="boton secundario">
+              <input id="elegir-foto" type="file" accept="image/*" hidden>
+              Cambiar foto
+            </label>
+            <button id="quitar-foto" type="button" class="boton texto" hidden>Quitar foto</button>
+          </div>
+        </div>
+        <form id="form-alias" class="form-alias">
+          <label class="campo">
+            <span class="etiqueta">Tu nombre en la comunidad</span>
+            <input id="alias" type="text" minlength="2" maxlength="40" placeholder="Lucía del torno" autocomplete="nickname">
+          </label>
+          <button type="submit" class="boton">Guardar</button>
+        </form>
+        <p class="nota">Tu foto y tu nombre se ven junto a lo que publicas en la comunidad. Tu correo no se enseña nunca.</p>
+      </section>
+
+      <section id="seccion-insignias" class="seccion-insignias">
+        <div class="titulo-insignias">
+          <h2>Tus insignias</h2>
+          <span id="cuenta-insignias" class="cuenta-insignias"></span>
+        </div>
+        <p class="nota">Se ganan solas al apuntar piezas y esmaltes o al ayudar en la comunidad. No caducan y nunca se pierden.</p>
+        <div id="insignias"></div>
+      </section>
+
+      <section class="ajustes-insignias">
+        <h2>¿Quién ve tus insignias?</h2>
+        <div id="opciones-insignias" class="opciones-insignias" role="radiogroup">
+          <label><input type="radio" name="ver-insignias" value="privadas"> <span><strong>Solo yo</strong> <small>Las ves aquí y nadie más.</small></span></label>
+          <label><input type="radio" name="ver-insignias" value="publicas"> <span><strong>Enseñarlas</strong> <small>Salen en tu perfil de la comunidad.</small></span></label>
+          <label><input type="radio" name="ver-insignias" value="ocultas"> <span><strong>Prefiero no verlas</strong> <small>Se esconden en toda la web. Si vuelves a activarlas, siguen ahí.</small></span></label>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="insignias.js"></script>
+  <script src="perfil.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>
