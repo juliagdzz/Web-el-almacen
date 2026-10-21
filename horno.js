@@ -26,12 +26,18 @@ $("#opciones-coccion").replaceChildren(...Object.entries(TARIFAS.coccion).map(([
   label.querySelector(".precio-completo").textContent = `Horno completo: ${euros.format(c.completo)}`;
   return label;
 }));
+$("#texto-util").textContent = `Nuestro horno tiene ${TARIFAS.horno.litros} litros, pero las placas, las patas y la separación de las resistencias ocupan sitio: quedan unos ${Math.round(litrosUtiles())} litros útiles, y el precio de la hornada se reparte sobre ellos.`;
 $("#texto-tripode").textContent = `Para piezas esmaltadas por debajo. La pieza sube ${numero.format(TARIFAS.tripode.altura)} cm y cada trípode son ${euros.format(TARIFAS.tripode.precio)}.`;
 
 const elegido = (nombre) => document.querySelector(`input[name="${nombre}"]:checked`).value;
 const valor = (id) => Math.max(0, parseFloat($(`#${id}`).value.replace(",", ".")) || 0);
 
 // ---------- Cálculo ----------
+
+// Espacio de verdad para piezas: el horno menos placas y patas y lo que no se aprovecha
+function litrosUtiles() {
+  return TARIFAS.horno.litros * (1 - TARIFAS.horno.placasYPatas) * (1 - TARIFAS.horno.noAprovechable);
+}
 
 function calcular() {
   const coccion = TARIFAS.coccion[elegido("coccion")];
@@ -53,7 +59,7 @@ function calcular() {
     const altura = alto + m + (tripode ? TARIFAS.tripode.altura : 0);
     litros = ((ancho + 2 * m) * (fondo + 2 * m) * altura) / 1000;
   }
-  const util = TARIFAS.horno.litros * TARIFAS.horno.aprovechamiento;
+  const util = litrosUtiles();
   const parte = litros / util; // qué parte del horno ocupa una pieza
   const porEspacio = parte * coccion.completo;
   const redondear = (n) => Math.ceil(n / TARIFAS.redondeo - 1e-9) * TARIFAS.redondeo;
@@ -78,7 +84,7 @@ function pintar() {
   const porcentaje = Math.min(100, r.parte * r.cantidad * 100);
   $("#barra-ocupacion").style.width = `${vacio ? 0 : Math.max(porcentaje, 1)}%`;
   $("#desglose").textContent = vacio ? "" : [
-    `${r.cantidad > 1 ? "Ocupan" : "Ocupa"} unos ${numero.format(r.litros * r.cantidad)} litros, el ${numero.format(porcentaje)} % del horno`,
+    `${r.cantidad > 1 ? "Ocupan" : "Ocupa"} unos ${numero.format(r.litros * r.cantidad)} litros, el ${numero.format(porcentaje)} % del espacio útil del horno`,
     r.tipo === "bizcocho" ? "apiladas en bizcocho" : "con separación para el esmalte",
     r.tripode && "con trípode",
     r.minimo && `se aplica el mínimo de ${euros.format(TARIFAS.minimo)} por pieza`,

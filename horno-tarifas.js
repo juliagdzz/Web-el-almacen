@@ -2,11 +2,13 @@
 
 const TARIFAS = {
   horno: {
-    nombre: "Horno eléctrico de 100 litros",
-    litros: 100,
-    // Un horno nunca se llena del todo (placas, soportes, huecos): el precio se reparte
-    // sobre esta parte de su capacidad. 0.8 = el 80 %.
-    aprovechamiento: 0.8,
+    nombre: "Horno eléctrico de 110 litros",
+    litros: 110,
+    // No todo el volumen sirve para piezas. El precio de la hornada se reparte
+    // solo sobre el espacio útil que queda después de quitar:
+    placasYPatas: 0.2,  // lo que ocupan las placas y sus patas (20 %)
+    noAprovechable: 0.2, // la curva del horno, la separación de las resistencias y los huecos entre placas (20 % de lo que queda)
+    // Útil = 110 × (1 − 0,2) × (1 − 0,2) ≈ 70 litros
   },
 
   // Precio del horno completo para cada tipo de cocción
