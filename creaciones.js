@@ -82,9 +82,16 @@ async function pintarEncargos() {
     const { data } = await nube.cliente.from("encargos").select("id").eq("estado", "nuevo");
     const n = data?.length ?? 0;
     document.getElementById("nuevos-encargos").textContent = n ? (n === 1 ? "1 nuevo" : `${n} nuevos`) : "Ninguno nuevo";
+    const globo = document.getElementById("globo-encargos");
+    globo.textContent = n > 99 ? "99+" : String(n);
+    globo.hidden = !n;
+    document.getElementById("enlace-encargos").setAttribute("aria-label", `Encargos recibidos: ${n === 1 ? "1 nuevo" : `${n} nuevos`}`);
     document.getElementById("enlace-encargos").hidden = false;
   } catch {}
 }
+
+// Al volver a la app se actualiza el número de encargos nuevos
+document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && pintarEncargos());
 
 Promise.resolve(nube?.listo).then(() => {
   pintarCuenta();

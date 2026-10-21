@@ -121,3 +121,78 @@ create policy "Encargos: el taller ve las fotos" on storage.objects for select t
 drop policy if exists "Encargos: el taller borra las fotos" on storage.objects;
 create policy "Encargos: el taller borra las fotos" on storage.objects for delete to authenticated
   using (bucket_id = 'encargos' and public.es_admin());
+
+-- ============================================================
+-- Aviso por correo de cada encargo nuevo (con Resend)
+-- ============================================================
+-- La base de datos llama a Resend cuando entra un encargo y te manda un correo
+-- a los correos de admins. Necesita la clave de Resend guardada en la caja
+-- fuerte de Supabase (Vault). Ejecútalo una vez, aparte, con tu clave:
+--   select vault.create_secret('re_TU_CLAVE', 'resend_api_key');
+-- Para cambiarla más adelante:
+--   select vault.update_secret((select id from vault.secrets where name = 'resend_api_key'), 're_NUEVA');
+-- Sin clave guardada no se manda nada y los encargos se guardan igual.
+
+create extension if not exists pg_net with schema extensions;
+
+create or replace function public.avisar_encargo() returns trigger
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  clave text;
+  destinatarios text[];
+  limpio text := regexp_replace(coalesce(new.nombre, ''), '\s+', ' ', 'g');
+  texto text;
+begin
+  select decrypted_secret into clave from vault.decrypted_secrets where name = 'resend_api_key';
+  select array_agg(correo) into destinatarios from public.admins;
+  if clave is null or destinatarios is null then
+    return new;
+  end if;
+
+  -- Correo en texto plano: lo que escribe la gente nunca se interpreta como HTML
+  texto := concat_ws(E'\n',
+    'Tienes un encargo nuevo en El Almacén.',
+    '',
+    coalesce(new.tipo, 'Pieza') || case when new.cantidad > 1 then ' × ' || new.cantidad else '' end
+      || coalesce(' · ' || new.uso, ''),
+    'De: ' || limpio,
+    'Teléfono: ' || new.telefono,
+    'Correo: ' || new.correo,
+    'Prefiere que le contestes por ' || case new.contestar_por when 'whatsapp' then 'WhatsApp' else 'correo' end,
+    'Tamaño: ' || new.medidas,
+    'Colores: ' || new.colores,
+    'Para: ' || to_char(new.para_cuando, 'DD/MM/YYYY'),
+    'Quiere gastar: ' || new.presupuesto_cliente,
+    '',
+    left(new.idea, 1500),
+    '',
+    case when cardinality(new.fotos) > 0 or new.tablero is not null
+      then 'Adjunta ' || cardinality(new.fotos) || ' foto(s)' || case when new.tablero is not null then ' y un tablero' else '' end || '.'
+    end,
+    '',
+    'Míralo y contesta desde tu panel:',
+    'https://webelalmacen.vercel.app/encargos-recibidos.html'
+  );
+
+  perform net.http_post(
+    url := 'https://api.resend.com/emails',
+    headers := jsonb_build_object('Authorization', 'Bearer ' || clave, 'Content-Type', 'application/json'),
+    body := jsonb_strip_nulls(jsonb_build_object(
+      'from', 'El Almacén <onboarding@resend.dev>',
+      'to', to_jsonb(destinatarios),
+      'reply_to', nullif(new.correo, ''),
+      'subject', left('Nuevo encargo: ' || lower(coalesce(new.tipo, 'pieza')) || ' de ' || limpio, 150),
+      'text', texto
+    ))
+  );
+  return new;
+exception when others then
+  -- Si el aviso falla, el encargo se guarda igual
+  return new;
+end $$;
+
+revoke all on function public.avisar_encargo() from public, anon, authenticated;
+
+drop trigger if exists avisar_encargo on public.encargos;
+create trigger avisar_encargo after insert on public.encargos
+  for each row execute function public.avisar_encargo();
