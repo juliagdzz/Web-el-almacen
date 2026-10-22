@@ -67,6 +67,9 @@ function nombreBono(b) {
   return T[b.tipo]?.nombre ?? b.tipo;
 }
 
+// Primer mes que aún se puede pausar o dejar (lo da mi_plan; esto es por si la base es antigua)
+const mesCambiable = () => plan?.cambiable ?? sumarMeses(hoyIso(), Number(hoyIso().slice(8)) < 25 ? 1 : 2);
+
 // La mensualidad sigue sola: aquí se pausa un mes o se deja
 function detalleMensual(b) {
   const pausas = b.pausas ?? [];
@@ -75,7 +78,7 @@ function detalleMensual(b) {
     : `Tu puesto está guardado todos los ${DIAS[b.dia]}. Se renueva sola cada mes.`;
   const puedeCambiar = b.estado === "activo" || b.estado === "pendiente";
   // Meses que aún se pueden pausar: el primero cambiable y los dos siguientes
-  const meses = [0, 1, 2].map((n) => sumarMeses(plan.cambiable, n)).filter((m) => m >= b.mes && (!b.hasta || m <= b.hasta));
+  const meses = [0, 1, 2].map((n) => sumarMeses(mesCambiable(), n)).filter((m) => m >= b.mes && (!b.hasta || m <= b.hasta));
   return [
     h("small", {}, b.estado === "pendiente" ? "Pendiente: págala en el taller y queda activa. " : "", texto),
     pausas.length > 0 && h("small", { class: "pausas" }, `En pausa: ${pausas.map(mesNombre).join(", ")}.`),
@@ -102,7 +105,7 @@ async function pausar(b, mes, pausado) {
 }
 
 async function dejar(b) {
-  const ultimo = sumarMeses(plan.cambiable, -1);
+  const ultimo = sumarMeses(mesCambiable(), -1);
   if (!confirm(`¿Dejar la mensualidad de los ${DIAS[b.dia]}? ${ultimo >= b.mes ? `Sigues viniendo hasta final de ${mesNombre(ultimo)}.` : "Aún no había empezado: se anula."}`)) return;
   try {
     await rpc("dejar_mensualidad", { p_bono: b.id });
@@ -446,7 +449,8 @@ async function recargar() {
   if (hayCuenta) {
     try { plan = await rpc("mi_plan", {}); } catch { plan = null; }
   }
-  pintarPlan();
+  // Si algo de «Mi plan» falla, que no se lleve por delante el calendario
+  try { pintarPlan(); } catch (e) { console.error(e); $("#mi-plan").hidden = true; }
   pintarModalidades();
   const [, horas] = await Promise.allSettled([pintarTalleres(), cargarClases()]);
   if (horas.status === "rejected") {
