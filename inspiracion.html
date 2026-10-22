@@ -17,7 +17,6 @@
 
   <header class="cabecera">
     <nav>
-      <a href="index.html">Info</a>
       <a href="talleres.html">Talleres</a>
       <a href="tienda.html">Tienda</a>
       <a href="horno.html">Horneado</a>
@@ -81,19 +80,19 @@
     <h2>Añadir una foto</h2>
 
     <label class="opcion">
-      <span>📷 Hacer foto</span>
+      <span>Hacer foto</span>
       <input id="input-camara" type="file" accept="image/*" capture="environment" hidden>
     </label>
 
     <label class="opcion">
-      <span>🖼️ Elegir de la galería</span>
+      <span>Elegir de la galería</span>
       <input id="input-fotos" type="file" accept="image/*" multiple hidden>
     </label>
 
-    <button id="btn-pegar" class="opcion" type="button">📋 Pegar imagen copiada</button>
+    <button id="btn-pegar" class="opcion" type="button">Pegar imagen copiada</button>
 
     <form id="form-enlace" class="form-enlace">
-      <label for="input-enlace">📌 Enlace de Pinterest</label>
+      <label for="input-enlace">Enlace de Pinterest</label>
       <div class="fila">
         <input id="input-enlace" type="text" inputmode="url" placeholder="https://pin.it/…" autocomplete="off">
         <button type="submit">Añadir</button>
@@ -137,7 +136,7 @@
     <label for="detalle-nota">Nota</label>
     <textarea id="detalle-nota" rows="3" placeholder="Ej.: esmalte celadón, probar con gres rojo…"></textarea>
     <a id="detalle-origen" class="origen" target="_blank" rel="noopener" hidden></a>
-    <button id="detalle-paleta" class="boton-paleta" type="button">🎨 Paleta de esta foto</button>
+    <button id="detalle-paleta" class="boton-paleta" type="button">Paleta de esta foto</button>
     <div class="acciones">
       <button id="detalle-fondo" type="button">Enviar al fondo</button>
       <button id="detalle-borrar" type="button" class="peligro">Borrar foto</button>
@@ -148,11 +147,11 @@
   <dialog id="hoja-opciones" class="hoja">
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Opciones</h2>
-    <button id="btn-enlace" class="opcion" type="button">🔗 Compartir con enlace <small>Quien lo abra puede guardárselo en sus tableros</small></button>
-    <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir como imagen</button>
-    <button id="btn-dejar-compartir" class="opcion" type="button" hidden>⛓️‍💥 Dejar de compartir el enlace</button>
-    <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
-    <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
+    <button id="btn-enlace" class="opcion" type="button">Compartir con enlace <small>Quien lo abra puede guardárselo en sus tableros</small></button>
+    <button id="btn-compartir-opciones" class="opcion" type="button">Compartir como imagen</button>
+    <button id="btn-dejar-compartir" class="opcion" type="button" hidden>Dejar de compartir el enlace</button>
+    <button id="btn-renombrar" class="opcion" type="button">Cambiar nombre</button>
+    <button id="btn-borrar-tablero" class="opcion peligro" type="button">Borrar tablero</button>
   </dialog>
 
   <!-- El enlace para compartir el tablero -->
@@ -172,8 +171,8 @@
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Fondo del tablero</h2>
     <div id="fondos" class="fondos" role="group" aria-label="Fondos"></div>
-    <label class="opcion opcion-color" for="fondo-color">🎨 Otro color <input id="fondo-color" type="color" value="#c49a64"></label>
-    <label class="opcion" for="fondo-foto">📷 Poner una foto de fondo</label>
+    <label class="opcion opcion-color" for="fondo-color">Otro color <input id="fondo-color" type="color" value="#c49a64"></label>
+    <label class="opcion" for="fondo-foto">Poner una foto de fondo</label>
     <input id="fondo-foto" type="file" accept="image/*" hidden>
   </dialog>
 

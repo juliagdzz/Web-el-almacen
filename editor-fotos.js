@@ -415,12 +415,12 @@ async function editarFoto(blob) {
     } });
     panelFondo.replaceChildren(...[
       editorEl("div", { class: "editor-fila" },
-        boton("✨ Quitar fondo", false, quitarFondo, { class: "principal" }),
+        boton("Quitar fondo", false, quitarFondo, { class: "principal" }),
         editorEl("label", { class: "editor-deslizador" }, "Sensibilidad",
           editorEl("input", { type: "range", min: 5, max: 100, value: sensibilidad, oninput: (e) => (sensibilidad = Number(e.target.value)),
             onchange: () => quitado && herramienta && avisarEditor("Vuelve a pulsar «Quitar fondo» para aplicarla") }))),
       editorEl("div", { class: "editor-fila" },
-        boton("🪄 Tocar fondo", herramienta === "varita", () => { herramienta = "varita"; pintarControles(); avisarEditor("Toca una zona de fondo para quitarla"); }),
+        boton("Tocar fondo", herramienta === "varita", () => { herramienta = "varita"; pintarControles(); avisarEditor("Toca una zona de fondo para quitarla"); }),
         boton("Borrar", herramienta === "borrar", () => { herramienta = "borrar"; pintarControles(); avisarEditor("Pasa el dedo por lo que quieras quitar"); }),
         boton("Recuperar", herramienta === "recuperar", () => { herramienta = "recuperar"; pintarControles(); avisarEditor("Pasa el dedo por lo que se haya borrado de más"); }),
         boton("↶", false, deshacer, { disabled: !historial.length, "aria-label": "Deshacer", title: "Deshacer" })),
@@ -434,8 +434,8 @@ async function editarFoto(blob) {
           onclick: () => { guardarPaso(); fondo = valor; pintarControles(); dibujar(); },
         }, valor === "original" ? "Orig." : "")),
         editorEl("label", { class: `muestra-fondo es-color ${fondo.startsWith("#") && !EDITOR_FONDOS.some(([, v]) => v === fondo) ? "activo" : ""}`, title: "Otro color" },
-          "🎨", editorEl("input", { type: "color", value: fondo.startsWith("#") ? fondo : "#f3e9d8", oninput: (e) => { fondo = e.target.value; dibujar(); }, onchange: () => pintarControles() })),
-        editorEl("label", { class: `muestra-fondo es-foto ${fondo === "imagen" ? "activo" : ""}`, title: "Una foto de fondo" }, "📷", fondoInput)),
+          editorEl("span", { "aria-hidden": "true", class: "punto-color" }), editorEl("input", { type: "color", value: fondo.startsWith("#") ? fondo : "#f3e9d8", oninput: (e) => { fondo = e.target.value; dibujar(); }, onchange: () => pintarControles() })),
+        editorEl("label", { class: `muestra-fondo es-foto ${fondo === "imagen" ? "activo" : ""}`, title: "Una foto de fondo" }, "Foto", fondoInput)),
     ].filter(Boolean)); // el tamaño del pincel solo sale con Borrar y Recuperar
   }
 

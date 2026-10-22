@@ -273,8 +273,8 @@ function editorFotos(obj, alCambiar) {
             alCambiar();
             pintar();
           } }, "✕"))),
-      botonFoto("📷", "Hacer foto", { capture: "environment" }),
-      botonFoto("🖼️", "Galería", { multiple: true }),
+      botonFoto(iconos.el("foto"), "Hacer foto", { capture: "environment" }),
+      botonFoto(iconos.el("galeria"), "Galería", { multiple: true }),
     );
   }
   // Recortar, girar o cambiar el fondo (editor-fotos.js)
@@ -337,6 +337,7 @@ function salioMal(p, alCambiar) {
 const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP", "Speckglaze Esmaltes Picas", "Esmaltes Reactivos"];
 let catalogo = null;
 
+const prepararCatalogo = (lista) => lista;
 function cargarCatalogo() {
   catalogo ??= (async () => {
     let lista = null;
@@ -348,8 +349,13 @@ function cargarCatalogo() {
       try { localStorage.setItem("catalogoEsmaltes", JSON.stringify(l)); } catch {}
       return l;
     });
-    if (lista) nueva.catch(() => {});
-    else lista = await nueva;
+    // La lista guardada de antes de Tecniglaze no trae fabricante: entonces se espera a la nueva
+    const antigua = lista && !lista.some((e) => e.marca);
+    if (lista && !antigua) {
+      nueva.then((l) => { catalogo = Promise.resolve(prepararCatalogo(l)); }).catch(() => {}); // la próxima vez, la nueva
+    } else {
+      lista = await nueva.catch((e) => { if (lista) return lista; throw e; });
+    }
     return lista;
   })().catch((e) => { catalogo = null; throw e; });
   return catalogo;
@@ -413,7 +419,7 @@ async function elegirReceta(callback) {
   $("#lista-recetas-elegir").replaceChildren(
     ...(recetas.length
       ? recetas.map((r) => h("button", { type: "button", class: "opcion", onclick: () => { $("#hoja-recetas").close(); callback(r); } },
-          r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
+          r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, iconos.el("receta")),
           h("span", {}, h("strong", {}, r.nombre || "Sin nombre"), r.temperatura && h("small", {}, ` · ${r.temperatura} ºC`))))
       : [h("p", {}, "Todavía no tienes recetas.")]),
     h("form", { class: "registrar-receta", onsubmit: async (e) => {
@@ -451,7 +457,7 @@ function nombreCapa(c) {
 function muestraCapa(c) {
   return c.origen === "prodesco" && c.miniatura
     ? h("img", { class: "muestra", src: c.miniatura, alt: "" })
-    : h("span", { class: "muestra sin-foto" }, c.origen === "propio" ? "🧪" : "🎨");
+    : h("span", { class: "muestra sin-foto" }, iconos.el(c.origen === "propio" ? "receta" : "color"));
 }
 
 // "2 capas · pincel · Paletina 20 mm · exterior"
@@ -545,7 +551,7 @@ function abrirFicha(...contenido) {
 function verPieza(p) {
   const coccion = [p.temperatura && `${p.temperatura} ºC`, p.atmosfera?.toLowerCase()].filter(Boolean).join(", ");
   abrirFicha(
-    carrusel(p.fotos, "🏺"),
+    carrusel(p.fotos, iconos.el("pieza")),
     h("div", { class: "ficha-ver" },
       h("h2", {}, p.nombre || "Pieza sin nombre"),
       h("p", { class: "subtitulo" }, fecha(p.fecha),
@@ -577,16 +583,16 @@ function verReceta(r, piezas) {
   const { filas, peligro } = proporciones(r);
   const usadaEn = piezas.filter((p) => p.capas.some((c) => c.receta === r.id));
   abrirFicha(
-    carrusel(r.fotos, "🧪"),
+    carrusel(r.fotos, iconos.el("receta")),
     h("div", { class: "ficha-ver" },
       h("h2", {}, r.nombre || "Receta sin nombre"),
       h("p", { class: "subtitulo" }, [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera].filter(Boolean).join(" · ")),
       filas.length > 0 && h("table", { class: "tabla-receta" },
         h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", {}, "%"))),
         h("tbody", {}, filas.map((f) => h("tr", { class: f.anadido ? "anadido" : "" },
-          h("td", {}, f.material, material(f.material)?.[2] && " ⚠"),
+          h("td", {}, f.material, material(f.material)?.[2] && " (tóxico)"),
           h("td", {}, `${f.anadido ? "+" : ""}${numero.format(f.parte * 100)}`))))),
-      peligro && h("p", { class: "aviso-peligro" }, "⚠ Lleva materiales tóxicos: guantes y mascarilla FFP2."),
+      peligro && h("p", { class: "aviso-peligro" }, "Lleva materiales tóxicos: guantes y mascarilla FFP2."),
       r.notas && [h("h3", {}, "Notas"), h("p", { class: "notas-ver" }, r.notas)],
       usadaEn.length > 0 && [h("h3", {}, "Piezas con este esmalte"),
         h("ul", { class: "usada-en" }, usadaEn.map((p) => h("li", {}, h("a", { href: "#/", onclick: (e) => { e.preventDefault(); verPieza(p); } }, p.nombre || "Pieza sin nombre"))))]),
@@ -616,7 +622,7 @@ async function vistaPiezas() {
       tarjetaAnadir("#/pieza/nueva", "ilustracion-pieza.svg", "Añadir pieza", piezas.length === 0 && "Apunta tu primera pieza"),
       piezas.map((p) =>
         h("a", { href: `#/pieza/${p.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verPieza(p); } },
-          p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🏺"),
+          p.fotos[0] ? h("img", { src: urlDe(p.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, iconos.el("pieza")),
           h("span", { class: "info" },
             h("strong", {}, p.nombre || "Pieza sin nombre"),
             h("small", {}, [fecha(p.fecha), p.pasta].filter(Boolean).join(" · ")),
@@ -637,7 +643,7 @@ async function vistaRecetas() {
       tarjetaAnadir("#/esmalte/nuevo", "ilustracion-esmalte.svg", "Añadir esmalte", recetas.length === 0 && "Apunta tu primera receta"),
       recetas.map((r) =>
         h("a", { href: `#/esmalte/${r.id}`, class: "tarjeta-pieza", onclick: (e) => { e.preventDefault(); verReceta(r, piezas); } },
-          r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, "🧪"),
+          r.fotos[0] ? h("img", { src: urlDe(r.fotos[0]), alt: "" }) : h("span", { class: "sin-foto" }, iconos.el("receta")),
           h("span", { class: "info" },
             h("strong", {}, r.nombre || "Receta sin nombre"),
             h("small", {}, [r.tipo, r.temperatura && `${r.temperatura} ºC`, r.atmosfera].filter(Boolean).join(" · ")),
@@ -813,14 +819,14 @@ async function vistaReceta(id) {
       h("div", { class: "fila-ingrediente cabecera-ingredientes" },
         h("span", {}, "Material"), h("span", {}, UNIDADES[r.unidad]), h("span", { title: "Se añade fuera del 100 % de la base" }, "Añadido"), h("span", {})),
       ...r.ingredientes.map((ing, i) => {
-        const peligro = h("small", { class: "peligro-material", hidden: !material(ing.material)?.[2] }, "⚠ Tóxico: guantes y mascarilla");
+        const peligro = h("small", { class: "peligro-material", hidden: !material(ing.material)?.[2] }, "Tóxico: guantes y mascarilla");
         let materialElegido = ing.material; // el último elegido o confirmado, no lo que se va tecleando
         const anadido = h("input", { type: "checkbox", checked: ing.anadido, title: "Se añade fuera del 100 %",
           onchange: (e) => { ing.anadido = e.target.checked; guardar(); pintarCalculo(); } });
         return h("div", { class: "fila-ingrediente" },
           h("span", { class: "material" },
             selector({ valor: ing.material, tipo: "material", etiqueta: "Materiales", placeholder: "Feldespato potásico", registrarComo: "Registrar material",
-              opciones: MATERIALES.map(([n, g, toxico]) => ({ valor: n, detalle: toxico ? `${g} ⚠` : g })),
+              opciones: MATERIALES.map(([n, g, toxico]) => ({ valor: n, detalle: toxico ? `${g} · tóxico` : g })),
               alCambiar: (v, final) => {
                 ing.material = v;
                 guardar();
@@ -873,7 +879,7 @@ async function vistaReceta(id) {
           h("td", {}, `${f.anadido ? "+" : ""}${numero.format(f.parte * 100)}`),
           h("td", {}, numero.format(f.parte * (Number(r.lote) || 0))))))),
       peligro &&
-        h("p", { class: "aviso-peligro" }, "⚠ Esta receta lleva materiales tóxicos: pésalos con guantes y mascarilla FFP2, y no la uses en piezas para comida sin hacer pruebas."));
+        h("p", { class: "aviso-peligro" }, "Esta receta lleva materiales tóxicos: pésalos con guantes y mascarilla FFP2, y no la uses en piezas para comida sin hacer pruebas."));
   }
   pintarIngredientes();
 

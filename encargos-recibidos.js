@@ -73,7 +73,7 @@ function pintar() {
       h("span", { class: "linea-1" },
         h("strong", {}, `${e.tipo || "Pieza"}${e.cantidad > 1 ? ` × ${e.cantidad}` : ""}`),
         h("span", { class: `etiqueta-estado estado-${e.estado}` }, ESTADOS[e.estado] ?? e.estado)),
-      h("span", { class: "linea-2" }, `${e.nombre} · ${haceCuanto(e.creado)}`, e.fotos?.length || e.tablero ? " · 📎" : ""),
+      h("span", { class: "linea-2" }, `${e.nombre} · ${haceCuanto(e.creado)}`, e.fotos?.length || e.tablero ? " · con adjuntos" : ""),
       h("span", { class: "idea-corta" }, e.idea),
       e.precio != null && h("span", { class: "linea-3" }, `${euros.format(e.precio)}${e.plazo ? ` · ${e.plazo}` : ""}`))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes encargos pendientes." : "No hay encargos aquí.")]));

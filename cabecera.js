@@ -35,6 +35,15 @@
     + '<svg class="icono-cerrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   cabecera.prepend(boton);
 
+  // Título a la izquierda: «El Almacén · cerámica», que lleva a la portada (la «info»)
+  const titulo = document.createElement("a");
+  titulo.href = "index.html";
+  titulo.className = "titulo-web";
+  titulo.setAttribute("aria-label", "El Almacén cerámica: inicio e información");
+  titulo.innerHTML = '<span class="titulo-nombre">El Almacén</span><span class="titulo-sub">cerámica</span>';
+  if (/\/(index(\.html)?)?$/.test(location.pathname)) titulo.setAttribute("aria-current", "page");
+  cabecera.prepend(titulo);
+
   // «panel» en el menú, solo para quien gestiona el taller. Es solo el enlace:
   // la puerta de verdad está en panel-acceso.js y en las reglas de Supabase.
   // En páginas sin cuenta (la portada) se usa lo último que se supo.

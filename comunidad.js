@@ -7,11 +7,11 @@ const $ = (sel) => document.querySelector(sel);
 const LADO_MAXIMO = 1600;
 const MAX_FOTOS = 6;
 const CATEGORIAS = {
-  esmaltes: { nombre: "Esmaltes", icono: "🎨" },
-  recetas: { nombre: "Recetas", icono: "🧪" },
-  problemas: { nombre: "Problemas y soluciones", icono: "🔧" },
-  piezas: { nombre: "Piezas", icono: "🏺" },
-  charla: { nombre: "Charla", icono: "💬" },
+  esmaltes: { nombre: "Esmaltes" },
+  recetas: { nombre: "Recetas" },
+  problemas: { nombre: "Problemas y soluciones" },
+  piezas: { nombre: "Piezas" },
+  charla: { nombre: "Charla" },
 };
 const numero = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 
@@ -108,7 +108,7 @@ document.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("cl
 // ---------- Portada ----------
 
 function pintarCategorias() {
-  const opciones = [[null, "Todo"], ...Object.entries(CATEGORIAS).map(([k, c]) => [k, `${c.icono} ${c.nombre}`]), ...(esAdmin ? [["avisos", "⚑ Avisos"]] : [])];
+  const opciones = [[null, "Todo"], ...Object.entries(CATEGORIAS).map(([k, c]) => [k, c.nombre]), ...(esAdmin ? [["avisos", "Avisos"]] : [])];
   $("#categorias").replaceChildren(...opciones.map(([clave, nombre]) =>
     h("button", { type: "button", role: "tab", class: "chip-categoria", "aria-selected": String(clave === "avisos" ? filtro.orden === "avisos" : filtro.categoria === clave && filtro.orden !== "avisos"),
       onclick: () => {
@@ -157,13 +157,13 @@ function tarjeta(p) {
     botonUtil(p, "vertical"),
     h("a", { class: "cuerpo-post", href: `#p/${p.id}` },
       h("span", { class: "meta-post" },
-        h("span", { class: `etiqueta-cat cat-${p.categoria}` }, `${cat.icono} ${cat.nombre}`),
+        h("span", { class: `etiqueta-cat cat-${p.categoria}` }, cat.nombre),
         p.resuelto && h("span", { class: "resuelto" }, "✓ Resuelto"),
         p.adjunto === "receta" && h("span", { class: "con-receta" }, "Receta"),
-        p.avisos > 0 && h("span", { class: "con-avisos" }, `⚑ ${p.avisos}`)),
+        p.avisos > 0 && h("span", { class: "con-avisos" }, `${p.avisos} ${p.avisos === 1 ? "aviso" : "avisos"}`)),
       h("strong", { class: "titulo-post" }, p.titulo),
       p.extracto && h("span", { class: "extracto" }, p.extracto),
-      h("span", { class: "pie-post" }, avatar(p.autor, p.autor_foto), `${p.autor} · ${haceCuanto(p.creado)} · 💬 ${p.comentarios}${p.fotos > 1 ? ` · 📷 ${p.fotos}` : ""}`)),
+      h("span", { class: "pie-post" }, avatar(p.autor, p.autor_foto), `${p.autor} · ${haceCuanto(p.creado)} · ${p.comentarios === 1 ? "1 comentario" : `${p.comentarios} comentarios`}${p.fotos > 1 ? ` · ${p.fotos} fotos` : ""}`)),
     p.foto && h("a", { class: "miniatura-post", href: `#p/${p.id}`, tabindex: "-1" }, h("img", { src: urlFoto(p.foto), alt: "", loading: "lazy" })));
 }
 
@@ -218,7 +218,7 @@ function tablaReceta(a) {
   const filas = (a.ingredientes ?? []).filter((f) => f.material);
   const base = filas.filter((f) => !f.anadido).reduce((s, f) => s + (parseFloat(String(f.cantidad).replace(",", ".")) || 0), 0);
   return h("div", { class: "receta-adjunta" },
-    h("h3", {}, `🧪 ${a.nombre || "Receta"}`),
+    h("h3", {}, a.nombre || "Receta"),
     h("p", { class: "ayuda" }, [a.tipo_receta, a.temperatura && `${a.temperatura} ºC`, a.atmosfera].filter(Boolean).join(" · ")),
     filas.length > 0 && h("table", {}, h("tbody", {}, filas.map((f) => {
       const c = parseFloat(String(f.cantidad).replace(",", ".")) || 0;
@@ -272,7 +272,7 @@ async function abrirPublicacion(id) {
   const cat = CATEGORIAS[p.categoria];
   document.title = `${p.titulo} · Comunidad · El Almacén`;
   $("#publicacion").replaceChildren(...[
-    h("p", { class: "meta-post" }, h("span", { class: `etiqueta-cat cat-${p.categoria}` }, `${cat.icono} ${cat.nombre}`), p.solucion && h("span", { class: "resuelto" }, "✓ Resuelto")),
+    h("p", { class: "meta-post" }, h("span", { class: `etiqueta-cat cat-${p.categoria}` }, cat.nombre), p.solucion && h("span", { class: "resuelto" }, "✓ Resuelto")),
     h("h1", {}, p.titulo),
     h("p", { class: "autor-post" }, botonAutor(p), ` · ${haceCuanto(p.creado)}${p.editado ? " · editado" : ""}`),
     p.fotos.length > 0 && h("div", { class: `fotos-post n${Math.min(p.fotos.length, 3)}` },
@@ -285,7 +285,7 @@ async function abrirPublicacion(id) {
       usuario && !p.es_mia && h("button", { type: "button", class: "boton texto", onclick: () => abrirAviso() }, "Avisar al taller"),
       p.puede_borrar && h("button", { type: "button", class: "boton texto peligro", onclick: () => borrarPublicacion(p) }, "Borrar")),
     esAdmin && p.avisos?.length > 0 && h("div", { class: "avisos-admin" },
-      h("strong", {}, `⚑ ${p.avisos.length === 1 ? "1 aviso" : `${p.avisos.length} avisos`}`),
+      h("strong", {}, `${p.avisos.length === 1 ? "1 aviso" : `${p.avisos.length} avisos`}`),
       h("ul", {}, p.avisos.map((a) => h("li", {}, a.motivo || "Sin motivo"))),
       h("button", { type: "button", class: "boton pequeno secundario", onclick: async () => {
         const { error } = await nube.cliente.from("avisos").delete().eq("publicacion_id", p.id);
@@ -380,7 +380,7 @@ async function prepararImagen(blob) {
 
 function pintarCategoriasNueva() {
   $("#elegir-categoria").replaceChildren(...Object.entries(CATEGORIAS).map(([clave, c]) =>
-    h("button", { type: "button", class: "chip-categoria", "aria-pressed": String(nueva.categoria === clave), onclick: () => { nueva.categoria = clave; pintarCategoriasNueva(); } }, `${c.icono} ${c.nombre}`)));
+    h("button", { type: "button", class: "chip-categoria", "aria-pressed": String(nueva.categoria === clave), onclick: () => { nueva.categoria = clave; pintarCategoriasNueva(); } }, c.nombre)));
 }
 
 function pintarFotosNueva() {
@@ -449,7 +449,7 @@ function elegirAdjunto(tipo, x) {
     nueva.fotos = (x.fotos ?? []).filter((f) => f instanceof Blob).slice(0, MAX_FOTOS).map((blob) => ({ blob, url: URL.createObjectURL(blob) }));
   }
   $("#adjunto-elegido").replaceChildren(
-    h("span", {}, `${tipo === "pieza" ? "🏺" : "🧪"} Compartes ${tipo === "pieza" ? "tu pieza" : "tu receta"} «${x.nombre || "sin nombre"}»${tipo === "receta" ? " con sus proporciones" : ""}.`),
+    h("span", {}, `Compartes ${tipo === "pieza" ? "tu pieza" : "tu receta"} «${x.nombre || "sin nombre"}»${tipo === "receta" ? " con sus proporciones" : ""}.`),
     h("button", { type: "button", class: "boton texto", onclick: () => { nueva.adjunto = null; $("#adjunto-elegido").hidden = true; } }, "Quitar"));
   $("#adjunto-elegido").hidden = false;
   pintarCategoriasNueva();
@@ -471,7 +471,7 @@ async function abrirPublicar() {
     ...opciones.slice(0, 30).map(([tipo, x]) => {
     const foto = (x.fotos ?? []).find((f) => f instanceof Blob);
     return h("button", { type: "button", class: "opcion-adjuntar", onclick: () => elegirAdjunto(tipo, x) },
-      foto ? h("img", { src: URL.createObjectURL(foto), alt: "" }) : h("span", { class: "sin-foto" }, tipo === "pieza" ? "🏺" : "🧪"),
+      foto ? h("img", { src: URL.createObjectURL(foto), alt: "" }) : h("span", { class: "sin-foto" }, iconos.el(tipo === "pieza" ? "pieza" : "receta")),
       h("span", {}, x.nombre || (tipo === "pieza" ? "Pieza sin nombre" : "Receta sin nombre")));
     }));
   // Viene de «Compartir en la comunidad» en una pieza o una receta

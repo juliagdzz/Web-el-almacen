@@ -1196,6 +1196,13 @@ function pedirCatalogo() {
 
 // El catálogo se guarda también en el móvil: la segunda vez sale al momento
 // y se actualiza por detrás para la siguiente
+function prepararCatalogo(lista) {
+  for (const e of lista) {
+    e.texto = sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`);
+    e.clave = soloLetrasYNumeros(e.codigo);
+  }
+  return lista;
+}
 function cargarCatalogo() {
   catalogo ??= (async () => {
     let lista = null;
@@ -1204,13 +1211,14 @@ function cargarCatalogo() {
       try { localStorage.setItem("catalogoEsmaltes", JSON.stringify(l)); } catch {}
       return l;
     });
-    if (lista) nueva.catch(() => {});
-    else lista = await nueva;
-    for (const e of lista) {
-      e.texto = sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`);
-      e.clave = soloLetrasYNumeros(e.codigo);
+    // La lista guardada de antes de Tecniglaze no trae fabricante: entonces se espera a la nueva
+    const antigua = lista && !lista.some((e) => e.marca);
+    if (lista && !antigua) {
+      nueva.then((l) => { catalogo = Promise.resolve(prepararCatalogo(l)); }).catch(() => {}); // la próxima vez, la nueva
+    } else {
+      lista = await nueva.catch((e) => { if (lista) return lista; throw e; });
     }
-    return lista;
+    return prepararCatalogo(lista);
   })().catch((e) => {
     catalogo = null; // se puede volver a intentar
     throw e;

@@ -68,5 +68,6 @@
 .editor-foto .muestra-fondo.activo { outline: 3px solid #f3e9d8; outline-offset: 2px; }
 .editor-foto .muestra-fondo.es-original { background: #5a4c43; color: #f3e9d8; }
 .editor-foto .muestra-fondo.es-transparente { background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 50% / 10px 10px; }
-.editor-foto .muestra-fondo.es-color, .editor-foto .muestra-fondo.es-foto { background: rgb(255 255 255 / 0.12); font-size: 1rem; position: relative; overflow: hidden; }
+.editor-foto .muestra-fondo.es-color, .editor-foto .muestra-fondo.es-foto { background: rgb(255 255 255 / 0.12); font-size: 0.65rem; position: relative; overflow: hidden; }
 .muestra-fondo.es-color input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.muestra-fondo.es-color .punto-color { width: 1rem; height: 1rem; border-radius: 50%; background: conic-gradient(#a44e26, #9b9a3a, #551c25, #f3e9d8, #a44e26); }
