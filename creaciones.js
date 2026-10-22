@@ -73,22 +73,6 @@ document.getElementById("cuenta-salir").addEventListener("click", async () => {
 window.addEventListener("nube:estado", pintarCuenta);
 window.addEventListener("nube:actualizado", pintarCuentas);
 
-// Para el taller: acceso al panel con lo que espera (encargos, horneados, bonos)
-async function pintarEncargos() {
-  if (!nube?.usuario) return;
-  try {
-    const { data: esAdmin } = await nube.cliente.rpc("es_admin");
-    if (!esAdmin) return;
-    const { data } = await nube.cliente.rpc("resumen_panel");
-    const n = (data?.encargos ?? 0) + (data?.horneados ?? 0) + (data?.bonos ?? 0);
-    document.getElementById("texto-panel").textContent = n ? (n === 1 ? "1 cosa por mirar" : `${n} cosas por mirar`) : "Encargos, horneados y talleres";
-    const globo = document.getElementById("globo-panel");
-    globo.textContent = n > 99 ? "99+" : String(n);
-    globo.hidden = !n;
-    document.getElementById("enlace-panel").hidden = false;
-  } catch {}
-}
-
 // Tu perfil: foto, nombre y, si las ves, las insignias nuevas desde la última vez
 async function pintarPerfil() {
   if (!nube?.usuario) return;
@@ -116,13 +100,9 @@ async function pintarPerfil() {
   } catch {}
 }
 
-// Al volver a la app se actualiza el número de encargos nuevos
-document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && pintarEncargos());
-
 Promise.resolve(nube?.listo).then(() => {
   pintarCuenta();
   pintarCuentas();
-  pintarEncargos();
   pintarPerfil();
 });
 

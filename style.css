@@ -275,6 +275,45 @@ body.en-tablero .subnav { display: none; }
   }
 }
 
+/* «panel»: solo lo ve la gestora del taller (cabecera.js); con el número de cosas por mirar */
+.cabecera nav a.enlace-panel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.05rem 0.7rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgb(243 233 216 / 0.7);
+}
+.globo-menu {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--crema);
+  color: var(--terracota-oscuro);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.boton-menu { position: relative; }
+.cabecera.hay-avisos:not(.menu-abierto) .boton-menu::after {
+  content: "";
+  position: absolute;
+  top: 0.45rem;
+  right: 0.4rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--crema);
+  box-shadow: 0 0 0 2px var(--terracota);
+}
+@media (max-width: 600px) {
+  .cabecera.menu-abierto nav a.enlace-panel { justify-content: space-between; border-radius: 0; box-shadow: none; padding: 0.8rem 0.25rem; }
+}
+
 /* Dentro de un tablero la página no se desliza: la cabecera no necesita ser fija */
 body.en-tablero .cabecera { position: static; }
 
