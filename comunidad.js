@@ -1,5 +1,5 @@
 // Comunidad: foro para compartir esmaltes, recetas, piezas y problemas.
-// Leer es público; publicar, comentar y votar necesitan cuenta y nombre público.
+// Solo para cuentas (nube.js manda a entrar a quien no la tenga); publicar y comentar piden además un nombre público.
 // Las reglas (quién toca qué, límites) están en supabase/esquema.sql.
 // Rutas: #  (portada) · #p/<id> (una publicación) · #publicar
 

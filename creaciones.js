@@ -43,67 +43,22 @@ function pintarCuentas() {
   }).catch(() => {});
 }
 
-// ---------- Cuenta ----------
+// ---------- Invitado ----------
+// Con cuenta no se enseña nada aquí: tu correo, tu foto y el estado de la copia
+// están en tu cuenta (la foto de la esquina). Solo se avisa a quien va como invitado.
 
 const nube = window.nube;
-const ESTADOS = {
-  sincronizando: "Sincronizando…",
-  "al-dia": "Todo guardado en tu cuenta ✓",
-  pendiente: "Hay cambios esperando para subir",
-  "sin-conexion": "Sin conexión: se subirá cuando vuelva internet",
-};
 
 function pintarCuenta() {
   if (!nube?.activa) return;
-  const caja = document.getElementById("cuenta");
-  caja.hidden = false;
-  const conCuenta = Boolean(nube.usuario);
-  caja.classList.toggle("invitado", !conCuenta);
-  document.getElementById("cuenta-texto").textContent = conCuenta
-    ? `Has entrado como ${nube.usuario.email}.`
-    : "Estás como invitado: lo que guardas está solo en este móvil.";
-  document.getElementById("cuenta-estado").textContent = conCuenta ? ESTADOS[nube.estado] ?? "" : "Crea una cuenta para no perderlo y verlo en otros móviles.";
-  document.getElementById("cuenta-crear").hidden = conCuenta;
-  document.getElementById("cuenta-salir").hidden = !conCuenta;
+  document.getElementById("cuenta").hidden = Boolean(nube.usuario);
 }
 
-document.getElementById("cuenta-salir").addEventListener("click", async () => {
-  if (await nube.salir()) location.replace("entrar.html");
-});
-window.addEventListener("nube:estado", pintarCuenta);
 window.addEventListener("nube:actualizado", pintarCuentas);
-
-// Tu perfil: foto, nombre y, si las ves, las insignias nuevas desde la última vez
-async function pintarPerfil() {
-  if (!nube?.usuario) return;
-  try {
-    const [{ data: perfiles }, { data: nuevas }] = await Promise.all([
-      nube.cliente.from("perfiles").select("alias,foto,insignias").eq("user_id", nube.usuario.id),
-      nube.cliente.from("insignias_ganadas").select("insignia_id").eq("user_id", nube.usuario.id).eq("vista", false),
-    ]);
-    const perfil = perfiles?.[0] ?? {};
-    const avatar = document.getElementById("avatar-perfil");
-    if (perfil.foto) {
-      const img = document.createElement("img");
-      img.src = nube.cliente.storage.from("comunidad").getPublicUrl(perfil.foto).data.publicUrl;
-      img.alt = "";
-      avatar.replaceChildren(img);
-    } else {
-      avatar.textContent = (perfil.alias || nube.usuario.email || "?").trim()[0].toUpperCase();
-    }
-    document.getElementById("nombre-perfil").textContent = perfil.alias || "Tu perfil";
-    const n = perfil.insignias === "ocultas" ? 0 : nuevas?.length ?? 0;
-    const texto = document.getElementById("texto-perfil");
-    texto.textContent = n ? (n === 1 ? "¡Tienes 1 insignia nueva!" : `¡Tienes ${n} insignias nuevas!`) : perfil.insignias === "ocultas" ? "Foto y nombre" : "Foto e insignias";
-    texto.classList.toggle("hay-nuevas", n > 0);
-    document.getElementById("enlace-perfil").hidden = false;
-  } catch {}
-}
 
 Promise.resolve(nube?.listo).then(() => {
   pintarCuenta();
   pintarCuentas();
-  pintarPerfil();
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

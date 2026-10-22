@@ -569,6 +569,42 @@ language sql stable security definer set search_path = public as $$
   where auth.uid() is not null
 $$;
 
+-- Tu calendario: lo tuyo entre dos fechas (como mucho 7 meses de golpe)
+--   · fija: la clase de tu mensualidad cada semana (menos meses en pausa)
+--   · suelta: una clase reservada con un bono
+--   · taller: un taller de un día al que te has apuntado
+create or replace function public.mi_calendario(p_desde date, p_hasta date) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(x.e order by x.fecha, x.hora), '[]'::jsonb) from (
+    select d::date as fecha, to_char(h.hora, 'HH24:MI') as hora,
+           jsonb_build_object('tipo', 'fija', 'fecha', d::date, 'hora', to_char(h.hora, 'HH24:MI'), 'duracion', h.duracion,
+                              'titulo', h.actividad, 'cerrado', cerrado(h.id, d::date), 'pendiente', b.estado = 'pendiente') as e
+      from bonos b
+      join horarios h on h.id = b.horario_id
+      cross join lateral generate_series(p_desde::timestamp, least(p_hasta, p_desde + 215)::timestamp, interval '1 day') d
+     where auth.uid() is not null and b.user_id = auth.uid() and b.tipo = 'mensual'
+       and extract(isodow from d)::int = h.dia and mensual_cubre(b, d::date)
+    union all
+    select r.fecha, to_char(h.hora, 'HH24:MI'),
+           jsonb_build_object('tipo', 'suelta', 'id', r.id, 'fecha', r.fecha, 'hora', to_char(h.hora, 'HH24:MI'),
+                              'duracion', h.duracion, 'titulo', h.actividad,
+                              'cancelable', r.fecha + h.hora - ahora_madrid() >= interval '24 hours')
+      from reservas r join horarios h on h.id = r.horario_id
+     where auth.uid() is not null and r.user_id = auth.uid() and r.estado = 'confirmada'
+       and r.fecha between p_desde and least(p_hasta, p_desde + 215)
+    union all
+    select t.fecha, to_char(t.hora, 'HH24:MI'),
+           jsonb_build_object('tipo', 'taller', 'id', r.id, 'fecha', t.fecha, 'hora', to_char(t.hora, 'HH24:MI'),
+                              'duracion', t.duracion, 'titulo', t.titulo,
+                              'cancelable', t.fecha + t.hora - ahora_madrid() >= interval '48 hours')
+      from reservas r join talleres t on t.id = r.taller_id
+     where auth.uid() is not null and r.user_id = auth.uid() and r.estado = 'confirmada'
+       and t.fecha between p_desde and least(p_hasta, p_desde + 215)
+  ) x
+$$;
+revoke execute on function public.mi_calendario(date, date) from public, anon;
+grant execute on function public.mi_calendario(date, date) to authenticated;
+
 -- Pausar un mes de la mensualidad (o quitar la pausa). Ese mes el puesto queda libre.
 create or replace function public.pausar_mes(p_bono uuid, p_mes date) returns jsonb
 language plpgsql security definer set search_path = public as $$
@@ -795,9 +831,10 @@ end $$;
 -- ============================================================
 -- Comunidad: un foro para compartir esmaltes, recetas, piezas y problemas
 -- ============================================================
--- Leer es público. Publicar, comentar, votar y avisar al taller necesitan
--- cuenta y un nombre público (nunca se enseña el correo). Cada cual cambia
--- y borra lo suyo; el taller puede borrar cualquier cosa.
+-- Solo para cuentas: para leer, publicar, comentar o votar hay que haber entrado
+-- (el modo invitado no vale). Para publicar y comentar hace falta además un nombre
+-- público (nunca se enseña el correo). Cada cual cambia y borra lo suyo; el taller
+-- puede borrar cualquier cosa.
 
 create table if not exists public.perfiles (
   user_id uuid primary key default auth.uid() references auth.users on delete cascade,
@@ -873,14 +910,16 @@ alter table public.votos enable row level security;
 alter table public.avisos enable row level security;
 
 drop policy if exists "Perfiles: todos los ven" on public.perfiles;
-create policy "Perfiles: todos los ven" on public.perfiles for select to anon, authenticated using (true);
+drop policy if exists "Perfiles: los ven las cuentas" on public.perfiles;
+create policy "Perfiles: los ven las cuentas" on public.perfiles for select to authenticated using (true);
 drop policy if exists "Perfiles: el tuyo" on public.perfiles;
 create policy "Perfiles: el tuyo" on public.perfiles for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists "Perfiles: cambiar el tuyo" on public.perfiles;
 create policy "Perfiles: cambiar el tuyo" on public.perfiles for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 drop policy if exists "Publicaciones: todos las ven" on public.publicaciones;
-create policy "Publicaciones: todos las ven" on public.publicaciones for select to anon, authenticated using (true);
+drop policy if exists "Publicaciones: las ven las cuentas" on public.publicaciones;
+create policy "Publicaciones: las ven las cuentas" on public.publicaciones for select to authenticated using (true);
 drop policy if exists "Publicaciones: publicar" on public.publicaciones;
 create policy "Publicaciones: publicar" on public.publicaciones for insert to authenticated
   with check (user_id = auth.uid()
@@ -893,7 +932,8 @@ drop policy if exists "Publicaciones: borrar" on public.publicaciones;
 create policy "Publicaciones: borrar" on public.publicaciones for delete to authenticated using (user_id = auth.uid() or public.es_admin());
 
 drop policy if exists "Comentarios: todos los ven" on public.comentarios;
-create policy "Comentarios: todos los ven" on public.comentarios for select to anon, authenticated using (true);
+drop policy if exists "Comentarios: los ven las cuentas" on public.comentarios;
+create policy "Comentarios: los ven las cuentas" on public.comentarios for select to authenticated using (true);
 drop policy if exists "Comentarios: comentar" on public.comentarios;
 create policy "Comentarios: comentar" on public.comentarios for insert to authenticated
   with check (user_id = auth.uid()
@@ -906,7 +946,8 @@ drop policy if exists "Comentarios: borrar" on public.comentarios;
 create policy "Comentarios: borrar" on public.comentarios for delete to authenticated using (user_id = auth.uid() or public.es_admin());
 
 drop policy if exists "Votos: todos los ven" on public.votos;
-create policy "Votos: todos los ven" on public.votos for select to anon, authenticated using (true);
+drop policy if exists "Votos: los ven las cuentas" on public.votos;
+create policy "Votos: los ven las cuentas" on public.votos for select to authenticated using (true);
 
 drop policy if exists "Avisos: avisar" on public.avisos;
 create policy "Avisos: avisar" on public.avisos for insert to authenticated
@@ -945,7 +986,8 @@ language sql stable security definer set search_path = public as $$
              'avisos', case when es_admin() then (select count(*) from avisos a where a.publicacion_id = p.id) end
            ) as datos
       from publicaciones p left join perfiles pe on pe.user_id = p.user_id
-     where (p_categoria is null or p.categoria = p_categoria)
+     where auth.uid() is not null
+       and (p_categoria is null or p.categoria = p_categoria)
        and (coalesce(p_buscar, '') = '' or position(lower(p_buscar) in lower(p.titulo || ' ' || p.cuerpo)) > 0)
        and (p_orden <> 'avisos' or (es_admin() and exists (select 1 from avisos a where a.publicacion_id = p.id)))
      order by peso desc, p.creado desc
@@ -975,8 +1017,10 @@ language sql stable security definer set search_path = public as $$
       where c.publicacion_id = p.id), '[]'::jsonb)
   )
   from publicaciones p left join perfiles pe on pe.user_id = p.user_id
-  where p.id = p_id
+  where p.id = p_id and auth.uid() is not null
 $$;
+revoke execute on function public.comunidad_feed(text, text, text, int), public.comunidad_publicacion(uuid) from public, anon;
+grant execute on function public.comunidad_feed(text, text, text, int), public.comunidad_publicacion(uuid) to authenticated;
 
 -- «Útil»: se pone y se quita; en lo propio no
 create or replace function public.votar(p_publicacion uuid) returns jsonb
@@ -1051,14 +1095,16 @@ create table if not exists public.insignias_ganadas (
 
 -- Las da solo el servidor; cada cual solo puede marcarlas como vistas
 revoke insert, update, delete on public.insignias, public.insignias_ganadas from anon, authenticated;
-grant select on public.insignias, public.insignias_ganadas to anon, authenticated;
+grant select on public.insignias to anon, authenticated;
+grant select on public.insignias_ganadas to authenticated;
+revoke select on public.insignias_ganadas from anon;
 grant update (vista) on public.insignias_ganadas to authenticated;
 alter table public.insignias enable row level security;
 alter table public.insignias_ganadas enable row level security;
 drop policy if exists "Insignias: todos las ven" on public.insignias;
 create policy "Insignias: todos las ven" on public.insignias for select to anon, authenticated using (true);
 drop policy if exists "Ganadas: las tuyas y las que se enseñan" on public.insignias_ganadas;
-create policy "Ganadas: las tuyas y las que se enseñan" on public.insignias_ganadas for select to anon, authenticated
+create policy "Ganadas: las tuyas y las que se enseñan" on public.insignias_ganadas for select to authenticated
   using (user_id = auth.uid()
          or exists (select 1 from public.perfiles p where p.user_id = insignias_ganadas.user_id and p.insignias = 'publicas'));
 drop policy if exists "Ganadas: marcar como vistas" on public.insignias_ganadas;

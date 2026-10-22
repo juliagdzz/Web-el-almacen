@@ -23,7 +23,6 @@
       <a href="horno.html">Horneado</a>
       <a href="encargos.html">Encargos</a>
       <a href="comunidad.html">Comunidad</a>
-      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
     </nav>
   </header>
 
@@ -31,19 +30,11 @@
     <h1>Mis creaciones</h1>
     <p class="entradilla">Tu rincón del taller: guarda ideas, apunta tus piezas y esmaltes y calcula medidas.</p>
 
-    <!-- Con cuenta o como invitado (lo rellena creaciones.js) -->
-    <div id="cuenta" class="cuenta-barra" hidden>
-      <p><span id="cuenta-texto"></span> <small id="cuenta-estado"></small></p>
-      <a id="cuenta-crear" href="entrar.html" class="boton" hidden>Crear cuenta</a>
-      <button id="cuenta-salir" type="button" class="boton secundario" hidden>Cerrar sesión</button>
+    <!-- Solo como invitado: con cuenta, todo eso está en tu cuenta (foto de la esquina) -->
+    <div id="cuenta" class="cuenta-barra invitado" hidden>
+      <p>Estás como invitado: lo que guardas está solo en este móvil. <small>Crea una cuenta para no perderlo y verlo en otros móviles.</small></p>
+      <a href="entrar.html?volver=creaciones.html" class="boton">Crear cuenta</a>
     </div>
-
-    <!-- Tu perfil, con las insignias nuevas (lo rellena creaciones.js) -->
-    <a id="enlace-perfil" href="perfil.html" class="enlace-perfil" hidden>
-      <span id="avatar-perfil" class="avatar mediana" aria-hidden="true"></span>
-      <span><strong id="nombre-perfil">Tu perfil</strong> <small id="texto-perfil">Foto e insignias</small></span>
-      <span aria-hidden="true">›</span>
-    </a>
 
     <div class="opciones-creaciones">
       <a href="inspiracion.html" class="opcion-creacion">
@@ -83,7 +74,6 @@
   <script src="vendor/supabase-2.49.4.js"></script>
   <script src="nube-config.js"></script>
   <script src="nube.js"></script>
-  <script src="insignias.js"></script>
   <script src="creaciones.js"></script>
   <script src="cabecera.js"></script>
 </body>

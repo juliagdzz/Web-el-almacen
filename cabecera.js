@@ -89,6 +89,7 @@
   }
 
   const abrir = (abierto) => {
+    if (abierto) cerrarCuenta();
     cabecera.classList.toggle("menu-abierto", abierto);
     boton.setAttribute("aria-expanded", String(abierto));
     boton.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
@@ -97,4 +98,129 @@
   nav.addEventListener("click", (e) => e.target.closest("a") && abrir(false));
   document.addEventListener("keydown", (e) => e.key === "Escape" && abrir(false));
   document.addEventListener("click", (e) => !cabecera.contains(e.target) && abrir(false));
+
+  // ---------- Cuenta: la foto en la esquina y su menú ----------
+  // Con sesión sale la foto (o la inicial) y un menú con tu cuenta, tu calendario,
+  // Mis creaciones e insignias. Sin sesión, un icono para entrar o crear cuenta.
+  // Se pinta al momento con lo último que se supo (localStorage) y se actualiza
+  // cuando llega la cuenta.
+  const CLAVE_CUENTA = "cuentaMenu";
+  const PAGINAS_CUENTA = /\/(creaciones|inspiracion|piezas|medidas|perfil)(\.html)?$/;
+  const ICONO_PERSONA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6 8-6s7 1.5 8 6"/></svg>';
+  const crear = (etiqueta, props = {}, ...hijos) => {
+    const el = document.createElement(etiqueta);
+    for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    el.append(...hijos.filter((x) => x != null && x !== false));
+    return el;
+  };
+  const esInvitado = () => { try { return JSON.parse(localStorage.getItem("modoInvitado")) === true; } catch { return false; } };
+  const leerCuenta = () => { try { return JSON.parse(localStorage.getItem(CLAVE_CUENTA)); } catch { return null; } };
+  const nubeApagada = window.nube && window.nube.activa === false; // sin Supabase no hay cuentas
+
+  const botonCuenta = crear("button", { type: "button", class: "boton-cuenta", "aria-haspopup": "true", "aria-expanded": "false", "aria-controls": "menu-cuenta" });
+  const panelCuenta = crear("div", { id: "menu-cuenta", class: "panel-cuenta", hidden: true });
+  const cuenta = crear("div", { class: "cuenta-menu" }, botonCuenta, panelCuenta);
+
+  function cerrarCuenta() {
+    panelCuenta.hidden = true;
+    botonCuenta.setAttribute("aria-expanded", "false");
+  }
+  const avatar = (d, tamano = "") => crear("span", { class: `avatar ${tamano}`, "aria-hidden": "true" },
+    d?.foto ? crear("img", { src: d.foto, alt: "" }) : (d?.alias || d?.email || "·").trim()[0].toUpperCase());
+
+  function pintarCuenta() {
+    const conSesion = haySesion();
+    const d = conSesion ? leerCuenta() : null;
+    const ocultas = d?.insignias === "ocultas";
+    const nuevas = !ocultas && d?.nuevas > 0 ? d.nuevas : 0;
+    botonCuenta.classList.toggle("con-sesion", conSesion);
+    botonCuenta.classList.toggle("activa", PAGINAS_CUENTA.test(location.pathname));
+    botonCuenta.replaceChildren();
+    if (conSesion) {
+      botonCuenta.setAttribute("aria-label", d?.alias ? `Tu cuenta: ${d.alias}` : "Tu cuenta");
+      if (d?.foto) botonCuenta.append(crear("img", { src: d.foto, alt: "" }));
+      else botonCuenta.append((d?.alias || d?.email || "·").trim()[0].toUpperCase());
+      if (nuevas) botonCuenta.append(crear("span", { class: "punto", "aria-hidden": "true" }));
+    } else {
+      botonCuenta.setAttribute("aria-label", esInvitado() ? "Invitado: entrar o crear cuenta" : "Entrar o crear cuenta");
+      botonCuenta.insertAdjacentHTML("afterbegin", ICONO_PERSONA);
+    }
+
+    const entrar = `entrar.html?volver=${encodeURIComponent(location.pathname + location.search + location.hash)}`;
+    if (conSesion) {
+      panelCuenta.replaceChildren(
+        crear("div", { class: "cuenta-cabeza" }, avatar(d, "mediana"),
+          crear("div", {}, crear("strong", {}, d?.alias || "Tu cuenta"), d?.email && crear("small", {}, d.email))),
+        crear("a", { class: "item-cuenta", href: "perfil.html" }, "Mi cuenta"),
+        crear("a", { class: "item-cuenta", href: "perfil.html#calendario" }, "Mi calendario"),
+        crear("a", { class: "item-cuenta", href: "creaciones.html" }, "Mis creaciones"),
+        !ocultas && crear("a", { class: "item-cuenta", href: "perfil.html#insignias" }, "Mis insignias",
+          nuevas > 0 && crear("span", { class: "etiqueta-nuevas" }, nuevas === 1 ? "1 nueva" : `${nuevas} nuevas`)),
+        crear("button", { type: "button", class: "item-cuenta salir", onclick: async () => {
+          const salio = await window.nube?.salir?.();
+          if (!salio) return;
+          try { localStorage.removeItem(CLAVE_CUENTA); localStorage.removeItem("panelTaller"); } catch {}
+          location.replace("entrar.html");
+        } }, "Cerrar sesión"));
+    } else {
+      panelCuenta.replaceChildren(
+        crear("p", { class: "cuenta-nota" }, esInvitado()
+          ? "Estás como invitado: lo que guardas está solo en este móvil."
+          : "Con una cuenta guardas tus piezas y tableros, reservas talleres y entras en la comunidad."),
+        crear("a", { class: "item-cuenta", href: entrar }, "Entrar o crear cuenta"),
+        crear("a", { class: "item-cuenta", href: "creaciones.html" }, "Mis creaciones"));
+    }
+  }
+
+  async function refrescarCuenta() {
+    const nube = window.nube;
+    if (!nube?.activa) return;
+    await nube.listo;
+    if (!nube.usuario) {
+      try { localStorage.removeItem(CLAVE_CUENTA); } catch {}
+      return pintarCuenta();
+    }
+    try {
+      const [{ data: perfiles }, { data: nuevas }] = await Promise.all([
+        nube.cliente.from("perfiles").select("alias,foto,insignias").eq("user_id", nube.usuario.id),
+        nube.cliente.from("insignias_ganadas").select("insignia_id").eq("user_id", nube.usuario.id).eq("vista", false),
+      ]);
+      const p = perfiles?.[0] ?? {};
+      const datos = {
+        email: nube.usuario.email,
+        alias: p.alias ?? null,
+        foto: p.foto ? nube.cliente.storage.from("comunidad").getPublicUrl(p.foto).data.publicUrl : null,
+        insignias: p.insignias ?? "privadas",
+        nuevas: nuevas?.length ?? 0,
+      };
+      try { localStorage.setItem(CLAVE_CUENTA, JSON.stringify(datos)); } catch {}
+    } catch {}
+    pintarCuenta();
+  }
+
+  if (!nubeApagada) {
+    cabecera.append(cuenta);
+    pintarCuenta();
+    botonCuenta.addEventListener("click", () => {
+      const abrir = panelCuenta.hidden;
+      cerrarCuenta();
+      if (!abrir) return;
+      cabecera.classList.remove("menu-abierto");
+      boton.setAttribute("aria-expanded", "false");
+      panelCuenta.hidden = false;
+      botonCuenta.setAttribute("aria-expanded", "true");
+    });
+    panelCuenta.addEventListener("click", (e) => e.target.closest("a") && cerrarCuenta());
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !panelCuenta.hidden) { cerrarCuenta(); botonCuenta.focus(); } });
+    document.addEventListener("click", (e) => !cuenta.contains(e.target) && cerrarCuenta());
+    // Al volver a la app o cambiar la foto o el nombre, se actualiza
+    document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && refrescarCuenta());
+    document.addEventListener("perfil:cambiado", refrescarCuenta);
+    window.addEventListener("storage", (e) => (e.key === CLAVE_CUENTA || e.key === "almacen-sesion") && pintarCuenta());
+    refrescarCuenta();
+  }
 })();

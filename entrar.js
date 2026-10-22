@@ -12,6 +12,8 @@
     return v && v.startsWith("/") && !v.startsWith("//") ? v : "creaciones.html";
   })();
   const vieneDeOtraPagina = new URLSearchParams(location.search).has("volver");
+  // La comunidad pide cuenta: ahí no se ofrece entrar como invitado
+  const pideCuenta = /^\/?comunidad(\.html)?([#?].*)?$/.test(volver.replace(/^\//, ""));
 
   function ver(id) {
     document.querySelectorAll(".tarjeta-entrar").forEach((s) => (s.hidden = s.id !== id));
@@ -154,6 +156,12 @@
   $("#salir").addEventListener("click", async () => {
     if (await nube.salir()) ver("vista-entrar");
   });
+
+  if (pideCuenta) {
+    document.querySelectorAll("#separador-invitado, #invitado, .nota-invitado").forEach((e) => (e.hidden = true));
+    $("#titulo-entrar").textContent = "Comunidad";
+    $("#texto-entrar").textContent = "Para leer y participar en la comunidad necesitas una cuenta. Así sabemos quién escribe, y tu correo no se enseña nunca.";
+  }
 
   // ---------- Arranque ----------
 

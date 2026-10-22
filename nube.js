@@ -9,6 +9,8 @@
   const CLAVE_SESION = "almacen-sesion";
   // Las páginas de Mis creaciones piden elegir cuenta o invitado
   const PRIVADA = /\/(creaciones|inspiracion|piezas|medidas|perfil)(\.html)?$/.test(location.pathname);
+  // La comunidad es solo para cuentas: el modo invitado no vale
+  const SOLO_CUENTA = /\/comunidad(\.html)?$/.test(location.pathname);
 
   const ls = {
     leer(clave, porDefecto) {
@@ -32,7 +34,7 @@
   window.nube = nube;
   if (!activa) return;
 
-  if (PRIVADA && !haySesion() && !esInvitado()) {
+  if ((PRIVADA && !haySesion() && !esInvitado()) || (SOLO_CUENTA && !haySesion())) {
     location.replace(`entrar.html?volver=${encodeURIComponent(location.pathname + location.search + location.hash)}`);
     nube.listo = new Promise(() => {}); // que la página no arranque mientras se va
     return;

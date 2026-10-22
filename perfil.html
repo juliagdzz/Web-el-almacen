@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Tu perfil · El Almacén</title>
+  <title>Tu cuenta · El Almacén</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#A44E26">
   <meta name="apple-mobile-web-app-title" content="El Almacén">
@@ -23,27 +23,25 @@
       <a href="horno.html">Horneado</a>
       <a href="encargos.html">Encargos</a>
       <a href="comunidad.html">Comunidad</a>
-      <a href="creaciones.html" aria-current="page">Mis creaciones</a>
     </nav>
   </header>
 
-    <nav class="subnav" aria-label="Mis creaciones">
-    <a href="creaciones.html" class="subnav-inicio">← Mis creaciones</a>
-    <a href="perfil.html" aria-current="page">Perfil</a>
-    <a href="inspiracion.html">Tableros</a>
-    <a href="piezas.html">Piezas</a>
-    <a href="medidas.html">Medidas</a>
+  <nav class="subnav" aria-label="Tu cuenta">
+    <a href="#perfil">Perfil</a>
+    <a href="#calendario">Calendario</a>
+    <a href="#insignias">Insignias</a>
+    <a href="creaciones.html">Mis creaciones</a>
   </nav>
 
   <main class="contenedor perfil">
     <div class="cabeza-perfil">
-      <h1>Tu perfil</h1>
+      <h1>Tu cuenta</h1>
       <img class="alocasia" src="alocasia.svg" alt="" width="220" height="310">
     </div>
     <p id="estado-perfil" class="estado-perfil">Cargando…</p>
 
     <div id="contenido-perfil" hidden>
-      <section class="tarjeta-perfil">
+      <section id="perfil" class="tarjeta-perfil">
         <div class="foto-perfil">
           <span id="avatar" class="avatar grande" aria-hidden="true"></span>
           <div class="botones-foto">
@@ -62,15 +60,52 @@
           <button type="submit" class="boton">Guardar</button>
         </form>
         <p class="nota">Tu foto y tu nombre se ven junto a lo que publicas en la comunidad. Tu correo no se enseña nunca.</p>
+        <div class="fila-cuenta">
+          <div>
+            <strong id="correo-cuenta"></strong>
+            <small id="estado-copia"></small>
+          </div>
+          <button id="salir-cuenta" type="button" class="boton secundario">Cerrar sesión</button>
+        </div>
       </section>
 
-      <section id="seccion-insignias" class="seccion-insignias">
+      <a href="creaciones.html" class="enlace-creaciones">
+        <img src="ilustracion-pieza.svg" alt="">
+        <span><strong>Mis creaciones</strong> <small>Tableros, piezas, esmaltes y medidas</small></span>
+        <span aria-hidden="true">›</span>
+      </a>
+
+      <section id="calendario" class="seccion-calendario">
+        <h2>Mi calendario</h2>
+        <p class="nota">Tus clases fijas, las que reservas con bono y los talleres de un día.</p>
+        <div class="mi-cal">
+          <div class="cabeza-cal">
+            <button id="cal-anterior" type="button" class="flecha-mes" aria-label="Mes anterior">‹</button>
+            <h3 id="cal-titulo" aria-live="polite"></h3>
+            <button id="cal-siguiente" type="button" class="flecha-mes" aria-label="Mes siguiente">›</button>
+          </div>
+          <div class="nombres-dias" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div id="cal-rejilla" class="cal-rejilla"><p class="nota">Cargando…</p></div>
+          <p class="leyenda">
+            <span><i class="muestra fija"></i> Mensualidad</span>
+            <span><i class="muestra suelta"></i> Clase con bono</span>
+            <span><i class="muestra taller"></i> Taller de un día</span>
+          </p>
+        </div>
+        <div id="cal-dia" class="cal-dia" hidden aria-live="polite"></div>
+        <h3 class="sub-cal">Próximas</h3>
+        <ul id="cal-proximas" class="cal-proximas"></ul>
+        <div id="cal-plan" class="cal-plan"></div>
+        <p class="acciones-cal"><a href="talleres.html" class="boton secundario">Reservar más clases</a></p>
+      </section>
+
+      <section id="insignias" class="seccion-insignias">
         <div class="titulo-insignias">
           <h2>Tus insignias</h2>
           <span id="cuenta-insignias" class="cuenta-insignias"></span>
         </div>
         <p class="nota">Se ganan solas al apuntar piezas y esmaltes o al ayudar en la comunidad. No caducan y nunca se pierden.</p>
-        <div id="insignias"></div>
+        <div id="lista-insignias"></div>
       </section>
 
       <section class="ajustes-insignias">
@@ -89,6 +124,7 @@
   <script src="vendor/supabase-2.49.4.js"></script>
   <script src="nube-config.js"></script>
   <script src="nube.js"></script>
+  <script src="talleres-tarifas.js"></script>
   <script src="insignias.js"></script>
   <script src="perfil.js"></script>
   <script src="cabecera.js"></script>

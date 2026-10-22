@@ -209,7 +209,7 @@ body.en-tablero .subnav { display: none; }
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: calc(1.1rem + env(safe-area-inset-top)) 2rem 1rem; /* con la app instalada, bajo la barra de estado */
+  padding: calc(1.1rem + env(safe-area-inset-top)) 4.5rem 1rem; /* con la app instalada, bajo la barra de estado; los lados, para la foto de la cuenta */
   transition: padding 0.25s ease, box-shadow 0.25s ease;
 }
 .cabecera nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1.75rem; }
@@ -234,7 +234,8 @@ body.en-tablero .subnav { display: none; }
   /* El botón a la derecha; al abrirlo, la lista ocupa todo el ancho */
   .cabecera {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 2.75rem;
+    grid-template-columns: minmax(0, 1fr) 2.75rem 2.5rem;
+    column-gap: 0.25rem;
     padding: calc(0.45rem + env(safe-area-inset-top)) 0.75rem 0.45rem 1rem;
   }
   .cabecera.compacta { padding-top: calc(0.3rem + env(safe-area-inset-top)); padding-bottom: 0.3rem; }
@@ -273,6 +274,76 @@ body.en-tablero .subnav { display: none; }
     border-bottom: 1px solid rgb(243 233 216 / 0.15);
     font-size: 1.15rem;
   }
+}
+
+/* Cuenta: la foto en la esquina y su menú (lo pone cabecera.js) */
+.cuenta-menu { display: contents; }
+.boton-cuenta {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--crema);
+  color: var(--terracota-oscuro);
+  box-shadow: 0 0 0 2px rgb(243 233 216 / 0.55);
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.boton-cuenta:hover { background: white; }
+.boton-cuenta:not(.con-sesion) { background: rgb(255 255 255 / 0.16); color: var(--crema); box-shadow: none; }
+.boton-cuenta:not(.con-sesion):hover { background: rgb(255 255 255 / 0.28); }
+.boton-cuenta img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.boton-cuenta svg { width: 1.4rem; height: 1.4rem; }
+.boton-cuenta.activa { box-shadow: 0 0 0 2px var(--terracota), 0 0 0 4px var(--crema); }
+.boton-cuenta .punto { position: absolute; top: -2px; right: -2px; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--oliva); box-shadow: 0 0 0 2px var(--terracota); }
+.panel-cuenta {
+  position: absolute;
+  right: 1rem;
+  top: calc(100% + 0.5rem);
+  z-index: 60;
+  box-sizing: border-box;
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  padding: 0.5rem;
+  border-radius: 16px;
+  background: var(--crema);
+  color: var(--tinta);
+  box-shadow: 0 10px 30px rgb(42 26 26 / 0.28);
+}
+.panel-cuenta[hidden] { display: none; }
+.cuenta-cabeza { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.25rem; padding: 0.5rem 0.6rem 0.75rem; border-bottom: 1px solid #e6d6c6; }
+.cuenta-cabeza div { display: grid; min-width: 0; line-height: 1.3; }
+.cuenta-cabeza strong { overflow: hidden; font-family: 'Fraunces', Georgia, serif; color: var(--granate); text-overflow: ellipsis; white-space: nowrap; }
+.cuenta-cabeza small { overflow: hidden; color: var(--verde); font-size: 0.78rem; text-overflow: ellipsis; white-space: nowrap; }
+.cuenta-nota { margin: 0.25rem 0.6rem 0.5rem; font-size: 0.85rem; line-height: 1.4; color: var(--verde); }
+.item-cuenta, .item-cuenta:hover {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.6rem;
+  border-radius: 10px;
+  background: none;
+  color: var(--tinta);
+  font: 500 0.95rem 'DM Sans', sans-serif;
+  text-align: left;
+  text-decoration: none;
+}
+.item-cuenta:hover, .item-cuenta:focus-visible { background: rgb(155 154 58 / 0.2); }
+.item-cuenta.salir { margin-top: 0.25rem; border-top: 1px solid #e6d6c6; border-radius: 0 0 10px 10px; color: var(--terracota-oscuro); }
+.etiqueta-nuevas { padding: 0.05rem 0.55rem; border-radius: 999px; background: var(--oliva-oscuro); color: var(--crema); font-size: 0.72rem; font-weight: 500; }
+@media (max-width: 600px) {
+  .boton-cuenta { position: static; transform: none; grid-column: 3; grid-row: 1; width: 2.5rem; height: 2.5rem; }
+  .panel-cuenta { right: 0.75rem; }
 }
 
 /* «panel»: solo lo ve la gestora del taller (cabecera.js); con el número de cosas por mirar */

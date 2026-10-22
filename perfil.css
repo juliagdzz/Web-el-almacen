@@ -96,3 +96,102 @@
   transition: opacity 0.2s;
 }
 .toast.visible { opacity: 1; }
+
+/* Cuenta: correo y copia */
+.tarjeta-perfil, .seccion-calendario, #insignias, .ajustes-insignias { scroll-margin-top: 5.5rem; }
+.fila-cuenta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #efe2d8; }
+.fila-cuenta div { display: grid; min-width: 0; gap: 0.1rem; }
+.fila-cuenta strong { overflow-wrap: anywhere; font-size: 0.95rem; }
+.fila-cuenta small { color: var(--verde); }
+.fila-cuenta .boton { padding: 0.45rem 1rem; font-size: 0.9rem; }
+
+/* Enlace a Mis creaciones */
+.enlace-creaciones {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 1rem 0.6rem 0.6rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  text-decoration: none;
+}
+.contenedor a.enlace-creaciones { color: var(--tinta); }
+.enlace-creaciones img { flex: none; width: 3.5rem; height: 3.5rem; border-radius: 10px; object-fit: contain; background: var(--oliva); }
+.enlace-creaciones span:nth-of-type(1) { flex: 1; display: grid; line-height: 1.3; }
+.enlace-creaciones strong { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--terracota-oscuro); }
+.enlace-creaciones small { color: var(--verde); }
+
+/* Mi calendario */
+.seccion-calendario { margin-bottom: 1.25rem; padding: 1.25rem; border-radius: 14px; background: white; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
+.sub-cal { margin: 1.25rem 0 0.5rem; font-size: 1rem; color: var(--terracota-oscuro); }
+.mi-cal { margin-top: 0.75rem; }
+.cabeza-cal { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.cabeza-cal h3 { margin: 0; font-size: 1.15rem; color: var(--granate); }
+.cabeza-cal h3::first-letter { text-transform: uppercase; }
+.flecha-mes, .flecha-mes:hover { width: 2.5rem; height: 2.5rem; padding: 0; border-radius: 50%; background: var(--fondo); color: var(--terracota-oscuro); font-size: 1.5rem; line-height: 1; }
+.flecha-mes:disabled { opacity: 0.3; cursor: default; }
+.nombres-dias, .cal-rejilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.nombres-dias span { padding-bottom: 0.25rem; text-align: center; font-size: 0.75rem; font-weight: 500; color: var(--verde); }
+.cal-rejilla > .nota { grid-column: 1 / -1; }
+.dia-cal { display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-height: 3.6rem; padding: 4px; border-radius: 10px; background: var(--fondo); color: var(--tinta); font: inherit; text-align: left; }
+.dia-cal.vacio { background: none; }
+.dia-cal.pasado { opacity: 0.45; }
+button.dia-cal { cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
+button.dia-cal:hover { background: var(--fondo); transform: translateY(-1px); box-shadow: 0 2px 6px rgb(42 26 26 / 0.12); }
+.dia-cal.hoy .numero { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--terracota); color: var(--crema); }
+.dia-cal.elegido { box-shadow: inset 0 0 0 2px var(--oliva-oscuro); }
+.dia-cal .numero { font-size: 0.8rem; font-weight: 600; line-height: 1.4rem; }
+.ev { display: block; overflow: hidden; padding: 0 3px; border-radius: 4px; font-size: 0.65rem; font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.3; text-align: center; color: white; }
+.ev.fija { background: var(--oliva-oscuro); }
+.ev.suelta { background: var(--oliva); }
+.ev.taller { background: var(--terracota); }
+.ev.pendiente { background: transparent; color: var(--oliva-oscuro); box-shadow: inset 0 0 0 1.5px var(--oliva-oscuro); }
+.ev.cerrado { background: #cfc4bb; text-decoration: line-through; }
+.ev.mas { background: none; color: var(--verde); }
+.leyenda { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0.75rem 0 0; font-size: 0.78rem; color: var(--verde); }
+.leyenda span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.muestra { display: inline-block; width: 1rem; height: 0.7rem; border-radius: 3px; background: var(--oliva); }
+.muestra.fija { background: var(--oliva-oscuro); }
+.muestra.taller { background: var(--terracota); }
+@media (min-width: 700px) {
+  .dia-cal { min-height: 5rem; padding: 6px; gap: 3px; }
+  .ev { font-size: 0.75rem; }
+}
+
+/* El día elegido */
+.cal-dia { position: relative; margin-top: 0.75rem; padding: 1rem; border-radius: 14px; background: var(--fondo); overflow: hidden; }
+.cal-dia.abriendo { animation: abrir-dia 0.3s ease-out; }
+.cal-dia .ramita { position: absolute; top: -10px; right: 2.75rem; width: 80px; pointer-events: none; }
+.cal-dia.abriendo .ramita { animation: crecer-ramita 0.7s ease-out; }
+@keyframes abrir-dia { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes crecer-ramita { from { opacity: 0; transform: scale(0.4) rotate(14deg); } }
+@media (prefers-reduced-motion: reduce) { .cal-dia.abriendo, .cal-dia.abriendo .ramita { animation: none; } }
+.cabeza-dia { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.cabeza-dia h3 { margin: 0; padding-right: 4.5rem; font-size: 1.1rem; color: var(--terracota-oscuro); }
+.cabeza-dia h3::first-letter { text-transform: uppercase; }
+.cerrar-dia, .cerrar-dia:hover { flex: none; width: 2rem; height: 2rem; padding: 0; border-radius: 50%; background: white; color: var(--tinta); }
+.evento-dia { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.7rem 0; border-top: 1px solid #e6d6c6; }
+.evento-dia > div { display: grid; gap: 0.15rem; min-width: 0; }
+.evento-dia small { color: var(--verde); }
+.no-cancelable { max-width: 8rem; text-align: right; }
+.boton.pequeno { padding: 0.35rem 0.9rem; font-size: 0.9rem; }
+
+/* Próximas y lo que tienes */
+.cal-proximas { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.cal-proximas li { display: grid; gap: 0.1rem; padding: 0.55rem 0.8rem; border-radius: 10px; background: var(--fondo); border-left: 4px solid var(--oliva); font-size: 0.92rem; }
+.cal-proximas li.taller { border-left-color: var(--terracota); }
+.cal-proximas li.fija { border-left-color: var(--oliva-oscuro); }
+.cal-proximas .cuando { font-weight: 500; }
+.cal-proximas .cuando::first-letter { text-transform: uppercase; }
+.cal-proximas small { color: var(--verde); }
+.cal-proximas li.vacio { border-left-color: transparent; color: var(--verde); }
+.cal-plan { display: grid; gap: 0.4rem; }
+.cal-plan .sub-cal { margin-bottom: 0; }
+.contenedor a.bono-resumen { display: grid; gap: 0.1rem; padding: 0.6rem 0.8rem; border-radius: 10px; background: var(--fondo); color: var(--tinta); text-decoration: none; }
+.bono-resumen.pendiente { background: #fbf1e8; }
+.bono-resumen small { color: var(--verde); }
+.acciones-cal { margin: 1rem 0 0; }
+.acciones-cal .boton { padding: 0.45rem 1.1rem; font-size: 0.9rem; }
+@media (max-width: 600px) { .seccion-calendario { padding: 1rem; } }
