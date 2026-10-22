@@ -259,7 +259,7 @@ function pintarDia(fecha) {
   const delDia = eventos.filter((e) => e.fecha === fecha);
   panel.hidden = false;
   panel.replaceChildren(...[
-    h("img", { class: "ramita", src: "maranta-rama.svg", alt: "", "aria-hidden": "true" }),
+    h("img", { class: "ramita", src: "monstera-hoja.svg", alt: "", "aria-hidden": "true" }),
     h("div", { class: "cabeza-dia" },
       h("h3", {}, diaLargo(fecha)),
       h("button", { type: "button", class: "cerrar-dia", "aria-label": "Cerrar", onclick: () => { diaElegido = null; panel.hidden = true; pintarCalendario(); } }, "✕")),

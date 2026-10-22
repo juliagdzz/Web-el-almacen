@@ -367,7 +367,7 @@ function elegirDia(fecha) {
   diaElegido = fecha;
   pintarCalendario();
   const panel = $("#dia-elegido");
-  // La ramita de maranta crece cada vez que se abre un día
+  // La hoja de monstera crece cada vez que se abre un día
   panel.classList.remove("abriendo");
   void panel.offsetWidth;
   panel.classList.add("abriendo");
@@ -389,7 +389,7 @@ function pintarDia(fecha) {
   const delTaller = talleres.filter((t) => t.fecha === fecha);
   panel.hidden = false;
   panel.replaceChildren(...[
-    h("img", { class: "ramita", src: "maranta-rama.svg", alt: "", "aria-hidden": "true" }),
+    h("img", { class: "ramita", src: "monstera-hoja.svg", alt: "", "aria-hidden": "true" }),
     h("div", { class: "cabeza-dia" },
       h("h3", {}, diaLargo(fecha)),
       h("button", { type: "button", class: "cerrar-dia", "aria-label": "Cerrar", onclick: () => { diaElegido = null; panel.hidden = true; pintarCalendario(); } }, "✕")),

@@ -2,8 +2,8 @@
 .talleres .entradilla { margin-top: 0; }
 .cabeza-talleres { display: flex; align-items: flex-end; gap: 1rem; }
 .cabeza-talleres > div { flex: 1; min-width: 0; }
-.maranta { flex: none; width: clamp(8.75rem, 38vw, 15rem); height: auto; margin: -1rem -0.5rem 0 0; }
-@media (max-width: 600px) { .maranta { margin: -0.5rem -0.75rem 0 0; } }
+.monstera { flex: none; width: clamp(8.75rem, 38vw, 15rem); height: auto; margin: -1rem -0.5rem 0 0; }
+@media (max-width: 600px) { .monstera { margin: -0.5rem -0.75rem 0 0; } }
 .talleres h2 { margin-bottom: 0.5rem; }
 .talleres h3 { font-family: 'Fraunces', serif; }
 .ayuda { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--verde); line-height: 1.45; }
@@ -178,8 +178,8 @@ button.dia:hover { background: var(--fondo); transform: translateY(-1px); box-sh
   .marca-taller { font-size: 0.68rem; }
 }
 
-/* El día elegido: sus clases con las plazas una a una. Una ramita de maranta
-   fina crece en la esquina cada vez que se abre */
+/* El día elegido: sus clases con las plazas una a una. Una hoja de monstera
+   de línea fina crece en la esquina cada vez que se abre */
 .dia-elegido {
   position: relative;
   margin-top: 0.75rem;
@@ -236,7 +236,7 @@ button.dia:hover { background: var(--fondo); transform: translateY(-1px); box-sh
   padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
   border: none;
   border-radius: 20px 20px 0 0;
-  background: url("maranta-rama.svg") no-repeat right 0.5rem top -0.25rem / 88px auto, var(--fondo);
+  background: url("monstera-hoja.svg") no-repeat right 0.5rem top -0.25rem / 88px auto, var(--fondo);
   color: var(--tinta);
   overflow-y: auto;
 }
