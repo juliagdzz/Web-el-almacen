@@ -1266,3 +1266,36 @@ create policy "Tableros compartidos: ver las tuyas" on storage.objects for selec
 drop policy if exists "Comunidad: ver las tuyas" on storage.objects;
 create policy "Comunidad: ver las tuyas" on storage.objects for select to authenticated
   using (bucket_id = 'comunidad' and ((storage.foldername(name))[1] = auth.uid()::text or public.es_admin()));
+
+-- ============================================================
+-- Inventario de esmaltes del taller
+-- ============================================================
+-- Lo que hay en el taller: los esmaltes de Prodesco (la clave es su enlace)
+-- y los que no son de Prodesco (clave «propio:…», con su color). Si un esmalte
+-- no está en la tabla, no hay. Lo ve todo el mundo (así en los tableros se sabe
+-- si está en el taller); solo el taller lo cambia.
+
+create table if not exists public.inventario_esmaltes (
+  clave text primary key check (length(clave) between 3 and 300),
+  codigo text check (length(codigo) <= 40),
+  nombre text not null check (length(btrim(nombre)) between 1 and 120),
+  serie text check (length(serie) <= 120),
+  color text check (color is null or color ~ '^#[0-9a-fA-F]{6}$'),
+  miniatura text check (length(miniatura) <= 500),
+  estado text not null default 'hay' check (estado in ('hay', 'poco')),
+  nota text check (length(nota) <= 300),
+  actualizado timestamptz not null default now()
+);
+drop trigger if exists inventario_tocar on public.inventario_esmaltes;
+create trigger inventario_tocar before insert or update on public.inventario_esmaltes
+  for each row execute function public.registros_tocar();
+
+revoke insert, update, delete on public.inventario_esmaltes from anon;
+grant select on public.inventario_esmaltes to anon, authenticated;
+grant insert, update, delete on public.inventario_esmaltes to authenticated;
+alter table public.inventario_esmaltes enable row level security;
+drop policy if exists "Inventario: todos lo ven" on public.inventario_esmaltes;
+create policy "Inventario: todos lo ven" on public.inventario_esmaltes for select to anon, authenticated using (true);
+drop policy if exists "Inventario: el taller lo cambia" on public.inventario_esmaltes;
+create policy "Inventario: el taller lo cambia" on public.inventario_esmaltes for all to authenticated
+  using (public.es_admin()) with check (public.es_admin());

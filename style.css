@@ -464,3 +464,14 @@ html.comprobando-acceso main, html.comprobando-acceso .subnav { visibility: hidd
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .avatar.grande { width: 6rem; height: 6rem; font-size: 2.6rem; }
 .avatar.mediana { width: 3rem; height: 3rem; font-size: 1.3rem; }
+
+/* Inventario del taller: ¿está este esmalte en el taller? (inventario-esmaltes.js) */
+.stock { display: inline-flex; align-items: center; justify-content: center; gap: 0.2rem; padding: 0.05rem 0.45rem; border-radius: 999px; font: 600 0.68rem/1.4 'DM Sans', sans-serif; white-space: nowrap; }
+.stock[hidden] { display: none; }
+.stock-hay { background: #e4ead0; color: var(--oliva-oscuro); }
+.stock-poco { background: #f6dfc8; color: var(--terracota-oscuro); }
+.stock-no { background: #eee6df; color: #7a6a63; }
+.stock-punto { width: 1.35rem; height: 1.35rem; padding: 0; border: 2px solid #fffdf7; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); font-size: 0.72rem; }
+.stock-punto.stock-hay { background: var(--oliva-oscuro); color: white; }
+.stock-punto.stock-poco { background: var(--terracota); color: white; }
+.stock-punto.stock-no { background: #8a7d76; color: white; }

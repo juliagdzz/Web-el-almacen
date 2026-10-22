@@ -219,7 +219,7 @@ function crearPin(p) {
     const etiqueta = document.createElement("span");
     etiqueta.className = "etiqueta";
     etiqueta.textContent = nombreEsmalte(p.esmalte);
-    el.append(muestra, etiqueta);
+    el.append(muestra, etiqueta, inventarioTaller.marca(p.esmalte, "punto"));
   } else {
     el.append(img);
   }
@@ -1269,7 +1269,9 @@ async function mostrarEsmaltes() {
 
   const favoritas = leerSeries();
   const palabras = sinAcentos($("#buscar-esmalte").value).split(/\s+/).filter(Boolean);
-  const encontrados = lista.filter((e) => coincide(e, palabras));
+  const soloTaller = inventarioTaller.hayDatos() && $("#solo-taller").checked;
+  $("#caja-solo-taller").hidden = !inventarioTaller.hayDatos();
+  const encontrados = lista.filter((e) => coincide(e, palabras) && (!soloTaller || inventarioTaller.estado(e) !== "no"));
   const principales = encontrados.filter((e) => favoritas.has(e.serie));
   const otros = encontrados.filter((e) => !favoritas.has(e.serie));
 
@@ -1308,7 +1310,7 @@ function crearOpcionEsmalte(e) {
   codigo.textContent = e.codigo || e.nombre;
   const nombre = document.createElement("span");
   nombre.textContent = e.codigo ? e.nombre || e.serie : e.serie;
-  boton.append(img, codigo, nombre);
+  boton.append(img, codigo, nombre, inventarioTaller.marca(e));
   if (e.plomo) {
     const plomo = document.createElement("small");
     plomo.className = "plomo";
@@ -1440,9 +1442,11 @@ async function pintarSugerencias() {
     return;
   }
   const soloMias = $("#paleta-mis-series").checked;
+  const soloTaller = inventarioTaller.hayDatos() && $("#paleta-taller").checked;
+  $("#caja-paleta-taller").hidden = !inventarioTaller.hayDatos();
   const favoritas = leerSeries();
   const candidatos = lista
-    .filter((e) => colores[e.id] && (!soloMias || favoritas.has(e.serie)))
+    .filter((e) => colores[e.id] && (!soloMias || favoritas.has(e.serie)) && (!soloTaller || inventarioTaller.estado(e) !== "no"))
     .map((e) => ({ e, lab: aLab(deHex(colores[e.id])) }));
 
   $("#paleta-sugerencias").replaceChildren(...paletaActual.colores.map((c) => {
@@ -1463,20 +1467,28 @@ async function pintarSugerencias() {
       boton.append(img,
         Object.assign(document.createElement("strong"), { textContent: e.codigo || e.nombre }),
         Object.assign(document.createElement("span"), { textContent: e.codigo ? e.nombre || e.serie : e.serie }),
-        Object.assign(document.createElement("small"), { className: "parecido", textContent: parecido(d) }));
+        Object.assign(document.createElement("small"), { className: "parecido", textContent: parecido(d) }),
+        inventarioTaller.marca(e));
       boton.addEventListener("click", async () => {
         await anadirEsmalte(e, boton);
         boton.classList.add("anadido");
       });
       opciones.append(boton);
     }
-    if (!mejores.length) opciones.append(Object.assign(document.createElement("p"), { textContent: "Ninguno en tus series: quita «Solo mis series»." }));
+    if (!mejores.length) opciones.append(Object.assign(document.createElement("p"), { textContent: "Ninguno con esos filtros: quita alguna casilla de arriba." }));
     fila.append(muestra, opciones);
     return fila;
   }));
 }
 
 $("#paleta-mis-series").addEventListener("change", pintarSugerencias);
+$("#paleta-taller").addEventListener("change", pintarSugerencias);
+$("#solo-taller").addEventListener("change", mostrarEsmaltes);
+// Cuando llega el inventario del taller, se ponen o cambian las marcas
+document.addEventListener("inventario:actualizado", () => {
+  if ($("#hoja-esmaltes").open) mostrarEsmaltes();
+  if ($("#hoja-paleta").open) pintarSugerencias();
+});
 $("#detalle-paleta").addEventListener("click", () => {
   const blob = pinAbierto?.imagen;
   $("#hoja-detalle").close();
@@ -1528,6 +1540,7 @@ function abrirDetalle(id) {
     $("#detalle-esmalte-nombre").textContent = nombreEsmalte(esmalte);
     $("#detalle-esmalte-serie").textContent = esmalte.serie;
     $("#detalle-esmalte-plomo").hidden = !esmalte.plomo;
+    $("#detalle-esmalte-stock").replaceChildren(inventarioTaller.marca(esmalte));
   }
   const origen = $("#detalle-origen");
   const enlace = esmalte?.url ?? pinAbierto.origen;

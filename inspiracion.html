@@ -106,6 +106,7 @@
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Esmaltes de Prodesco</h2>
     <input id="buscar-esmalte" class="buscar-esmalte" type="search" placeholder="Número o nombre: 5546, azul…" autocomplete="off" aria-label="Buscar esmalte">
+    <label id="caja-solo-taller" class="solo-mis-series" hidden><input id="solo-taller" type="checkbox"> Solo lo que hay en el taller</label>
     <details id="elegir-series" class="elegir-series">
       <summary>Elegir mis series</summary>
       <p>Las series marcadas salen arriba; las demás, en «Otros esmaltes».</p>
@@ -128,6 +129,7 @@
     <div id="detalle-esmalte" class="detalle-esmalte" hidden>
       <strong id="detalle-esmalte-nombre"></strong>
       <span id="detalle-esmalte-serie"></span>
+      <span id="detalle-esmalte-stock"></span>
       <span id="detalle-esmalte-plomo" class="plomo" hidden>Lleva plomo: revisa la ficha de Prodesco si la pieza es para comida</span>
     </div>
     <label for="detalle-nota">Nota</label>
@@ -184,6 +186,7 @@
       <div id="paleta-colores" class="paleta-colores"></div>
     </div>
     <label class="solo-mis-series"><input id="paleta-mis-series" type="checkbox" checked> Solo esmaltes de mis series</label>
+    <label id="caja-paleta-taller" class="solo-mis-series" hidden><input id="paleta-taller" type="checkbox"> Solo lo que hay en el taller</label>
     <p class="paleta-ayuda">Los esmaltes de Prodesco que más se parecen a cada color. Toca uno para ponerlo en el corcho.</p>
     <div id="paleta-sugerencias" class="paleta-sugerencias"></div>
   </dialog>
@@ -193,6 +196,7 @@
   <script src="nube.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.4.0/dist/color-thief.umd.js"></script>
   <script src="compartir.js"></script>
+  <script src="inventario-esmaltes.js"></script>
   <script src="tablero.js"></script>
   <script src="cabecera.js"></script>
 </body>

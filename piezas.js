@@ -393,7 +393,8 @@ async function pintarProdesco() {
     } },
       h("img", { src: e.miniatura, alt: "", loading: "lazy" }),
       h("strong", {}, e.codigo || e.nombre),
-      h("span", {}, e.codigo ? e.nombre || e.serie : e.serie))));
+      h("span", {}, e.codigo ? e.nombre || e.serie : e.serie),
+      inventarioTaller.marca(e))));
 }
 
 function elegirProdesco(callback) {
@@ -693,7 +694,8 @@ async function vistaPieza(id) {
       h("header", {},
         h("span", { class: "orden" }, i + 1),
         muestra,
-        h("div", { class: "titulo-capa" }, titulo, c.origen === "prodesco" && h("small", {}, c.serie))),
+        h("div", { class: "titulo-capa" }, titulo, c.origen === "prodesco" && h("small", {}, c.serie),
+          c.origen === "prodesco" && inventarioTaller.marca(c))),
       h("div", { class: "rejilla-capa" },
         campo("Capas", h("input", { type: "number", min: 1, max: 10, step: 1, inputMode: "numeric", value: c.capas, oninput: cambia("capas") })),
         campo("Aplicación", h("select", { onchange: cambia("aplicacion") }, APLICACIONES.map((a) => h("option", { value: a, selected: a === c.aplicacion }, a)))),

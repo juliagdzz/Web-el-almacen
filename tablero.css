@@ -675,3 +675,9 @@ body.en-tablero {
 .botones-enlace button[hidden] { display: none; }
 /* Que el estilo general de los botones flotantes al pasar por encima no los pinte de oliva */
 .pagina-tableros .fab.fab-pequeno, .pagina-tableros .fab.fab-pequeno:hover { background: #fffdf7; color: var(--t-oliva); }
+
+/* Marca de inventario en la chapa: arriba a la izquierda (a la derecha va el lápiz) */
+.pin.chapa .stock-punto { position: absolute; top: -4px; left: -4px; z-index: 2; }
+.opcion-esmalte .stock { margin-top: 2px; font-size: 0.6rem; padding: 0 0.35rem; }
+#detalle-esmalte-stock:empty { display: none; }
+#detalle-esmalte-stock .stock { font-size: 0.78rem; padding: 0.1rem 0.6rem; }
