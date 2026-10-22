@@ -1299,3 +1299,52 @@ create policy "Inventario: todos lo ven" on public.inventario_esmaltes for selec
 drop policy if exists "Inventario: el taller lo cambia" on public.inventario_esmaltes;
 create policy "Inventario: el taller lo cambia" on public.inventario_esmaltes for all to authenticated
   using (public.es_admin()) with check (public.es_admin());
+
+-- ============================================================
+-- Tienda: las piezas a la venta
+-- ============================================================
+-- De momento es un escaparate: se ven las piezas con su precio y quien quiera
+-- una la pide desde Encargos. Lo ve todo el mundo; solo el taller lo cambia.
+-- Las fotos van en el bucket público «tienda».
+
+create table if not exists public.tienda (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null check (length(btrim(nombre)) between 1 and 120),
+  descripcion text check (length(descripcion) <= 2000),
+  medidas text check (length(medidas) <= 200),
+  categoria text not null default 'Otras' check (categoria in ('Tazas', 'Cuencos', 'Platos', 'Jarrones', 'Macetas', 'Otras')),
+  precio numeric(8,2) check (precio is null or precio >= 0),
+  unidades int not null default 1 check (unidades between 0 and 999),
+  estado text not null default 'disponible' check (estado in ('disponible', 'reservada', 'vendida', 'oculta')),
+  fotos text[] not null default '{}' check (cardinality(fotos) <= 6),
+  orden int not null default 0,
+  creado timestamptz not null default now(),
+  actualizado timestamptz not null default now()
+);
+drop trigger if exists tienda_tocar on public.tienda;
+create trigger tienda_tocar before insert or update on public.tienda
+  for each row execute function public.registros_tocar();
+
+revoke insert, update, delete on public.tienda from anon;
+grant select on public.tienda to anon, authenticated;
+grant insert, update, delete on public.tienda to authenticated;
+alter table public.tienda enable row level security;
+drop policy if exists "Tienda: todos la ven" on public.tienda;
+create policy "Tienda: todos la ven" on public.tienda for select to anon, authenticated
+  using (estado <> 'oculta' or public.es_admin());
+drop policy if exists "Tienda: el taller la cambia" on public.tienda;
+create policy "Tienda: el taller la cambia" on public.tienda for all to authenticated
+  using (public.es_admin()) with check (public.es_admin());
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('tienda', 'tienda', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+drop policy if exists "Tienda: subir fotos" on storage.objects;
+create policy "Tienda: subir fotos" on storage.objects for insert to authenticated
+  with check (bucket_id = 'tienda' and public.es_admin());
+drop policy if exists "Tienda: ver fotos" on storage.objects;
+create policy "Tienda: ver fotos" on storage.objects for select to authenticated
+  using (bucket_id = 'tienda' and public.es_admin());
+drop policy if exists "Tienda: borrar fotos" on storage.objects;
+create policy "Tienda: borrar fotos" on storage.objects for delete to authenticated
+  using (bucket_id = 'tienda' and public.es_admin());

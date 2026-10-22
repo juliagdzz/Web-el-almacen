@@ -279,6 +279,20 @@ try {
     if (borrador[nombre]) form.querySelector(`input[name="${nombre}"][value="${CSS.escape(borrador[nombre])}"]`)?.click();
   }
 } catch {}
+
+// Desde la tienda: «Me interesa» llega con la pieza (?pieza=Taza verde&precio=28)
+{
+  const params = new URLSearchParams(location.search);
+  const pieza = params.get("pieza");
+  if (pieza) {
+    const precio = Number(params.get("precio"));
+    const texto = /^una parecida/.test(pieza)
+      ? `Me gustaría ${pieza}, de la tienda.`
+      : `Me interesa la pieza «${pieza}» de la tienda${precio ? ` (${precio} €)` : ""}. ¿Me la guardas para recogerla en el taller?`;
+    if (!$("#idea").value.includes(texto)) $("#idea").value = [texto, $("#idea").value.trim()].filter(Boolean).join("\n\n");
+  }
+}
+
 form.addEventListener("input", () => {
   const borrador = Object.fromEntries(CAMPOS_BORRADOR.map((id) => [id, $(`#${id}`).value]));
   for (const nombre of ["tipo", "uso", "contestar_por"]) borrador[nombre] = form.querySelector(`input[name="${nombre}"]:checked`)?.value;

@@ -23,3 +23,13 @@
   poner("bonos", data.bonos, "1 bono o mensualidad por activar", "N bonos o mensualidades por activar",
     data.clases_hoy ? `Hoy hay ${data.clases_hoy === 1 ? "1 clase" : `${data.clases_hoy} clases`}` : "Agenda, alumnos y horarios");
 })();
+
+// Tienda: cuántas piezas hay a la venta
+(async () => {
+  await window.accesoTaller;
+  const { data } = await window.nube.cliente.from("tienda").select("estado");
+  if (!data?.length) return;
+  const disponibles = data.filter((p) => p.estado === "disponible").length;
+  document.getElementById("texto-tienda").textContent =
+    `${disponibles === 1 ? "1 pieza a la venta" : `${disponibles} piezas a la venta`}${data.length > disponibles ? ` · ${data.length - disponibles} reservadas, vendidas u ocultas` : ""}`;
+})();

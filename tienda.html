@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tienda · El Almacén</title>
+  <meta name="description" content="Piezas de cerámica hechas a mano en El Almacén, Murcia: tazas, cuencos, platos y jarrones.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#A44E26">
+  <meta name="apple-mobile-web-app-title" content="El Almacén">
+  <link rel="icon" href="icono.svg?v=4" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png?v=4" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tienda.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <nav>
+      <a href="talleres.html">Talleres</a>
+      <a href="tienda.html" aria-current="page">Tienda</a>
+      <a href="horno.html">Horneado</a>
+      <a href="encargos.html">Encargos</a>
+      <a href="comunidad.html">Comunidad</a>
+      <a href="creaciones.html">Mis creaciones</a>
+    </nav>
+  </header>
+
+  <main class="contenedor tienda">
+    <div class="cabeza-tienda">
+      <div>
+        <h1>Tienda</h1>
+        <p class="entradilla">Piezas hechas a mano en el taller, una a una. Casi todas son únicas: cuando se va una, no vuelve igual.</p>
+      </div>
+      <img class="alocasia-tienda" src="alocasia.svg" alt="" width="160" height="225">
+    </div>
+
+    <p class="nota-pago">Muy pronto podrás pagar aquí mismo. De momento, si te gusta una pieza, pulsa «Me interesa» y te la guardamos para recogerla en el taller.</p>
+
+    <!-- Solo para el taller -->
+    <div id="barra-taller" class="barra-taller" hidden>
+      <button id="nueva-pieza" type="button" class="boton">Añadir pieza</button>
+      <p id="aviso-taller" class="ayuda"></p>
+    </div>
+
+    <div id="categorias" class="categorias" role="group" aria-label="Categorías" hidden></div>
+    <div id="lista-tienda" class="lista-tienda" aria-live="polite"><p class="ayuda">Cargando…</p></div>
+  </main>
+
+  <!-- Ficha de una pieza -->
+  <dialog id="hoja-pieza" class="hoja-tienda">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <div id="ficha-pieza"></div>
+  </dialog>
+
+  <!-- Añadir o editar una pieza (taller) -->
+  <dialog id="hoja-editar" class="hoja-tienda">
+    <form id="form-pieza" class="form-tienda">
+      <h2 id="titulo-editar">Nueva pieza</h2>
+      <label class="campo">Nombre <input id="pieza-nombre" type="text" maxlength="120" required placeholder="Taza verde oliva"></label>
+      <div class="dos-campos">
+        <label class="campo">Precio <small>en euros; vacío si es a consultar</small><input id="pieza-precio" type="number" inputmode="decimal" min="0" step="0.5"></label>
+        <label class="campo">Unidades <input id="pieza-unidades" type="number" inputmode="numeric" min="0" max="999" value="1"></label>
+      </div>
+      <div class="dos-campos">
+        <label class="campo">Categoría <select id="pieza-categoria"></select></label>
+        <label class="campo">Estado <select id="pieza-estado">
+          <option value="disponible">Disponible</option>
+          <option value="reservada">Reservada</option>
+          <option value="vendida">Vendida</option>
+          <option value="oculta">Oculta (solo la ves tú)</option>
+        </select></label>
+      </div>
+      <label class="campo">Medidas <input id="pieza-medidas" type="text" maxlength="200" placeholder="9 cm de alto · 8 cm de diámetro · 300 ml"></label>
+      <label class="campo">Descripción <textarea id="pieza-descripcion" rows="4" maxlength="2000" placeholder="Gres rojo, esmalte Speckglaze por dentro. Apta para lavavajillas."></textarea></label>
+      <fieldset class="campo-grupo">
+        <legend>Fotos <small>hasta 6; la primera es la portada</small></legend>
+        <div id="fotos-pieza" class="fotos-pieza"></div>
+        <label class="boton secundario pequeno anadir-fotos">Añadir fotos <input id="input-fotos" type="file" accept="image/*" multiple hidden></label>
+      </fieldset>
+      <p id="error-pieza" class="error" role="alert" hidden></p>
+      <div class="acciones-hoja">
+        <button id="borrar-pieza" type="button" class="boton texto peligro" hidden>Borrar pieza</button>
+        <button type="button" class="boton secundario" data-cerrar>Volver</button>
+        <button id="guardar-pieza" type="submit" class="boton">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/supabase-2.49.4.js"></script>
+  <script src="nube-config.js"></script>
+  <script src="nube.js"></script>
+  <script src="iconos.js"></script>
+  <script src="tienda.js"></script>
+  <script src="cabecera.js"></script>
+</body>
+</html>
