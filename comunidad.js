@@ -467,7 +467,7 @@ async function abrirPublicar() {
     ...mias.recetas.map((x) => ["receta", x]),
   ];
   $("#lista-adjuntar").replaceChildren(
-    botonNuevo("pieza"), botonNuevo("receta"),
+    botonNuevo(),
     ...opciones.slice(0, 30).map(([tipo, x]) => {
     const foto = (x.fotos ?? []).find((f) => f instanceof Blob);
     return h("button", { type: "button", class: "opcion-adjuntar", onclick: () => elegirAdjunto(tipo, x) },
@@ -490,21 +490,23 @@ async function abrirPublicar() {
   } catch {}
 }
 
-// «＋ Nueva pieza» / «＋ Nuevo esmalte»: se crea en Mis creaciones y, al darle a
-// «Listo», vuelve aquí ya puesto. Lo escrito se guarda mientras tanto.
-function botonNuevo(tipo) {
-  const pieza = tipo === "pieza";
-  return h("button", { type: "button", class: "opcion-adjuntar nueva", onclick: () => {
-    if (nueva.fotos.length && !nueva.adjunto && !confirm("Las fotos que has añadido aquí se quitarán. ¿Seguir?")) return;
-    try {
-      sessionStorage.setItem("creandoParaComunidad", "1");
-      sessionStorage.setItem("borradorComunidad", JSON.stringify({ titulo: $("#p-titulo").value, cuerpo: $("#p-cuerpo").value }));
-    } catch {}
-    location.href = pieza ? "piezas.html#/pieza/nueva" : "piezas.html#/esmalte/nuevo";
-  } },
-    h("span", { class: "sin-foto" }, "＋"),
-    h("span", {}, pieza ? "Nueva pieza" : "Nuevo esmalte"));
+// «Nuevo»: con la misma forma que las piezas guardadas. Pregunta si es una pieza
+// o un esmalte, se crea en Mis creaciones y, al darle a «Listo», vuelve aquí ya
+// puesto. Lo escrito se guarda mientras tanto.
+function botonNuevo() {
+  return h("button", { type: "button", class: "opcion-adjuntar nueva", onclick: () => $("#hoja-nuevo").showModal() },
+    h("span", { class: "ilustracion-nueva" }, h("img", { src: "ilustracion-pieza.svg", alt: "" }), h("span", { class: "mas", "aria-hidden": "true" }, "+")),
+    h("span", {}, "Nuevo"));
 }
+
+document.querySelectorAll("#hoja-nuevo [data-crear]").forEach((b) => b.addEventListener("click", () => {
+  if (nueva.fotos.length && !nueva.adjunto && !confirm("Las fotos que has añadido aquí se quitarán. ¿Seguir?")) return;
+  try {
+    sessionStorage.setItem("creandoParaComunidad", "1");
+    sessionStorage.setItem("borradorComunidad", JSON.stringify({ titulo: $("#p-titulo").value, cuerpo: $("#p-cuerpo").value }));
+  } catch {}
+  location.href = b.dataset.crear === "pieza" ? "piezas.html#/pieza/nueva" : "piezas.html#/esmalte/nuevo";
+}));
 
 $("#form-publicar").addEventListener("submit", async (e) => {
   e.preventDefault();

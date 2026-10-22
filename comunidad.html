@@ -109,6 +109,17 @@
     </form>
   </dialog>
 
+  <!-- «Nuevo» al publicar: ¿pieza o esmalte? -->
+  <dialog id="hoja-nuevo" class="hoja-comunidad hoja-nuevo">
+    <h2>¿Qué quieres crear?</h2>
+    <p class="ayuda">Lo apuntas en Mis creaciones y vuelves aquí con ello puesto.</p>
+    <div class="opciones-nuevo">
+      <button type="button" class="opcion-nuevo" data-crear="pieza"><img src="ilustracion-pieza.svg" alt=""><span>Pieza</span></button>
+      <button type="button" class="opcion-nuevo" data-crear="receta"><img src="ilustracion-esmalte.svg" alt=""><span>Esmalte</span></button>
+    </div>
+    <div class="acciones-hoja"><button type="button" class="boton secundario" data-cerrar>Volver</button></div>
+  </dialog>
+
   <!-- Perfil de quien publica o comenta -->
   <dialog id="hoja-perfil" class="hoja-comunidad hoja-perfil">
     <form method="dialog" class="cerrar-perfil"><button class="boton texto" aria-label="Cerrar">✕</button></form>

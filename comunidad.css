@@ -155,8 +155,28 @@
   font-size: 0.75rem;
   line-height: 1.2;
 }
-.opcion-adjuntar.nueva .sin-foto { background: white; box-shadow: inset 0 0 0 2px var(--oliva); color: var(--oliva-oscuro); font-size: 2rem; }
-.opcion-adjuntar.nueva span:last-child { font-weight: 600; color: var(--oliva-oscuro); }
+/* «Nuevo»: como una pieza guardada, con la taza sobre oliva y un + */
+.ilustracion-nueva { position: relative; display: block; width: 4.5rem; height: 4.5rem; overflow: hidden; border-radius: 8px; background: var(--oliva); }
+.ilustracion-nueva img { width: 100%; height: 100%; display: block; }
+.ilustracion-nueva .mas { position: absolute; right: 0.25rem; bottom: 0.25rem; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--crema); color: var(--terracota); font-size: 1.15rem; font-weight: 600; line-height: 1; box-shadow: 0 1px 4px rgb(0 0 0 / 0.25); }
+.opcion-adjuntar.nueva > span:last-child { font-weight: 600; }
+
+.hoja-nuevo h2 { margin-bottom: 0.25rem; }
+.opciones-nuevo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.75rem 0 1rem; }
+.opcion-nuevo, .opcion-nuevo:hover {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0 0 0.6rem;
+  overflow: hidden;
+  border-radius: 14px;
+  border-bottom: 4px solid var(--terracota);
+  background: white;
+  color: var(--terracota-oscuro);
+  font: 600 1.05rem 'Fraunces', serif;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.opcion-nuevo img { width: 100%; aspect-ratio: 1; display: block; background: var(--oliva); object-fit: contain; }
+.opcion-nuevo:hover { transform: translateY(-2px); }
 .opcion-adjuntar img, .opcion-adjuntar .sin-foto { width: 4.5rem; height: 4.5rem; border-radius: 8px; object-fit: cover; display: grid; place-items: center; background: #efd9ca; font-size: 1.6rem; }
 .opcion-adjuntar span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; }
 .adjunto-elegido { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; padding: 0.6rem 0.8rem; border-radius: 12px; background: #eef0de; font-size: 0.9rem; }
