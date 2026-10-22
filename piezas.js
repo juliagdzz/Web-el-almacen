@@ -334,7 +334,7 @@ function salioMal(p, alCambiar) {
 
 // ---------- Catálogo de Prodesco (el mismo que en los tableros) ----------
 
-const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
+const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP", "Speckglaze Esmaltes Picas", "Esmaltes Reactivos"];
 let catalogo = null;
 
 function cargarCatalogo() {
@@ -373,13 +373,13 @@ async function pintarProdesco() {
   try {
     lista = await cargarCatalogo();
   } catch {
-    $("#cuenta-prodesco").textContent = "No he podido cargar el catálogo de Prodesco.";
+    $("#cuenta-prodesco").textContent = "No he podido cargar el catálogo de esmaltes.";
     return;
   }
   const favoritas = seriesFavoritas();
   const palabras = sinAcentos($("#buscar-prodesco").value).split(/\s+/).filter(Boolean);
   const encontrados = lista
-    .filter((e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie}`).includes(p) ||
+    .filter((e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`).includes(p) ||
       (compacto(p) && compacto(e.codigo).includes(compacto(p)))))
     .sort((a, b) => favoritas.has(b.serie) - favoritas.has(a.serie));
   const MAXIMO = 120;
@@ -499,7 +499,7 @@ function textoPieza(p) {
     tamano(p) && `Tamaño: ${tamano(p)}`,
     p.pasta && `Pasta: ${p.pasta}`,
     coccion && `Cocción: ${coccion}`,
-    p.capas.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? " (Prodesco)" : ""}: ${detalleCapa(c)}${c.nota ? `. ${c.nota}` : ""}`).join("\n")}`,
+    p.capas.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? ` (${c.marca || "Prodesco"})` : ""}: ${detalleCapa(c)}${c.nota ? `. ${c.nota}` : ""}`).join("\n")}`,
     p.tecnicas.length && `Técnicas: ${p.tecnicas.join(", ")}`,
     p.notas && `Notas: ${p.notas}`,
     "Hecha en El Almacén",
@@ -668,7 +668,7 @@ async function vistaPieza(id) {
     capas.replaceChildren(...p.capas.map((c, i) => fichaCapa(c, i)),
       h("div", { class: "anadir-capa" },
         h("span", {}, "Añadir esmalte:"),
-        h("button", { type: "button", class: "secundario", onclick: () => elegirProdesco((e) => nuevaCapa({ origen: "prodesco", codigo: e.codigo, nombre: e.nombre, serie: e.serie, miniatura: e.miniatura, url: e.url })) }, "Prodesco"),
+        h("button", { type: "button", class: "secundario", onclick: () => elegirProdesco((e) => nuevaCapa({ origen: "prodesco", marca: e.marca || "Prodesco", codigo: e.codigo, nombre: e.nombre, serie: e.serie, miniatura: e.miniatura, url: e.url })) }, "Catálogo"),
         h("button", { type: "button", class: "secundario", onclick: () => elegirReceta((r) => nuevaCapa({ origen: "propio", receta: r.id, nombre: r.nombre })) }, "Mis esmaltes"),
         h("button", { type: "button", class: "secundario", onclick: () => nuevaCapa({ origen: "otro", nombre: "" }) }, "Otro")));
   }

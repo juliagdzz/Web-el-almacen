@@ -1207,7 +1207,7 @@ function cargarCatalogo() {
     if (lista) nueva.catch(() => {});
     else lista = await nueva;
     for (const e of lista) {
-      e.texto = sinAcentos(`${e.codigo} ${e.nombre} ${e.serie}`);
+      e.texto = sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`);
       e.clave = soloLetrasYNumeros(e.codigo);
     }
     return lista;
@@ -1224,7 +1224,7 @@ function coincide(e, palabras) {
 }
 
 // Las series que salen arriba; las demás van a «Otros esmaltes»
-const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
+const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP", "Speckglaze Esmaltes Picas", "Esmaltes Reactivos"];
 
 function leerSeries() {
   try {
@@ -1262,7 +1262,7 @@ async function mostrarEsmaltes() {
   try {
     lista = await cargarCatalogo();
   } catch {
-    $("#cuenta-esmaltes").textContent = "No he podido cargar el catálogo de Prodesco. Prueba otra vez en un rato.";
+    $("#cuenta-esmaltes").textContent = "No he podido cargar el catálogo de esmaltes. Prueba otra vez en un rato.";
     return;
   }
   if (!$("#lista-series").children.length) crearCasillasSeries(lista);
@@ -1324,13 +1324,14 @@ function crearOpcionEsmalte(e) {
 async function anadirEsmalte(e, boton) {
   boton.classList.add("cargando");
   try {
-    const respuesta = await fetch(`/api/esmaltes?imagen=${encodeURIComponent(e.muestra)}`);
+    // Las muestras lisas de Tecniglaze ya son de esta web (/api/esmaltes?color=…); las demás pasan por la función
+    const respuesta = await fetch(e.muestra.startsWith("/") ? e.muestra : `/api/esmaltes?imagen=${encodeURIComponent(e.muestra)}`);
     if (!respuesta.ok) throw new Error();
     $("#hoja-esmaltes").close();
-    const { codigo, nombre, serie, plomo, url } = e;
-    await anadirImagenes([await respuesta.blob()], { esmalte: { codigo, nombre, serie, plomo, url }, ancho: 0.24 });
+    const { codigo, nombre, serie, plomo, url, marca } = e;
+    await anadirImagenes([await respuesta.blob()], { esmalte: { codigo, nombre, serie, plomo, url, marca }, ancho: 0.24 });
   } catch {
-    avisar("No he podido traer la muestra de Prodesco");
+    avisar("No he podido traer la muestra del esmalte");
   } finally {
     boton.classList.remove("cargando");
   }
@@ -1438,7 +1439,7 @@ async function pintarSugerencias() {
   try {
     [lista, colores] = await Promise.all([cargarCatalogo(), cargarColores()]);
   } catch {
-    $("#paleta-sugerencias").replaceChildren(Object.assign(document.createElement("p"), { textContent: "No he podido cargar el catálogo de Prodesco." }));
+    $("#paleta-sugerencias").replaceChildren(Object.assign(document.createElement("p"), { textContent: "No he podido cargar el catálogo de esmaltes." }));
     return;
   }
   const soloMias = $("#paleta-mis-series").checked;
@@ -1446,8 +1447,8 @@ async function pintarSugerencias() {
   $("#caja-paleta-taller").hidden = !inventarioTaller.hayDatos();
   const favoritas = leerSeries();
   const candidatos = lista
-    .filter((e) => colores[e.id] && (!soloMias || favoritas.has(e.serie)) && (!soloTaller || inventarioTaller.estado(e) !== "no"))
-    .map((e) => ({ e, lab: aLab(deHex(colores[e.id])) }));
+    .filter((e) => (colores[e.id] || e.color) && (!soloMias || favoritas.has(e.serie)) && (!soloTaller || inventarioTaller.estado(e) !== "no"))
+    .map((e) => ({ e, lab: aLab(deHex(colores[e.id] || e.color)) }));
 
   $("#paleta-sugerencias").replaceChildren(...paletaActual.colores.map((c) => {
     const lab = aLab(c);
@@ -1547,7 +1548,7 @@ function abrirDetalle(id) {
   origen.hidden = !enlace;
   if (enlace) {
     origen.href = enlace;
-    origen.textContent = esmalte ? "Ver en Prodesco ↗" : "Ver en Pinterest ↗";
+    origen.textContent = esmalte ? `Ver en ${/diezceramic/.test(enlace) ? "Díez Ceramic" : "Prodesco"} ↗` : "Ver en Pinterest ↗";
   }
   $("#hoja-detalle").showModal();
 }

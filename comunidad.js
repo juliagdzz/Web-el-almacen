@@ -422,7 +422,7 @@ const nombreCapa = (c) => [c.codigo, c.nombre].filter(Boolean).join(" · ") || "
 function textoPieza(p) {
   return [
     [p.pasta && `Pasta: ${p.pasta}`, (p.temperatura || p.atmosfera) && `Cocción: ${[p.temperatura && `${p.temperatura} ºC`, p.atmosfera?.toLowerCase()].filter(Boolean).join(", ")}`].filter(Boolean).join("\n"),
-    p.capas?.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? " (Prodesco)" : ""}${c.nota ? `: ${c.nota}` : ""}`).join("\n")}`,
+    p.capas?.length && `Esmaltes:\n${p.capas.map((c, i) => `${i + 1}. ${nombreCapa(c)}${c.origen === "prodesco" ? ` (${c.marca || "Prodesco"})` : ""}${c.nota ? `: ${c.nota}` : ""}`).join("\n")}`,
     p.tecnicas?.length && `Técnicas: ${p.tecnicas.join(", ")}`,
     p.notas,
   ].filter(Boolean).join("\n\n");

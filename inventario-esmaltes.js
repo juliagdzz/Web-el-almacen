@@ -6,6 +6,16 @@
 // Si el taller aún no ha apuntado nada, no se enseña ninguna marca.
 
 (() => {
+  // Una sola vez: las líneas de Tecniglaze favoritas del taller (Speckglaze Picas y
+  // Reactivos) pasan a «mis series» también si ya habías elegido series antes
+  try {
+    const guardadas = JSON.parse(localStorage.getItem("seriesFavoritas"));
+    if (Array.isArray(guardadas) && !localStorage.getItem("seriesTecniglaze")) {
+      localStorage.setItem("seriesFavoritas", JSON.stringify([...new Set([...guardadas, "Speckglaze Esmaltes Picas", "Esmaltes Reactivos"])]));
+    }
+    localStorage.setItem("seriesTecniglaze", "1");
+  } catch {}
+
   const CLAVE = "inventarioTaller";
   const normal = (t) => String(t ?? "").trim().toLowerCase();
   const clave = (e) => e?.url || (e?.codigo ? `codigo:${normal(e.codigo)}` : null);

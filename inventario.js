@@ -71,13 +71,13 @@ function pintarResumen() {
   const poco = filas.filter((x) => x.estado === "poco").length;
   $("#resumen-inventario").textContent = filas.length
     ? `${filas.length === 1 ? "1 esmalte" : `${filas.length} esmaltes`} en el taller${poco ? ` · ${poco === 1 ? "queda poco de 1" : `quedan pocos de ${poco}`}` : ""}`
-    : "Aún no has marcado ningún esmalte. Empieza por el catálogo de Prodesco.";
+    : "Aún no has marcado ningún esmalte. Empieza por el catálogo.";
 }
 
 function pintar() {
   pintarResumen();
   const palabras = sinAcentos($("#buscar-inventario").value).split(/\s+/).filter(Boolean);
-  const coincide = (e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.nota ?? ""}`).includes(p));
+  const coincide = (e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""} ${e.nota ?? ""}`).includes(p));
   let lista;
   if (filtro === "todos") return pintarCatalogo(catalogo.filter(coincide), palabras.length > 0);
   $("#series-inventario").hidden = true;
@@ -107,7 +107,7 @@ function fila(e) {
     h("span", { class: "muestra-inv" }, muestra),
     h("span", { class: "datos-inv" },
       h("strong", {}, nombreDe(e)),
-      h("small", {}, [propio ? "No es de Prodesco" : e.serie, e.nota].filter(Boolean).join(" · "))),
+      h("small", {}, [propio ? "Otro esmalte" : e.serie, e.nota].filter(Boolean).join(" · "))),
     h("span", { class: "estados-inv", role: "group", "aria-label": `${nombreDe(e)}: ¿hay en el taller?` },
       boton("no", "No hay"), boton("hay", "Hay"), boton("poco", "Poco")));
 }
@@ -118,7 +118,7 @@ function fila(e) {
 
 // ---------- Series: «mis series» (las mismas que en los tableros) y filtro ----------
 
-const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
+const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP", "Speckglaze Esmaltes Picas", "Esmaltes Reactivos"];
 let serieElegida = "mias"; // "mias", "todas" o el nombre de una serie
 function leerSeries() {
   try {
@@ -165,8 +165,8 @@ function pintarCatalogo(lista, buscando) {
   const marcados = lista.filter((e) => inventario.has(claveDe(e))).length;
   $("#cuenta-inventario").textContent = lista.length
     ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " (la búsqueda mira en todo el catálogo)" : ""}.`
-    : cargandoCatalogo ? "Cargando el catálogo de Prodesco… (la primera vez tarda unos segundos)"
-    : buscando ? "Ninguno con esa búsqueda." : "No he podido cargar el catálogo de Prodesco. Prueba en un rato.";
+    : cargandoCatalogo ? "Cargando el catálogo de Prodesco y Tecniglaze… (la primera vez tarda unos segundos)"
+    : buscando ? "Ninguno con esa búsqueda." : "No he podido cargar el catálogo de esmaltes. Prueba en un rato.";
   const series = new Map();
   for (const e of lista) series.set(e.serie, [...(series.get(e.serie) ?? []), e]);
   $("#catalogo-inventario").replaceChildren(...ordenSeries(series.keys()).map((serie) => {
@@ -220,7 +220,7 @@ async function cambiar(e, clave, estado, { repintar = true, preguntar = true } =
   const cliente = nube.cliente.from("inventario_esmaltes");
   let error;
   if (estado === "no") {
-    if (preguntar && clave.startsWith("propio:") && !confirm(`¿Quitar «${nombreDe(e)}» del inventario? Como no es de Prodesco, se borra del todo.`)) return false;
+    if (preguntar && clave.startsWith("propio:") && !confirm(`¿Quitar «${nombreDe(e)}» del inventario? Como no es del catálogo, se borra del todo.`)) return false;
     ({ error } = await cliente.delete().eq("clave", clave));
     if (!error) inventario.delete(clave);
   } else if (actual) {
