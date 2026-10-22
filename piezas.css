@@ -544,3 +544,5 @@
 .tarjeta-anadir strong { color: var(--terracota-oscuro); }
 .opcion-prodesco .stock { margin-top: 2px; font-size: 0.6rem; padding: 0 0.35rem; }
 .titulo-capa .stock { align-self: flex-start; margin-top: 2px; }
+.opcion-prodesco .marca-esmalte { margin-top: 2px; font-size: 0.55rem; }
+.titulo-capa small .marca-esmalte { vertical-align: 1px; }

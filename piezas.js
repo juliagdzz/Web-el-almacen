@@ -378,7 +378,9 @@ async function pintarProdesco() {
   }
   const favoritas = seriesFavoritas();
   const palabras = sinAcentos($("#buscar-prodesco").value).split(/\s+/).filter(Boolean);
+  marcasEsmaltes.filtro($("#marcas-prodesco"), lista, pintarProdesco);
   const encontrados = lista
+    .filter((e) => marcasEsmaltes.encaja(e))
     .filter((e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`).includes(p) ||
       (compacto(p) && compacto(e.codigo).includes(compacto(p)))))
     .sort((a, b) => favoritas.has(b.serie) - favoritas.has(a.serie));
@@ -394,6 +396,7 @@ async function pintarProdesco() {
       h("img", { src: e.miniatura, alt: "", loading: "lazy" }),
       h("strong", {}, e.codigo || e.nombre),
       h("span", {}, e.codigo ? e.nombre || e.serie : e.serie),
+      marcasEsmaltes.etiqueta(e),
       inventarioTaller.marca(e))));
 }
 
@@ -694,7 +697,7 @@ async function vistaPieza(id) {
       h("header", {},
         h("span", { class: "orden" }, i + 1),
         muestra,
-        h("div", { class: "titulo-capa" }, titulo, c.origen === "prodesco" && h("small", {}, c.serie),
+        h("div", { class: "titulo-capa" }, titulo, c.origen === "prodesco" && h("small", {}, marcasEsmaltes.etiqueta(c), " ", c.serie),
           c.origen === "prodesco" && inventarioTaller.marca(c))),
       h("div", { class: "rejilla-capa" },
         campo("Capas", h("input", { type: "number", min: 1, max: 10, step: 1, inputMode: "numeric", value: c.capas, oninput: cambia("capas") })),

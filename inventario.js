@@ -36,7 +36,7 @@ function h(etiqueta, props = {}, ...hijos) {
 }
 
 const sinAcentos = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const nombreDe = (e) => [e.codigo, e.nombre].filter(Boolean).join(" · ") || e.serie || "Esmalte";
+const nombreDe = (e) => [...new Set([e.codigo, e.nombre].filter(Boolean))].join(" · ") || e.serie || "Esmalte";
 const claveDe = (e) => window.inventarioTaller.clave(e);
 
 // El catálogo de Prodesco, el mismo que en los tableros (con copia en el móvil)
@@ -107,7 +107,8 @@ function fila(e) {
     h("span", { class: "muestra-inv" }, muestra),
     h("span", { class: "datos-inv" },
       h("strong", {}, nombreDe(e)),
-      h("small", {}, [propio ? "Otro esmalte" : e.serie, e.nota].filter(Boolean).join(" · "))),
+      h("small", {}, !propio && window.marcasEsmaltes.etiqueta("url" in e ? e : { url: clave }), " ",
+        [propio ? "Otro esmalte" : e.serie, e.nota].filter(Boolean).join(" · "))),
     h("span", { class: "estados-inv", role: "group", "aria-label": `${nombreDe(e)}: ¿hay en el taller?` },
       boton("no", "No hay"), boton("hay", "Hay"), boton("poco", "Poco")));
 }
@@ -142,16 +143,21 @@ function ordenSeries(nombres) {
 
 function pintarSeries() {
   const caja = $("#series-inventario");
+  const marcas = $("#marcas-inventario");
   caja.hidden = filtro !== "todos" || !catalogo.length;
-  if (caja.hidden) return;
+  if (caja.hidden) return marcas.replaceChildren();
+  window.marcasEsmaltes.filtro(marcas, catalogo, () => { serieElegida = "mias"; pintar(); });
+  const delFabricante = catalogo.filter((e) => window.marcasEsmaltes.encaja(e));
   const favoritas = leerSeries();
   const cuantos = new Map();
-  for (const e of catalogo) cuantos.set(e.serie, (cuantos.get(e.serie) ?? 0) + 1);
+  for (const e of delFabricante) cuantos.set(e.serie, (cuantos.get(e.serie) ?? 0) + 1);
+  // si la serie elegida no es de este fabricante, se vuelve a «mis series»
+  if (!["mias", "todas"].includes(serieElegida) && !cuantos.has(serieElegida)) serieElegida = "mias";
   const chip = (valor, texto, extra) => h("button", { type: "button", class: `chip-serie${favoritas.has(valor) ? " favorita" : ""}`,
     "aria-pressed": String(serieElegida === valor), onclick: () => { serieElegida = valor; pintar(); } }, texto, extra && h("small", {}, extra));
   caja.replaceChildren(
-    favoritas.size > 0 && chip("mias", "★ Mis series"),
-    chip("todas", "Todas", String(catalogo.length)),
+    [...favoritas].some((s) => cuantos.has(s)) && chip("mias", "★ Mis series"),
+    chip("todas", "Todas", String(delFabricante.length)),
     ...ordenSeries(cuantos.keys()).map((s) => chip(s, s, String(cuantos.get(s)))));
 }
 
@@ -159,17 +165,34 @@ function pintarCatalogo(lista, buscando) {
   $("#lista-inventario").replaceChildren();
   pintarSeries();
   const favoritas = leerSeries();
-  if (serieElegida === "mias" && !favoritas.size) serieElegida = "todas";
-  // Buscando se mira en todo el catálogo; si no, en la serie o las series elegidas
+  lista = lista.filter((e) => window.marcasEsmaltes.encaja(e));
+  // sin ninguna de tus series en este fabricante, se ven todas (solo cuando ya ha llegado el catálogo)
+  if (serieElegida === "mias" && lista.length && !lista.some((e) => favoritas.has(e.serie))) serieElegida = "todas";
+  // Buscando se mira en todo lo de ese fabricante; si no, en la serie o las series elegidas
   if (!buscando) lista = lista.filter((e) => serieElegida === "todas" || (serieElegida === "mias" ? favoritas.has(e.serie) : e.serie === serieElegida));
   const marcados = lista.filter((e) => inventario.has(claveDe(e))).length;
   $("#cuenta-inventario").textContent = lista.length
-    ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " (la búsqueda mira en todo el catálogo)" : ""}.`
+    ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " (la búsqueda mira en todas las series)" : ""}.`
     : cargandoCatalogo ? "Cargando el catálogo de Prodesco y Tecniglaze… (la primera vez tarda unos segundos)"
     : buscando ? "Ninguno con esa búsqueda." : "No he podido cargar el catálogo de esmaltes. Prueba en un rato.";
-  const series = new Map();
-  for (const e of lista) series.set(e.serie, [...(series.get(e.serie) ?? []), e]);
-  $("#catalogo-inventario").replaceChildren(...ordenSeries(series.keys()).map((serie) => {
+  // Por fabricante y, dentro, por series (tus series primero)
+  const porMarca = new Map();
+  for (const e of lista) {
+    const marca = window.marcasEsmaltes.marcaDe(e);
+    if (!porMarca.has(marca)) porMarca.set(marca, new Map());
+    const series = porMarca.get(marca);
+    series.set(e.serie, [...(series.get(e.serie) ?? []), e]);
+  }
+  const marcas = window.marcasEsmaltes.MARCAS.filter((m) => porMarca.has(m));
+  $("#catalogo-inventario").replaceChildren(...marcas.flatMap((marca) => [
+    h("h2", { class: `fabricante fabricante-${marca.toLowerCase()}` }, marca, " ",
+      h("small", {}, marca === "Tecniglaze" ? "Díez Ceramic" : "prodesco.es")),
+    ...seccionesDe(porMarca.get(marca), favoritas),
+  ]));
+}
+
+function seccionesDe(series, favoritas) {
+  return ordenSeries(series.keys()).map((serie) => {
     const esmaltes = series.get(serie);
     const cuenta = h("small", {});
     const contar = () => (cuenta.textContent = `${esmaltes.filter((e) => inventario.has(claveDe(e))).length} de ${esmaltes.length}`);
@@ -180,7 +203,7 @@ function pintarCatalogo(lista, buscando) {
         "aria-label": favorita ? `Quitar ${serie} de mis series` : `Poner ${serie} en mis series`, title: favorita ? "Quitar de mis series" : "Poner en mis series",
         onclick: () => cambiarFavorita(serie) }, favorita ? "★" : "☆"), serie, " ", cuenta),
       h("div", { class: "rejilla-cat" }, esmaltes.map((e) => ficha(e, contar))));
-  }));
+  });
 }
 
 function ficha(e, alCambiar) {

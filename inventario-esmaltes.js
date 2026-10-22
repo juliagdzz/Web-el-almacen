@@ -90,3 +90,43 @@
   };
   Promise.resolve(window.nube?.listo).then(() => cargar());
 })();
+
+// Fabricantes del catálogo: Prodesco y Tecniglaze (Díez Ceramic). Una etiqueta
+// para cada esmalte y una fila de botones para elegir de cuál ver. La elección se
+// recuerda en el móvil y vale para tableros, piezas e inventario.
+(() => {
+  const MARCAS = ["Prodesco", "Tecniglaze"];
+  const CLAVE = "marcaEsmaltes";
+  const marcaDe = (e) => e?.marca || (/diezceramic\.com/.test(e?.url ?? e?.clave ?? "") ? "Tecniglaze" : "Prodesco");
+  const leer = () => { try { const v = localStorage.getItem(CLAVE); return MARCAS.includes(v) ? v : "todas"; } catch { return "todas"; } };
+  const guardar = (v) => { try { localStorage.setItem(CLAVE, v); } catch {} };
+
+  function etiqueta(e) {
+    const marca = marcaDe(e);
+    const el = document.createElement("span");
+    el.className = `marca-esmalte marca-${marca.toLowerCase()}`;
+    el.textContent = marca;
+    return el;
+  }
+
+  // Fila «Todas · Prodesco · Tecniglaze» con cuántos hay de cada una
+  function filtro(caja, lista, alCambiar) {
+    const actual = leer();
+    const cuenta = (m) => (m === "todas" ? lista.length : lista.filter((e) => marcaDe(e) === m).length);
+    caja.replaceChildren(...["todas", ...MARCAS].map((m) => {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = `chip-marca${m === "todas" ? "" : ` marca-${m.toLowerCase()}`}`;
+      boton.setAttribute("aria-pressed", String(actual === m));
+      boton.append(m === "todas" ? "Todas las marcas" : m);
+      const n = document.createElement("small");
+      n.textContent = String(cuenta(m));
+      boton.append(n);
+      boton.addEventListener("click", () => { guardar(m); alCambiar(m); });
+      return boton;
+    }));
+  }
+
+  const encaja = (e, marca = leer()) => marca === "todas" || marcaDe(e) === marca;
+  window.marcasEsmaltes = { MARCAS, marcaDe, etiqueta, filtro, elegida: leer, encaja };
+})();

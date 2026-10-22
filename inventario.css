@@ -88,3 +88,10 @@
   font-size: 0.9rem; opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .toast.visible { opacity: 1; }
+
+/* Cada fabricante con su título, y dentro sus series */
+.fabricante { display: flex; align-items: baseline; gap: 0.5rem; margin: 1.5rem 0 0.25rem; padding-bottom: 0.3rem; border-bottom: 2px solid currentColor; font-size: 1.35rem; }
+.fabricante small { font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 400; opacity: 0.75; }
+.fabricante-prodesco { color: var(--terracota-oscuro); }
+.fabricante-tecniglaze { color: #2f4a73; }
+.datos-inv .marca-esmalte { vertical-align: 1px; }

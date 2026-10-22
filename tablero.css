@@ -681,3 +681,10 @@ body.en-tablero {
 .opcion-esmalte .stock { margin-top: 2px; font-size: 0.6rem; padding: 0 0.35rem; }
 #detalle-esmalte-stock:empty { display: none; }
 #detalle-esmalte-stock .stock { font-size: 0.78rem; padding: 0.1rem 0.6rem; }
+
+/* Fabricante en el catálogo y en «Elegir mis series» */
+.opcion-esmalte .marca-esmalte { margin-top: 2px; font-size: 0.55rem; }
+.lista-series .titulo-marca { grid-column: 1 / -1; margin: 0.5rem 0 0.1rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.lista-series .titulo-marca.marca-prodesco { color: var(--t-oxido, #b85a2b); }
+.lista-series .titulo-marca.marca-tecniglaze { color: #2f4a73; }
+#detalle-esmalte-serie .marca-esmalte { vertical-align: 1px; }

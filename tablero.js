@@ -1241,7 +1241,16 @@ function guardarSeries(series) {
 function crearCasillasSeries(lista) {
   const favoritas = leerSeries();
   const todas = [...new Set(lista.map((e) => e.serie))].sort((a, b) => a.localeCompare(b, "es"));
-  $("#lista-series").replaceChildren(...todas.map((serie) => {
+  const marcaDeSerie = new Map(lista.map((e) => [e.serie, marcasEsmaltes.marcaDe(e)]));
+  $("#lista-series").replaceChildren(...marcasEsmaltes.MARCAS.flatMap((marca) => {
+    const suyas = todas.filter((s) => marcaDeSerie.get(s) === marca);
+    if (!suyas.length) return [];
+    const titulo = document.createElement("strong");
+    titulo.className = `titulo-marca marca-${marca.toLowerCase()}`;
+    titulo.textContent = marca;
+    return [titulo, ...suyas.map(casillaSerie)];
+  }));
+  function casillaSerie(serie) {
     const label = document.createElement("label");
     const casilla = document.createElement("input");
     casilla.type = "checkbox";
@@ -1254,7 +1263,7 @@ function crearCasillasSeries(lista) {
     });
     label.append(casilla, serie);
     return label;
-  }));
+  }
 }
 
 async function mostrarEsmaltes() {
@@ -1271,7 +1280,8 @@ async function mostrarEsmaltes() {
   const palabras = sinAcentos($("#buscar-esmalte").value).split(/\s+/).filter(Boolean);
   const soloTaller = inventarioTaller.hayDatos() && $("#solo-taller").checked;
   $("#caja-solo-taller").hidden = !inventarioTaller.hayDatos();
-  const encontrados = lista.filter((e) => coincide(e, palabras) && (!soloTaller || inventarioTaller.estado(e) !== "no"));
+  marcasEsmaltes.filtro($("#marcas-catalogo"), lista, mostrarEsmaltes);
+  const encontrados = lista.filter((e) => marcasEsmaltes.encaja(e) && coincide(e, palabras) && (!soloTaller || inventarioTaller.estado(e) !== "no"));
   const principales = encontrados.filter((e) => favoritas.has(e.serie));
   const otros = encontrados.filter((e) => !favoritas.has(e.serie));
 
@@ -1310,7 +1320,7 @@ function crearOpcionEsmalte(e) {
   codigo.textContent = e.codigo || e.nombre;
   const nombre = document.createElement("span");
   nombre.textContent = e.codigo ? e.nombre || e.serie : e.serie;
-  boton.append(img, codigo, nombre, inventarioTaller.marca(e));
+  boton.append(img, codigo, nombre, marcasEsmaltes.etiqueta(e), inventarioTaller.marca(e));
   if (e.plomo) {
     const plomo = document.createElement("small");
     plomo.className = "plomo";
@@ -1446,8 +1456,9 @@ async function pintarSugerencias() {
   const soloTaller = inventarioTaller.hayDatos() && $("#paleta-taller").checked;
   $("#caja-paleta-taller").hidden = !inventarioTaller.hayDatos();
   const favoritas = leerSeries();
+  marcasEsmaltes.filtro($("#marcas-paleta"), lista.filter((e) => colores[e.id] || e.color), pintarSugerencias);
   const candidatos = lista
-    .filter((e) => (colores[e.id] || e.color) && (!soloMias || favoritas.has(e.serie)) && (!soloTaller || inventarioTaller.estado(e) !== "no"))
+    .filter((e) => (colores[e.id] || e.color) && marcasEsmaltes.encaja(e) && (!soloMias || favoritas.has(e.serie)) && (!soloTaller || inventarioTaller.estado(e) !== "no"))
     .map((e) => ({ e, lab: aLab(deHex(colores[e.id] || e.color)) }));
 
   $("#paleta-sugerencias").replaceChildren(...paletaActual.colores.map((c) => {
@@ -1469,6 +1480,7 @@ async function pintarSugerencias() {
         Object.assign(document.createElement("strong"), { textContent: e.codigo || e.nombre }),
         Object.assign(document.createElement("span"), { textContent: e.codigo ? e.nombre || e.serie : e.serie }),
         Object.assign(document.createElement("small"), { className: "parecido", textContent: parecido(d) }),
+        marcasEsmaltes.etiqueta(e),
         inventarioTaller.marca(e));
       boton.addEventListener("click", async () => {
         await anadirEsmalte(e, boton);
@@ -1539,7 +1551,7 @@ function abrirDetalle(id) {
   $("#detalle-paleta").hidden = Boolean(esmalte); // la paleta tiene sentido en las fotos, no en las chapas
   if (esmalte) {
     $("#detalle-esmalte-nombre").textContent = nombreEsmalte(esmalte);
-    $("#detalle-esmalte-serie").textContent = esmalte.serie;
+    $("#detalle-esmalte-serie").replaceChildren(marcasEsmaltes.etiqueta(esmalte), " ", esmalte.serie);
     $("#detalle-esmalte-plomo").hidden = !esmalte.plomo;
     $("#detalle-esmalte-stock").replaceChildren(inventarioTaller.marca(esmalte));
   }
