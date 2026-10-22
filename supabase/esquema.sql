@@ -1198,3 +1198,71 @@ create trigger insignias_al_comentar after insert on public.comentarios
 
 -- Lo que ya estaba guardado antes de existir las insignias también cuenta
 do $$ begin perform public.revisar_insignias(id) from auth.users; end $$;
+
+-- ============================================================
+-- Tableros compartidos con enlace
+-- ============================================================
+-- Una copia del tablero (la composición aquí y las fotos en el cubo público
+-- «tableros», dentro de la carpeta de quien lo comparte). El enlace lleva el id:
+-- quien lo tenga puede verlo y guardárselo, también sin cuenta (como invitado).
+-- Solo quien lo compartió lo cambia o lo borra.
+
+create table if not exists public.tableros_compartidos (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  tablero_id text not null check (length(tablero_id) <= 100),
+  nombre text not null check (length(btrim(nombre)) between 1 and 120),
+  datos jsonb not null check (pg_column_size(datos) < 300000),
+  creado timestamptz not null default now(),
+  actualizado timestamptz not null default now(),
+  unique (user_id, tablero_id)
+);
+drop trigger if exists tableros_compartidos_tocar on public.tableros_compartidos;
+create trigger tableros_compartidos_tocar before update on public.tableros_compartidos
+  for each row execute function public.registros_tocar();
+
+revoke all on public.tableros_compartidos from anon;
+grant select, insert, update, delete on public.tableros_compartidos to authenticated;
+alter table public.tableros_compartidos enable row level security;
+drop policy if exists "Compartidos: los tuyos" on public.tableros_compartidos;
+create policy "Compartidos: los tuyos" on public.tableros_compartidos for all to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+-- Como mucho 100 tableros compartidos por persona
+create or replace function public.limite_compartidos() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from tableros_compartidos where user_id = new.user_id) >= 100 then
+    raise exception 'Como mucho puedes tener 100 tableros compartidos';
+  end if;
+  return new;
+end $$;
+drop trigger if exists limite_compartidos on public.tableros_compartidos;
+create trigger limite_compartidos before insert on public.tableros_compartidos
+  for each row execute function public.limite_compartidos();
+
+-- Abrir un enlace: el tablero y el nombre público de quien lo comparte (nunca el correo)
+create or replace function public.tablero_compartido(p_id uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('nombre', t.nombre, 'datos', t.datos, 'autor', p.alias, 'actualizado', t.actualizado,
+                            'mio', coalesce(t.user_id = auth.uid(), false))
+    from tableros_compartidos t left join perfiles p on p.user_id = t.user_id
+   where t.id = p_id
+$$;
+grant execute on function public.tablero_compartido(uuid) to anon, authenticated;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('tableros', 'tableros', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+drop policy if exists "Tableros compartidos: subir fotos" on storage.objects;
+create policy "Tableros compartidos: subir fotos" on storage.objects for insert to authenticated
+  with check (bucket_id = 'tableros' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Tableros compartidos: borrar fotos" on storage.objects;
+create policy "Tableros compartidos: borrar fotos" on storage.objects for delete to authenticated
+  using (bucket_id = 'tableros' and (storage.foldername(name))[1] = auth.uid()::text);
+-- Para borrar una foto, Supabase pide también poder verla: cada cual ve las de su carpeta
+drop policy if exists "Tableros compartidos: ver las tuyas" on storage.objects;
+create policy "Tableros compartidos: ver las tuyas" on storage.objects for select to authenticated
+  using (bucket_id = 'tableros' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Comunidad: ver las tuyas" on storage.objects;
+create policy "Comunidad: ver las tuyas" on storage.objects for select to authenticated
+  using (bucket_id = 'comunidad' and ((storage.foldername(name))[1] = auth.uid()::text or public.es_admin()));

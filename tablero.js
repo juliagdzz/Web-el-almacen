@@ -157,6 +157,7 @@ async function mostrarLista() {
 
   document.body.classList.remove("en-tablero");
   $("#vista-tablero").hidden = true;
+  $("#vista-compartido").hidden = true;
   $("#vista-lista").hidden = false;
 }
 
@@ -183,6 +184,7 @@ async function mostrarTablero(id) {
   vista.dataset.tablero = id;
   document.body.classList.add("en-tablero");
   $("#vista-lista").hidden = true;
+  $("#vista-compartido").hidden = true;
   $("#vista-tablero").hidden = false;
   medir();
   ajustarAlto();
@@ -308,7 +310,9 @@ function enrutar() {
   // Al cambiar de pantalla (también con «atrás» del móvil) se cierra cualquier hoja abierta
   document.querySelectorAll("dialog[open]").forEach((d) => d.close());
   const coincide = location.hash.match(/^#\/t\/(.+)$/);
+  const compartido = location.hash.match(/^#\/compartido\/([0-9a-f-]{36})$/i);
   if (coincide) mostrarTablero(coincide[1]);
+  else if (compartido) mostrarCompartido(compartido[1]);
   else mostrarLista();
 }
 
@@ -519,7 +523,10 @@ async function crearTablero() {
   location.hash = `#/t/${t.id}`;
 }
 
-$("#btn-opciones").addEventListener("click", () => $("#hoja-opciones").showModal());
+$("#btn-opciones").addEventListener("click", () => {
+  $("#btn-dejar-compartir").hidden = !tableroActual?.compartido;
+  $("#hoja-opciones").showModal();
+});
 
 // ---------- Compartir el tablero como una imagen de la composición ----------
 
@@ -680,6 +687,204 @@ async function compartirTablero() {
 }
 
 $("#btn-compartir").addEventListener("click", compartirTablero);
+
+// ---------- Compartir con enlace ----------
+// Se sube una copia del tablero (fotos al cubo público «tableros», en tu carpeta,
+// y la composición a tableros_compartidos). Quien abre el enlace ve el tablero
+// y puede guardárselo en los suyos. Al volver a compartir se actualiza el mismo enlace.
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const rutasDe = (datos) => [datos?.fondo?.imagen, ...(datos?.pins ?? []).map((p) => p.imagen)].filter((r) => typeof r === "string");
+
+async function compartirEnlace() {
+  $("#hoja-opciones").open && $("#hoja-opciones").close();
+  const nube = window.nube;
+  if (!nube?.usuario) return avisar("Para compartir con enlace necesitas una cuenta");
+  const pins = [...pinsActuales.values()].sort((a, b) => a.orden - b.orden);
+  if (!pins.length) return avisar("El tablero está vacío");
+  avisar("Preparando el enlace…");
+  const cliente = nube.cliente;
+  const carpeta = `${nube.usuario.id}/${tableroActual.id}/${Date.now().toString(36)}`;
+  const subidas = [];
+  try {
+    const subir = async (blob, nombre) => {
+      const ruta = `${carpeta}/${nombre}`;
+      const { error } = await cliente.storage.from("tableros").upload(ruta, blob, { contentType: blob.type || "image/jpeg" });
+      if (error) throw error;
+      subidas.push(ruta);
+      return ruta;
+    };
+    const fondo = tableroActual.fondo;
+    const datos = {
+      fondo: fondo?.tipo === "color" ? { tipo: "color", color: fondo.color }
+        : fondo?.tipo === "foto" && fondo.imagen instanceof Blob ? { tipo: "foto", imagen: await subir(fondo.imagen, "fondo") } : null,
+      pins: [],
+    };
+    for (const [i, p] of pins.entries()) {
+      datos.pins.push({
+        imagen: await subir(p.imagen, String(i)), proporcion: p.proporcion, x: p.x, y: p.y, ancho: p.ancho, orden: i,
+        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null,
+      });
+    }
+    // El mismo enlace para el mismo tablero: si ya estaba compartido, se actualiza
+    const { data: antes } = await cliente.from("tableros_compartidos").select("id,datos").eq("tablero_id", tableroActual.id);
+    let id = antes?.[0]?.id;
+    if (id) {
+      const { error } = await cliente.from("tableros_compartidos").update({ nombre: tableroActual.nombre, datos }).eq("id", id);
+      if (error) throw error;
+      const viejas = rutasDe(antes[0].datos);
+      if (viejas.length) cliente.storage.from("tableros").remove(viejas);
+    } else {
+      const { data, error } = await cliente.from("tableros_compartidos").insert({ tablero_id: tableroActual.id, nombre: tableroActual.nombre, datos }).select("id").single();
+      if (error) throw error;
+      id = data.id;
+    }
+    if (tableroActual.compartido !== id) {
+      tableroActual.compartido = id;
+      await db.guardarTablero(tableroActual);
+    }
+    mostrarEnlace(new URL(`inspiracion.html#/compartido/${id}`, location.href).href);
+  } catch (e) {
+    console.error(e);
+    if (subidas.length) cliente.storage.from("tableros").remove(subidas);
+    avisar("No se ha podido preparar el enlace. Prueba otra vez con conexión");
+  }
+}
+
+// El enlace siempre se ve, para copiarlo aunque el navegador no deje compartir
+function mostrarEnlace(enlace) {
+  $("#enlace-tablero").value = enlace;
+  $("#btn-compartir-enlace").hidden = !navigator.share;
+  $("#hoja-enlace").showModal();
+}
+$("#btn-copiar-enlace").addEventListener("click", async () => {
+  const campo = $("#enlace-tablero");
+  try {
+    await navigator.clipboard.writeText(campo.value);
+    avisar("Enlace copiado");
+  } catch {
+    campo.select(); // si no deja copiar, queda seleccionado para copiarlo a mano
+    avisar("Mantén pulsado el enlace para copiarlo");
+  }
+});
+$("#btn-compartir-enlace").addEventListener("click", async () => {
+  const enlace = $("#enlace-tablero").value;
+  try {
+    await navigator.share({ title: tableroActual?.nombre, text: `Mi tablero «${tableroActual?.nombre}» en El Almacén`, url: enlace });
+  } catch (e) {
+    if (e.name !== "AbortError") avisar("No se ha podido compartir");
+  }
+});
+
+async function dejarDeCompartir() {
+  $("#hoja-opciones").close();
+  const nube = window.nube;
+  if (!nube?.usuario || !tableroActual?.compartido) return;
+  if (!confirm("¿Dejar de compartir este tablero? El enlace dejará de funcionar para todo el mundo.")) return;
+  const { data } = await nube.cliente.from("tableros_compartidos").select("id,datos").eq("tablero_id", tableroActual.id);
+  const { error } = await nube.cliente.from("tableros_compartidos").delete().eq("tablero_id", tableroActual.id);
+  if (error) return avisar("No se ha podido. Prueba otra vez con conexión");
+  const rutas = rutasDe(data?.[0]?.datos);
+  if (rutas.length) nube.cliente.storage.from("tableros").remove(rutas);
+  delete tableroActual.compartido;
+  await db.guardarTablero(tableroActual);
+  avisar("El enlace ya no funciona");
+}
+
+$("#btn-enlace").addEventListener("click", compartirEnlace);
+$("#btn-dejar-compartir").addEventListener("click", dejarDeCompartir);
+
+// Abrir un enlace: se enseña el tablero y se puede guardar una copia en los tuyos
+let compartidoActual = null;
+
+async function mostrarCompartido(id) {
+  tableroActual = null;
+  compartidoActual = null;
+  liberarUrls();
+  document.body.classList.remove("en-tablero");
+  $("#vista-lista").hidden = true;
+  $("#vista-tablero").hidden = true;
+  $("#vista-compartido").hidden = false;
+  const titulo = $("#compartido-nombre");
+  const collage = $("#compartido-collage");
+  const guardar = $("#btn-guardar-compartido");
+  titulo.textContent = "Tablero compartido";
+  $("#compartido-autor").textContent = "";
+  $("#compartido-cuenta").textContent = "Cargando…";
+  guardar.hidden = true;
+  collage.replaceChildren();
+
+  const nube = window.nube;
+  const fallo = (texto) => { $("#compartido-cuenta").textContent = texto; };
+  if (!nube?.cliente || !UUID.test(id)) return fallo("Este enlace no es válido.");
+  const { data, error } = await nube.cliente.rpc("tablero_compartido", { p_id: id });
+  if (error) return fallo("No se ha podido abrir. Comprueba la conexión y vuelve a probar.");
+  if (!data) return fallo("Este enlace ya no funciona: puede que hayan dejado de compartirlo.");
+
+  const publica = (ruta) => nube.cliente.storage.from("tableros").getPublicUrl(ruta).data.publicUrl;
+  const bajar = async (ruta) => {
+    const r = await fetch(publica(ruta));
+    if (!r.ok) throw new Error("imagen");
+    return r.blob();
+  };
+  const numero = (n, por) => (Number.isFinite(Number(n)) ? Number(n) : por);
+  try {
+    const pins = [];
+    for (const [i, p] of (data.datos?.pins ?? []).slice(0, 200).entries()) {
+      pins.push({
+        id: `c${i}`,
+        imagen: await bajar(p.imagen),
+        proporcion: limitar(numero(p.proporcion, 1), 0.1, 10),
+        x: limitar(numero(p.x, 0.05), -1, 2),
+        y: Math.max(0, numero(p.y, 0.05)),
+        ancho: limitar(numero(p.ancho, ANCHO_INICIAL), ANCHO_MINIMO, 1),
+        orden: i,
+        nota: typeof p.nota === "string" ? p.nota.slice(0, 500) : "",
+        origen: typeof p.origen === "string" && /^https:\/\//.test(p.origen) ? p.origen : null,
+        esmalte: p.esmalte && typeof p.esmalte === "object" ? p.esmalte : undefined,
+      });
+    }
+    const f = data.datos?.fondo;
+    const fondo = f?.tipo === "color" && /^#[0-9a-f]{6}$/i.test(f.color) ? { tipo: "color", color: f.color }
+      : f?.tipo === "foto" && f.imagen ? { tipo: "foto", imagen: await bajar(f.imagen) } : undefined;
+    compartidoActual = { nombre: String(data.nombre || "Tablero").slice(0, 120), fondo, pins };
+  } catch {
+    return fallo("No se han podido bajar las fotos del tablero. Prueba otra vez con conexión.");
+  }
+
+  const { nombre, fondo, pins } = compartidoActual;
+  titulo.textContent = nombre;
+  document.title = `${nombre} · El Almacén`;
+  $("#compartido-autor").textContent = data.mio ? "Es tu tablero compartido." : data.autor ? `Te lo comparte ${data.autor}.` : "Te lo han compartido.";
+  const fotos = pins.filter((p) => !p.esmalte).length;
+  const esmaltes = pins.length - fotos;
+  $("#compartido-cuenta").textContent = [fotos && (fotos === 1 ? "1 foto" : `${fotos} fotos`), esmaltes && (esmaltes === 1 ? "1 esmalte" : `${esmaltes} esmaltes`)].filter(Boolean).join(" · ") || "Está vacío";
+  const dibujo = miniatura(pins);
+  pintarFondo([dibujo], fondo);
+  collage.replaceChildren(dibujo);
+  guardar.hidden = !pins.length;
+}
+
+$("#btn-guardar-compartido").addEventListener("click", async () => {
+  if (!compartidoActual) return;
+  const boton = $("#btn-guardar-compartido");
+  boton.disabled = true;
+  try {
+    const { nombre, fondo, pins } = compartidoActual;
+    const nuevo = { id: nuevoId(), nombre, creado: Date.now(), ...(fondo && { fondo }) };
+    await db.guardarTablero(nuevo);
+    const ahora = Date.now();
+    for (const p of pins) {
+      await db.guardarPin({ ...p, id: nuevoId(), tableroId: nuevo.id, orden: ahora + p.orden, creado: ahora });
+    }
+    avisar("Guardado en tus tableros");
+    location.hash = `#/t/${nuevo.id}`;
+  } catch {
+    avisar("No se ha podido guardar");
+  } finally {
+    boton.disabled = false;
+  }
+});
 $("#btn-compartir-opciones").addEventListener("click", compartirTablero);
 
 $("#btn-renombrar").addEventListener("click", async () => {
@@ -799,7 +1004,7 @@ async function elegirFondo(fondo) {
   await db.guardarTablero(tableroActual);
 }
 
-$("#btn-fondo-tablero").addEventListener("click", () => {
+$("#btn-fondo").addEventListener("click", () => {
   $("#hoja-opciones").close();
   pintarMuestrasFondo();
   $("#hoja-fondo").showModal();
@@ -1187,14 +1392,42 @@ async function abrirPaleta(blob) {
   const img = $("#paleta-foto");
   img.src = url;
   await img.decode();
-  // Color Thief a veces da uno menos de los pedidos: se piden 6 y se quedan 5
-  const colores = new ColorThief().getPalette(img, 6, 5).slice(0, 5);
+  // Color Thief a veces da uno menos de los pedidos: se piden 6 y se quedan 5.
+  // Si la imagen tiene menos colores, se inventa mezclas: se quitan las que casi no salen
+  const colores = soloLosQueSalen(img, new ColorThief().getPalette(img, 6, 5)).slice(0, 5);
   paletaActual = { colores };
   $("#paleta-colores").replaceChildren(...colores.map((c) =>
     Object.assign(document.createElement("span"), { className: "color-paleta", title: aHex(c), style: `background:${aHex(c)}` })));
   $("#paleta-sugerencias").replaceChildren(Object.assign(document.createElement("p"), { className: "cuenta-esmaltes", textContent: "Buscando esmaltes parecidos…" }));
   $("#hoja-paleta").showModal();
   pintarSugerencias();
+}
+
+// Cuenta qué parte de la imagen se parece más a cada color y quita los que no llegan al 4 %
+function soloLosQueSalen(img, colores) {
+  if (colores.length < 2) return colores;
+  const lado = 120;
+  const canvas = document.createElement("canvas");
+  const escala = Math.min(1, lado / Math.max(img.naturalWidth, img.naturalHeight));
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * escala));
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * escala));
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const labs = colores.map(aLab);
+  const cuenta = new Array(colores.length).fill(0);
+  let total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 125) continue; // lo transparente no cuenta
+    const lab = aLab([data[i], data[i + 1], data[i + 2]]);
+    let mejor = 0;
+    for (let j = 1; j < labs.length; j++) if (diferencia(lab, labs[j]) < diferencia(lab, labs[mejor])) mejor = j;
+    cuenta[mejor]++;
+    total++;
+  }
+  if (!total) return colores;
+  const quedan = colores.filter((_, j) => cuenta[j] / total >= 0.04);
+  return quedan.length ? quedan : colores;
 }
 
 async function pintarSugerencias() {
@@ -1249,13 +1482,36 @@ $("#detalle-paleta").addEventListener("click", () => {
   $("#hoja-detalle").close();
   if (blob) abrirPaleta(blob);
 });
-$("#btn-paleta-tablero").addEventListener("click", async () => {
-  $("#hoja-opciones").close();
-  avisar("Mirando los colores del tablero…");
-  const imagen = await imagenDelTablero({ sinCorcho: true }); // Color Thief no cuenta lo transparente
+$("#btn-paleta").addEventListener("click", async () => {
+  avisar("Mirando los colores de tus piezas…");
+  const imagen = await imagenDeLasPiezas();
   if (!imagen) return avisar("El tablero está vacío");
   abrirPaleta(imagen);
 });
+
+// La paleta del tablero sale solo de las fotos y las muestras de esmalte: sin
+// el fondo, sin los marcos blancos, sin chinchetas ni notas. Cada una ocupa una
+// casilla igual (el centro de la imagen, que es donde suele estar la pieza);
+// lo que queda vacío es transparente y Color Thief no lo cuenta.
+async function imagenDeLasPiezas() {
+  const pins = [...pinsActuales.values()];
+  if (!pins.length) return null;
+  const lado = 160;
+  const columnas = Math.ceil(Math.sqrt(pins.length));
+  const canvas = document.createElement("canvas");
+  canvas.width = columnas * lado;
+  canvas.height = Math.ceil(pins.length / columnas) * lado;
+  const ctx = canvas.getContext("2d");
+  for (const [i, p] of pins.entries()) {
+    const bitmap = await createImageBitmap(p.imagen).catch(() => null);
+    if (!bitmap) continue;
+    const corte = Math.min(bitmap.width, bitmap.height) * (p.esmalte ? 0.6 : 0.8);
+    ctx.drawImage(bitmap, (bitmap.width - corte) / 2, (bitmap.height - corte) / 2, corte, corte,
+      (i % columnas) * lado, Math.floor(i / columnas) * lado, lado, lado);
+    bitmap.close();
+  }
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
 
 // ---------- Detalle de una foto ----------
 

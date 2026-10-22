@@ -40,6 +40,16 @@
     <div id="lista-tableros" class="lista-tableros"></div>
   </main>
 
+  <!-- Un tablero que te han pasado con un enlace -->
+  <main id="vista-compartido" class="vista vista-compartido contenedor" hidden>
+    <a href="#/" class="volver-lista">← Mis tableros</a>
+    <h1 id="compartido-nombre">Tablero compartido</h1>
+    <p id="compartido-autor" class="ayuda"></p>
+    <div id="compartido-collage" class="compartido-collage"></div>
+    <p id="compartido-cuenta" class="ayuda"></p>
+    <button id="btn-guardar-compartido" class="boton" type="button" hidden>Guardar en mis tableros</button>
+  </main>
+
   <!-- Un tablero (el corcho) -->
   <main id="vista-tablero" class="vista vista-corcho" hidden>
     <div class="barra-tablero">
@@ -57,6 +67,8 @@
       y muestras de esmalte con <span class="mini mini-esmalte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c-.4 0-.7.2-.9.5C9.6 6 6.5 10.4 6.5 14a5.5 5.5 0 0 0 11 0c0-3.6-3.1-8-4.6-10.3-.2-.3-.5-.5-.9-.5z" fill="currentColor"/><path class="brillo" d="M9.6 14.6a2.6 2.6 0 0 0 2.2 2.4" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></span>
     </p>
     <div class="botones-anadir">
+      <button id="btn-paleta" class="fab fab-pequeno" type="button" aria-label="Paleta del tablero" title="Paleta del tablero"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 0 0 0 17.6c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2a1.7 1.7 0 0 1 1.3-2.9h2.1a4.3 4.3 0 0 0 4.3-4.3c0-4.2-4-7.5-9-7.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.6" cy="11.4" r="1.4" fill="#b85a2b"/><circle cx="10.4" cy="7.4" r="1.4" fill="#9b9a3a"/><circle cx="15" cy="7.6" r="1.4" fill="#551c25"/></svg></button>
+      <button id="btn-fondo" class="fab fab-pequeno" type="button" aria-label="Fondo del tablero: corcho, color o foto" title="Fondo del tablero"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="4.2" width="17.6" height="15.6" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><g fill="currentColor"><circle cx="7.5" cy="8.5" r="1"/><circle cx="12.5" cy="7.8" r="0.8"/><circle cx="16.5" cy="9.5" r="1"/><circle cx="9.5" cy="12.5" r="0.8"/><circle cx="14.5" cy="13" r="1"/><circle cx="7.3" cy="16" r="0.8"/><circle cx="12" cy="16.3" r="1"/><circle cx="16.8" cy="16.2" r="0.8"/></g></svg></button>
       <button id="btn-esmaltes" class="fab fab-esmalte" type="button" aria-label="Añadir esmalte de Prodesco" title="Añadir esmalte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c-.4 0-.7.2-.9.5C9.6 6 6.5 10.4 6.5 14a5.5 5.5 0 0 0 11 0c0-3.6-3.1-8-4.6-10.3-.2-.3-.5-.5-.9-.5z" fill="currentColor"/><path class="brillo" d="M9.6 14.6a2.6 2.6 0 0 0 2.2 2.4" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button>
       <button id="btn-anadir" class="fab" type="button" aria-label="Añadir foto" title="Añadir foto"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4.5 17.5l5-5 3.5 3.5 2.5-2.5 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
     </div>
@@ -132,11 +144,23 @@
   <dialog id="hoja-opciones" class="hoja">
     <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
     <h2>Opciones</h2>
-    <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir tablero</button>
-    <button id="btn-paleta-tablero" class="opcion" type="button">🎨 Paleta del tablero</button>
-    <button id="btn-fondo-tablero" class="opcion" type="button">🖼️ Fondo del tablero</button>
+    <button id="btn-enlace" class="opcion" type="button">🔗 Compartir con enlace <small>Quien lo abra puede guardárselo en sus tableros</small></button>
+    <button id="btn-compartir-opciones" class="opcion" type="button">📤 Compartir como imagen</button>
+    <button id="btn-dejar-compartir" class="opcion" type="button" hidden>⛓️‍💥 Dejar de compartir el enlace</button>
     <button id="btn-renombrar" class="opcion" type="button">✏️ Cambiar nombre</button>
     <button id="btn-borrar-tablero" class="opcion peligro" type="button">🗑️ Borrar tablero</button>
+  </dialog>
+
+  <!-- El enlace para compartir el tablero -->
+  <dialog id="hoja-enlace" class="hoja">
+    <form method="dialog" class="hoja-cierre"><button class="icono" aria-label="Cerrar">✕</button></form>
+    <h2>Enlace del tablero</h2>
+    <p class="ayuda-enlace">Quien lo abra verá tu tablero y podrá guardárselo en los suyos. Si cambias el tablero, vuelve a compartirlo y el mismo enlace se actualiza.</p>
+    <input id="enlace-tablero" class="enlace-tablero" type="text" readonly aria-label="Enlace del tablero">
+    <div class="botones-enlace">
+      <button id="btn-copiar-enlace" type="button">Copiar enlace</button>
+      <button id="btn-compartir-enlace" type="button" class="boton secundario">Compartir…</button>
+    </div>
   </dialog>
 
   <!-- Fondo del tablero: corcho, un color o una foto -->

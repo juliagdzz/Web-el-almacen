@@ -41,7 +41,7 @@
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
 /* Miniatura: el corcho con la composición, como en el tablero */
-.tarjeta-tablero .collage {
+.tarjeta-tablero .collage, .compartido-collage .collage {
   display: grid;
   place-items: center;
   aspect-ratio: 1;
@@ -53,7 +53,15 @@
   background-size: 5px 5px, 8px 8px;
   background-position: 0 0, 2px 3px;
 }
-.tarjeta-tablero .collage svg { width: 100%; height: 100%; display: block; }
+.tarjeta-tablero .collage svg, .compartido-collage .collage svg { width: 100%; height: 100%; display: block; }
+
+/* Un tablero que llega con un enlace */
+.vista-compartido { max-width: 40rem; margin: 0 auto; }
+.volver-lista { display: inline-block; margin-bottom: 0.5rem; color: var(--t-oliva); }
+.compartido-collage .collage { border-radius: 16px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); }
+.compartido-collage:empty { display: none; }
+.vista-compartido .ayuda { margin: 0.5rem 0; }
+.vista-compartido .boton { margin-top: 0.5rem; }
 .collage-vacio { font-size: 0.8rem; color: #fffdf7; opacity: 0.85; }
 .tarjeta-tablero .info { padding: 0.5rem 0.75rem 0.75rem; }
 .tarjeta-tablero strong { display: block; font-size: 1rem; }
@@ -412,6 +420,7 @@ body.en-tablero {
   bottom: calc(1.25rem + var(--alto-sello, 0px) + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.75rem;
   z-index: 5;
 }
@@ -429,6 +438,16 @@ body.en-tablero {
   cursor: pointer;
 }
 .fab svg { width: 1.9rem; height: 1.9rem; }
+/* Fondo y paleta: más pequeños, encima de los de añadir */
+.fab-pequeno, .pagina-tableros .fab-pequeno:hover {
+  width: 2.9rem;
+  height: 2.9rem;
+  border-width: 2px;
+  background: #fffdf7;
+  color: var(--t-oliva);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.25);
+}
+.fab-pequeno svg { width: 1.45rem; height: 1.45rem; }
 .fab-esmalte { background: var(--t-oxido); }
 .fab-esmalte .brillo { stroke: var(--t-oxido); }
 .mini {
@@ -467,6 +486,7 @@ body.en-tablero {
 .hoja-cierre { position: absolute; top: 0.75rem; right: 0.75rem; margin: 0; }
 .hoja-cierre .icono { border: 0; background: transparent; }
 
+.opcion small { display: block; margin-top: 0.15rem; font-size: 0.8rem; color: var(--t-oliva); }
 .opcion {
   display: block;
   width: 100%;
@@ -598,14 +618,14 @@ body.en-tablero {
 
 /* ---------- Fondo del tablero: corcho (por defecto), un color o una foto ---------- */
 .corcho.fondo-color,
-.tarjeta-tablero .collage.fondo-color {
+.tarjeta-tablero .collage.fondo-color, .compartido-collage .collage.fondo-color {
   background-color: var(--fondo-tablero);
   background-image:
     radial-gradient(rgb(0 0 0 / 0.07) 1px, transparent 1.5px),
     radial-gradient(rgb(255 255 255 / 0.12) 1px, transparent 1.5px);
 }
 .corcho.fondo-foto,
-.tarjeta-tablero .collage.fondo-foto {
+.tarjeta-tablero .collage.fondo-foto, .compartido-collage .collage.fondo-foto {
   background-color: var(--t-tinta);
   background-image: var(--foto-tablero);
   background-size: cover;
@@ -646,3 +666,12 @@ body.en-tablero {
 .muestra-fondo:focus-visible .disco { box-shadow: 0 0 0 3px var(--t-fondo), 0 0 0 5px var(--t-oxido); }
 .opcion-color { display: flex; align-items: center; justify-content: space-between; }
 .opcion-color input { width: 2.75rem; height: 2rem; padding: 0; border: none; background: none; cursor: pointer; }
+
+/* Hoja con el enlace del tablero */
+.ayuda-enlace { margin: 0 0 0.75rem; font-size: 0.85rem; line-height: 1.45; color: var(--t-oliva); }
+.enlace-tablero { box-sizing: border-box; width: 100%; padding: 0.7rem 0.8rem; border: 1px solid #d9c3b4; border-radius: 12px; background: white; font: inherit; font-size: 0.85rem; }
+.botones-enlace { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.botones-enlace button { flex: 1; }
+.botones-enlace button[hidden] { display: none; }
+/* Que el estilo general de los botones flotantes al pasar por encima no los pinte de oliva */
+.pagina-tableros .fab.fab-pequeno, .pagina-tableros .fab.fab-pequeno:hover { background: #fffdf7; color: var(--t-oliva); }
