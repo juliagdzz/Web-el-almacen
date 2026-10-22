@@ -202,8 +202,9 @@ create trigger avisar_encargo after insert on public.encargos
 -- ============================================================
 -- Toda la lógica de plazas va aquí, en funciones de la base de datos: así dos
 -- personas que reservan a la vez nunca pasan del aforo. La web solo las llama.
---   · Mensualidad fija: un horario fijo todo el mes, con el puesto guardado.
---     Hasta el día 24, el mes siguiente solo lo puede pedir quien ya lo tiene.
+--   · Mensualidad fija: un horario fijo con el puesto guardado. Se renueva sola
+--     cada mes hasta que la persona la pausa (un mes suelto) o la deja. Los cambios
+--     para el mes que viene se hacen hasta el día 24; desde el 25 ya cuentan para el otro.
 --   · Bono de 4 sesiones (caduca a los 2 meses) y pack de 10 clases (4 meses):
 --     se reserva clase a clase, como mucho 14 días antes, y se cancela hasta 24 h antes.
 --   · Talleres de un día: plazas propias; se cancela hasta 48 h antes.
@@ -260,6 +261,36 @@ create table if not exists public.bonos (
   activado timestamptz
 );
 create index if not exists bonos_por_horario on public.bonos (horario_id, mes) where tipo = 'mensual';
+
+-- Mensualidad continua: «mes» es el primer mes, «hasta» el último (vacío: sigue)
+-- y «pausas» los meses que la persona no viene (ese mes su puesto queda libre)
+do $$ begin
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'bonos' and column_name = 'hasta') then
+    alter table public.bonos add column hasta date;
+    update public.bonos set hasta = mes where tipo = 'mensual'; -- las de antes eran de un solo mes
+  end if;
+end $$;
+alter table public.bonos add column if not exists pausas date[] not null default '{}';
+
+-- ¿Esta mensualidad tiene puesto en la clase de ese día?
+create or replace function public.mensual_cubre(b public.bonos, p_fecha date) returns boolean
+language sql stable as $$
+  select b.tipo = 'mensual' and b.mes is not null
+     and date_trunc('month', p_fecha)::date >= b.mes
+     and (b.hasta is null or date_trunc('month', p_fecha)::date <= b.hasta)
+     and not (date_trunc('month', p_fecha)::date = any (b.pausas))
+     and (b.estado = 'activo'
+          -- pedida y sin pagar: guarda el puesto su primer mes y el siguiente, no para siempre
+          or (b.estado = 'pendiente' and date_trunc('month', p_fecha)::date <= (b.mes + interval '1 month')::date))
+$$;
+
+-- Primer mes que aún se puede pausar o dejar: hasta el día 24, el que viene; desde el 25, el siguiente
+create or replace function public.primer_mes_cambiable() returns date
+language sql stable as $$
+  select (date_trunc('month', hoy_madrid())
+          + case when extract(day from hoy_madrid()) < 25 then interval '1 month' else interval '2 months' end)::date
+$$;
 
 create table if not exists public.reservas (
   id uuid primary key default gen_random_uuid(),
@@ -320,9 +351,7 @@ create policy "Reservas: el taller las borra" on public.reservas for delete to a
 -- Plazas ocupadas en una clase: los fijos del mes (pedidos o activos) y las reservas sueltas
 create or replace function public.ocupadas(p_horario uuid, p_fecha date) returns int
 language sql stable security definer set search_path = public as $$
-  select (select count(*) from bonos b
-           where b.tipo = 'mensual' and b.horario_id = p_horario and b.estado in ('pendiente', 'activo')
-             and b.mes = date_trunc('month', p_fecha)::date)::int
+  select (select count(*) from bonos b where b.horario_id = p_horario and mensual_cubre(b, p_fecha))::int
        + (select count(*) from reservas r
            where r.horario_id = p_horario and r.fecha = p_fecha and r.estado = 'confirmada')::int
 $$;
@@ -345,8 +374,11 @@ language sql stable security definer set search_path = public as $$
       'libres', greatest(0, h.plazas - ocupadas(h.id, dias.fecha)),
       'cerrado', cerrado(h.id, dias.fecha),
       'empezada', dias.fecha + h.hora <= ahora_madrid() + interval '1 hour',
-      'fija', auth.uid() is not null and exists (select 1 from bonos b where b.user_id = auth.uid() and b.tipo = 'mensual'
-                and b.horario_id = h.id and b.mes = date_trunc('month', dias.fecha)::date and b.estado in ('pendiente', 'activo')),
+      'fija', auth.uid() is not null and exists (select 1 from bonos b where b.user_id = auth.uid() and b.horario_id = h.id
+                and mensual_cubre(b, dias.fecha)),
+      'pausa', auth.uid() is not null and exists (select 1 from bonos b where b.user_id = auth.uid() and b.horario_id = h.id
+                and b.tipo = 'mensual' and b.estado in ('pendiente', 'activo')
+                and date_trunc('month', dias.fecha)::date = any (b.pausas)),
       'reserva', (select r.id from reservas r where auth.uid() is not null and r.user_id = auth.uid() and r.horario_id = h.id
                     and r.fecha = dias.fecha and r.estado = 'confirmada' limit 1)
     ) order by dias.fecha, h.hora), '[]'::jsonb)
@@ -379,8 +411,7 @@ begin
   if p_fecha + h.hora <= ahora_madrid() + interval '1 hour' then raise exception 'Esa clase ya ha empezado o está a punto de empezar'; end if;
   if p_fecha > hoy_madrid() + 14 then raise exception 'Las clases sueltas se reservan como mucho 14 días antes'; end if;
   if cerrado(p_horario, p_fecha) then raise exception 'Ese día el taller está cerrado'; end if;
-  if exists (select 1 from bonos x where x.user_id = auth.uid() and x.tipo = 'mensual' and x.horario_id = p_horario
-               and x.mes = date_trunc('month', p_fecha)::date and x.estado in ('pendiente', 'activo')) then
+  if exists (select 1 from bonos x where x.user_id = auth.uid() and x.horario_id = p_horario and mensual_cubre(x, p_fecha)) then
     raise exception 'Ya tienes tu puesto fijo en esa clase';
   end if;
   if exists (select 1 from reservas r where r.user_id = auth.uid() and r.horario_id = p_horario and r.fecha = p_fecha
@@ -475,27 +506,22 @@ begin
       raise exception 'Solo se puede pedir este mes o el siguiente';
     end if;
     if exists (select 1 from bonos b where b.user_id = auth.uid() and b.tipo = 'mensual' and b.horario_id = p_horario
-                 and b.mes = v_mes and b.estado <> 'cancelado') then
-      raise exception 'Ya tienes pedida esa mensualidad';
+                 and b.estado <> 'cancelado' and (b.hasta is null or b.hasta >= v_mes)) then
+      raise exception 'Ya tienes una mensualidad en ese horario';
     end if;
-    -- Preferencia: hasta el día 24, el mes siguiente es para quien ya tiene ese horario fijo
-    if v_mes > este_mes and extract(day from hoy_madrid()) < 25
-       and not exists (select 1 from bonos b where b.user_id = auth.uid() and b.tipo = 'mensual' and b.horario_id = p_horario
-                         and b.mes = este_mes and b.estado = 'activo') then
-      raise exception 'Hasta el día 25, el mes que viene está guardado para quien ya tiene este horario fijo. Pídelo a partir del 25.';
-    end if;
-    -- Clases que quedan ese mes en ese horario (sin días cerrados)
+    -- Clases que quedan el primer mes en ese horario (sin días cerrados)
     select count(*) into v_sesiones
       from generate_series(greatest(v_mes, hoy_madrid()), (v_mes + interval '1 month - 1 day')::date, interval '1 day') d
      where extract(isodow from d)::int = h.dia and not cerrado(h.id, d::date) and d::date + h.hora > ahora_madrid() + interval '1 hour';
     if v_sesiones = 0 then raise exception 'Ya no quedan clases ese mes en ese horario'; end if;
-    if exists (select 1 from generate_series(greatest(v_mes, hoy_madrid()), (v_mes + interval '1 month - 1 day')::date, interval '1 day') d
-                where extract(isodow from d)::int = h.dia and not cerrado(h.id, d::date) and ocupadas(h.id, d::date) >= h.plazas) then
-      raise exception 'Ese horario no tiene sitio fijo libre ese mes';
+    -- Hace falta sitio fijo ese mes y el siguiente: quien ya está renueva sola y no se le quita el puesto
+    if exists (select 1 from generate_series(greatest(v_mes, hoy_madrid()), (v_mes + interval '2 months - 1 day')::date, interval '1 day') d
+                where extract(isodow from d)::int = h.dia and not cerrado(h.id, d::date)
+                  and (select count(*) from bonos b where b.horario_id = h.id and mensual_cubre(b, d::date)) >= h.plazas) then
+      raise exception 'Ese horario no tiene sitio fijo libre. Mira otro horario o reserva clases sueltas con un bono.';
     end if;
-    insert into bonos (user_id, tipo, sesiones, horario_id, mes, caduca, nombre, telefono)
-    values (auth.uid(), 'mensual', v_sesiones, p_horario, v_mes, (v_mes + interval '1 month - 1 day')::date,
-            btrim(p_nombre), nullif(btrim(p_telefono), ''))
+    insert into bonos (user_id, tipo, sesiones, horario_id, mes, nombre, telefono)
+    values (auth.uid(), 'mensual', v_sesiones, p_horario, v_mes, btrim(p_nombre), nullif(btrim(p_telefono), ''))
     returning id into nuevo;
   else
     insert into bonos (user_id, tipo, sesiones, nombre, telefono)
@@ -513,10 +539,14 @@ language sql stable security definer set search_path = public as $$
       select jsonb_agg(jsonb_build_object(
           'id', b.id, 'tipo', b.tipo, 'estado', b.estado, 'sesiones', b.sesiones,
           'usadas', (select count(*) from reservas r where r.bono_id = b.id and r.estado = 'confirmada'),
-          'caduca', b.caduca, 'mes', b.mes, 'dia', h.dia, 'hora', to_char(h.hora, 'HH24:MI'), 'actividad', h.actividad
+          'caduca', b.caduca, 'mes', b.mes, 'hasta', b.hasta, 'pausas', to_jsonb(b.pausas),
+          'dia', h.dia, 'hora', to_char(h.hora, 'HH24:MI'), 'actividad', h.actividad
         ) order by b.creado desc)
       from bonos b left join horarios h on h.id = b.horario_id
-      where b.user_id = auth.uid() and b.estado <> 'cancelado' and (b.caduca is null or b.caduca >= hoy_madrid())), '[]'::jsonb),
+      where b.user_id = auth.uid() and b.estado <> 'cancelado'
+        and case when b.tipo = 'mensual' then b.hasta is null or b.hasta >= date_trunc('month', hoy_madrid())::date
+                 else b.caduca is null or b.caduca >= hoy_madrid() end), '[]'::jsonb),
+    'cambiable', primer_mes_cambiable(),
     'reservas', coalesce((
       select jsonb_agg(x.datos order by x.inicio) from (
         select r.fecha + h.hora as inicio, jsonb_build_object('id', r.id, 'tipo', 'clase', 'fecha', r.fecha,
@@ -538,6 +568,55 @@ language sql stable security definer set search_path = public as $$
   )
   where auth.uid() is not null
 $$;
+
+-- Pausar un mes de la mensualidad (o quitar la pausa). Ese mes el puesto queda libre.
+create or replace function public.pausar_mes(p_bono uuid, p_mes date) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  b bonos;
+  v_mes date := date_trunc('month', p_mes)::date;
+begin
+  select * into b from bonos where id = p_bono and user_id = auth.uid() and tipo = 'mensual' and estado <> 'cancelado' for update;
+  if not found then raise exception 'No encuentro esa mensualidad'; end if;
+  if v_mes < primer_mes_cambiable() then
+    raise exception 'Ese mes ya no se puede cambiar en la web: los cambios del mes siguiente se hacen hasta el día 24. Escribe al taller.';
+  end if;
+  if v_mes > (primer_mes_cambiable() + interval '3 months')::date then raise exception 'Se puede pausar como mucho con 4 meses de antelación'; end if;
+  if v_mes < b.mes or (b.hasta is not null and v_mes > b.hasta) then raise exception 'Ese mes no entra en tu mensualidad'; end if;
+  if v_mes = any (b.pausas) then
+    -- Quitar la pausa: solo si su puesto sigue libre ese mes
+    if exists (select 1 from horarios h, generate_series(v_mes, (v_mes + interval '1 month - 1 day')::date, interval '1 day') d
+                where h.id = b.horario_id and extract(isodow from d)::int = h.dia and not cerrado(h.id, d::date)
+                  and ocupadas(h.id, d::date) >= h.plazas) then
+      raise exception 'Mientras estaba en pausa alguien ha cogido el sitio ese mes. Escribe al taller.';
+    end if;
+    update bonos set pausas = array_remove(pausas, v_mes) where id = p_bono;
+    return jsonb_build_object('ok', true, 'pausado', false);
+  end if;
+  if cardinality(array(select x from unnest(b.pausas) x where x >= date_trunc('month', hoy_madrid())::date)) >= 2 then
+    raise exception 'Como mucho puedes tener 2 meses en pausa. Si vas a faltar más, deja la mensualidad y vuelve a pedirla.';
+  end if;
+  update bonos set pausas = array_append(pausas, v_mes) where id = p_bono;
+  return jsonb_build_object('ok', true, 'pausado', true);
+end $$;
+
+-- Dejar la mensualidad: sigue hasta el último mes que ya no se puede cambiar
+create or replace function public.dejar_mensualidad(p_bono uuid) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  b bonos;
+  v_hasta date := (primer_mes_cambiable() - interval '1 month')::date;
+begin
+  select * into b from bonos where id = p_bono and user_id = auth.uid() and tipo = 'mensual' and estado <> 'cancelado' for update;
+  if not found then raise exception 'No encuentro esa mensualidad'; end if;
+  if b.hasta is not null and b.hasta <= v_hasta then raise exception 'Esta mensualidad ya termina'; end if;
+  if b.mes > v_hasta then
+    update bonos set estado = 'cancelado', hasta = b.mes where id = p_bono; -- aún no había empezado
+    return jsonb_build_object('ok', true, 'hasta', null);
+  end if;
+  update bonos set hasta = v_hasta, pausas = array(select x from unnest(pausas) x where x <= v_hasta) where id = p_bono;
+  return jsonb_build_object('ok', true, 'hasta', v_hasta);
+end $$;
 
 -- ---------- Para el taller ----------
 
@@ -578,8 +657,7 @@ begin
           'horario', h.id, 'fecha', d::date, 'hora', to_char(h.hora, 'HH24:MI'), 'duracion', h.duracion,
           'actividad', h.actividad, 'plazas', h.plazas, 'cerrado', cerrado(h.id, d::date),
           'fijos', coalesce((select jsonb_agg(jsonb_build_object('nombre', b.nombre, 'telefono', b.telefono, 'estado', b.estado) order by b.nombre)
-                               from bonos b where b.tipo = 'mensual' and b.horario_id = h.id and b.mes = date_trunc('month', d)::date
-                                and b.estado in ('pendiente', 'activo')), '[]'::jsonb),
+                               from bonos b where b.horario_id = h.id and mensual_cubre(b, d::date)), '[]'::jsonb),
           'sueltos', coalesce((select jsonb_agg(jsonb_build_object('id', r.id, 'nombre', r.nombre, 'telefono', r.telefono) order by r.creado)
                                  from reservas r where r.horario_id = h.id and r.fecha = d::date and r.estado = 'confirmada'), '[]'::jsonb)
         ) order by d, h.hora)
@@ -604,10 +682,13 @@ begin
     select jsonb_agg(jsonb_build_object(
         'id', b.id, 'tipo', b.tipo, 'estado', b.estado, 'nombre', b.nombre, 'telefono', b.telefono, 'correo', u.email,
         'sesiones', b.sesiones, 'usadas', (select count(*) from reservas r where r.bono_id = b.id and r.estado = 'confirmada'),
-        'caduca', b.caduca, 'mes', b.mes, 'dia', h.dia, 'hora', to_char(h.hora, 'HH24:MI'), 'creado', b.creado
+        'caduca', b.caduca, 'mes', b.mes, 'hasta', b.hasta, 'pausas', to_jsonb(b.pausas),
+        'dia', h.dia, 'hora', to_char(h.hora, 'HH24:MI'), 'creado', b.creado
       ) order by (b.estado = 'pendiente') desc, b.creado desc)
     from bonos b left join auth.users u on u.id = b.user_id left join horarios h on h.id = b.horario_id
-    where b.estado <> 'cancelado' and (b.caduca is null or b.caduca >= hoy_madrid() - 31)), '[]'::jsonb);
+    where b.estado <> 'cancelado'
+      and case when b.tipo = 'mensual' then b.hasta is null or b.hasta >= date_trunc('month', hoy_madrid() - 31)::date
+               else b.caduca is null or b.caduca >= hoy_madrid() - 31 end), '[]'::jsonb);
 end $$;
 
 -- ============================================================

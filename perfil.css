@@ -1,4 +1,9 @@
 .perfil h1 { margin-bottom: 0.75rem; }
+/* Alocasia en tonos vino asomando por encima de la tarjeta */
+.cabeza-perfil { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: -2.25rem; }
+.cabeza-perfil h1 { align-self: center; }
+.alocasia { position: relative; z-index: 0; flex: none; width: clamp(6.5rem, 24vw, 10rem); height: auto; margin-right: 0.25rem; }
+.cabeza-perfil + .estado-perfil, .cabeza-perfil ~ #contenido-perfil { position: relative; z-index: 1; }
 .perfil h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
 .perfil .nota { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--verde); line-height: 1.4; }
 .estado-perfil[hidden] { display: none; }
@@ -15,6 +20,7 @@
 /* Foto y nombre */
 .foto-perfil { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .botones-foto { display: grid; justify-items: start; gap: 0.25rem; }
+.botones-foto [hidden] { display: none; }
 .botones-foto .boton { padding: 0.45rem 1rem; font-size: 0.9rem; cursor: pointer; }
 .boton.texto, .boton.texto:hover { padding: 0.3rem 0.25rem; background: none; color: var(--verde); font-size: 0.85rem; text-decoration: underline; }
 .form-alias { display: flex; align-items: flex-end; gap: 0.5rem; }

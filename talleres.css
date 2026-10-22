@@ -1,5 +1,9 @@
 .talleres [hidden] { display: none !important; }
 .talleres .entradilla { margin-top: 0; }
+.cabeza-talleres { display: flex; align-items: flex-end; gap: 1rem; }
+.cabeza-talleres > div { flex: 1; min-width: 0; }
+.maranta { flex: none; width: clamp(8.75rem, 38vw, 15rem); height: auto; margin: -1rem -0.5rem 0 0; }
+@media (max-width: 600px) { .maranta { margin: -0.5rem -0.75rem 0 0; } }
 .talleres h2 { margin-bottom: 0.5rem; }
 .talleres h3 { font-family: 'Fraunces', serif; }
 .ayuda { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--verde); line-height: 1.45; }
@@ -30,6 +34,12 @@
 .bono-mio small { color: var(--verde); line-height: 1.4; }
 .bono-mio.pendiente { background: #fbf1e8; }
 .bono-mio.pendiente small { color: var(--terracota-oscuro); }
+.bono-mio .pausas { color: var(--terracota-oscuro); font-weight: 500; }
+.cambiar-mensual { margin-top: 0.35rem; font-size: 0.9rem; }
+.cambiar-mensual summary { cursor: pointer; color: var(--oliva-oscuro); font-weight: 500; }
+.cambiar-mensual .ayuda { margin: 0.5rem 0; }
+.botones-pausa { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.25rem; }
+.boton.texto.peligro { color: #a3261b; padding-left: 0; }
 .barra-sesiones { display: flex; gap: 4px; margin-top: 0.3rem; }
 .barra-sesiones span { flex: 1; max-width: 2.5rem; height: 6px; border-radius: 3px; background: var(--verde); }
 .barra-sesiones span.usada { background: #d9c3b4; }
@@ -100,26 +110,120 @@
 /* Horarios y plazas */
 .semana { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
 .chip-horario { padding: 0.3rem 0.75rem; border-radius: 999px; background: white; font-size: 0.85rem; box-shadow: inset 0 0 0 1.5px #d9c3b4; }
-.agenda { display: grid; gap: 0.75rem; }
-.dia-agenda { padding: 0.75rem 1rem; border-radius: 14px; background: white; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
-.dia-agenda h3 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--terracota-oscuro); }
-.dia-agenda h3::first-letter { text-transform: uppercase; }
-.dia-agenda ul { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
-.clase {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.25rem 0.75rem;
-  min-height: 2.5rem;
-  font-size: 0.92rem;
+
+/* Calendario: cada día con sus clases; la barra es lo ocupado y el número, lo que queda */
+.calendario {
+  padding: 0.75rem;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
 }
-.clase .hora { font-variant-numeric: tabular-nums; font-weight: 500; }
-.clase .actividad { color: var(--verde); }
-@media (max-width: 480px) {
-  .clase { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .clase .actividad { grid-column: 1 / -1; grid-row: 2; font-size: 0.82rem; margin-top: -0.4rem; }
-  .clase .boton { grid-row: 1 / span 2; grid-column: 3; }
-  .clase:has(.boton) > .plazas, .clase:has(.boton) > .etiqueta-mia { grid-column: 2; justify-self: end; }
+.cabeza-calendario { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.cabeza-calendario h3 { margin: 0; font-size: 1.2rem; color: var(--granate); }
+.cabeza-calendario h3::first-letter { text-transform: uppercase; }
+.flecha-mes, .flecha-mes:hover {
+  width: 2.5rem; height: 2.5rem; padding: 0; border-radius: 50%;
+  background: var(--fondo); color: var(--terracota-oscuro); font-size: 1.5rem; line-height: 1;
+}
+.flecha-mes:disabled { opacity: 0.3; cursor: default; }
+.nombres-dias, .rejilla-calendario { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.nombres-dias span { padding-bottom: 0.25rem; text-align: center; font-size: 0.75rem; font-weight: 500; color: var(--verde); }
+.rejilla-calendario > .ayuda { grid-column: 1 / -1; }
+.dia {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  min-height: 3.6rem;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+}
+.dia.vacio { background: none; }
+.dia.pasado { opacity: 0.35; }
+.dia:not(.con-clases):not(.vacio) { background: rgb(246 231 220 / 0.5); color: rgb(42 26 26 / 0.45); }
+button.dia { cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
+button.dia:hover { background: var(--fondo); transform: translateY(-1px); box-shadow: 0 2px 6px rgb(42 26 26 / 0.12); }
+.dia.hoy .numero { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--terracota); color: var(--crema); }
+.dia.elegido { box-shadow: inset 0 0 0 2px var(--oliva-oscuro); }
+.numero { font-size: 0.8rem; font-weight: 600; line-height: 1.4rem; }
+.hueco { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 3px; }
+.hora-hueco { display: none; font-size: 0.68rem; font-variant-numeric: tabular-nums; }
+.barra-plazas { height: 6px; overflow: hidden; border-radius: 3px; background: #dfe3c4; }
+.barra-plazas span { display: block; height: 100%; border-radius: 3px; background: var(--oliva); }
+.libres-hueco { min-width: 0.9rem; font-size: 0.68rem; font-weight: 700; line-height: 1; text-align: right; color: var(--oliva-oscuro); }
+.hueco.pocas .barra-plazas span { background: var(--terracota); }
+.hueco.pocas .libres-hueco { color: var(--terracota-oscuro); }
+.hueco.llena .barra-plazas span { background: var(--granate); }
+.hueco.llena .libres-hueco { color: var(--granate); }
+.hueco.mia .barra-plazas { box-shadow: 0 0 0 1.5px var(--oliva-oscuro); }
+.hueco.mia .libres-hueco { color: var(--oliva-oscuro); }
+.hueco.cerrada .barra-plazas span { background: #cfc4bb; }
+.marca-taller { margin-top: auto; padding: 0 3px; border-radius: 4px; background: var(--terracota); color: var(--crema); font-size: 0.6rem; font-weight: 600; text-align: center; letter-spacing: 0.02em; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0.75rem 0 0; font-size: 0.78rem; color: var(--verde); }
+.leyenda span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.muestra { display: inline-block; width: 1.4rem; height: 6px; border-radius: 3px; background: var(--oliva); }
+.muestra.pocas { background: var(--terracota); }
+.muestra.llena { background: var(--granate); }
+.muestra.taller { height: 0.7rem; width: 0.9rem; border-radius: 3px; background: var(--terracota); }
+@media (min-width: 700px) {
+  .calendario { padding: 1rem 1.25rem 1.25rem; }
+  .dia { min-height: 5.25rem; padding: 6px; gap: 4px; }
+  .hora-hueco { display: block; grid-column: 1 / -1; color: rgb(42 26 26 / 0.7); }
+  .libres-hueco { font-size: 0.75rem; }
+  .numero { font-size: 0.9rem; }
+  .marca-taller { font-size: 0.68rem; }
+}
+
+/* El día elegido: sus clases con las plazas una a una. Una ramita de maranta
+   fina crece en la esquina cada vez que se abre */
+.dia-elegido {
+  position: relative;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  overflow: hidden;
+}
+.dia-elegido.abriendo { animation: abrir-dia 0.3s ease-out; }
+.ramita { position: absolute; top: -10px; right: 2.75rem; width: 80px; pointer-events: none; transform-origin: 100% 100%; }
+.dia-elegido.abriendo .ramita { animation: crecer-ramita 0.7s ease-out; }
+@keyframes abrir-dia { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes crecer-ramita { from { opacity: 0; transform: scale(0.4) rotate(14deg); } }
+@media (prefers-reduced-motion: reduce) { .dia-elegido.abriendo, .dia-elegido.abriendo .ramita { animation: none; } }
+.cabeza-dia { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.cabeza-dia h3 { margin: 0; padding-right: 4.5rem; font-size: 1.15rem; color: var(--terracota-oscuro); }
+.cabeza-dia h3::first-letter { text-transform: uppercase; }
+.cerrar-dia, .cerrar-dia:hover { flex: none; width: 2rem; height: 2rem; padding: 0; border-radius: 50%; background: var(--fondo); color: var(--tinta); }
+.clase-dia {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid #efe2d8;
+}
+.clase-dia.taller strong { color: var(--terracota-oscuro); }
+.datos-clase { display: grid; gap: 0.3rem; min-width: 0; }
+.datos-clase strong { font-size: 0.95rem; }
+.datos-clase small { color: var(--verde); font-size: 0.8rem; }
+.cuenta-plazas { font-weight: 500; }
+.clase-dia.pocas .cuenta-plazas { color: var(--terracota-oscuro); }
+.clase-dia.llena .cuenta-plazas { color: var(--granate); }
+.asientos { display: flex; flex-wrap: wrap; gap: 4px; }
+.asiento { width: 0.85rem; height: 0.85rem; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--oliva); }
+.asiento.ocupado { background: var(--granate); box-shadow: none; }
+.asiento.tuyo { background: var(--oliva-oscuro); box-shadow: none; }
+.se-abre { max-width: 8rem; color: var(--verde); font-size: 0.78rem; text-align: right; }
+.clase-dia > .boton, .clase-dia > span, .clase-dia > .se-abre { flex: none; }
+@media (max-width: 420px) {
+  .clase-dia { flex-wrap: wrap; }
+  .clase-dia > .boton { margin-left: auto; }
 }
 
 /* Hojas para pedir y apuntarse */
@@ -132,7 +236,7 @@
   padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
   border: none;
   border-radius: 20px 20px 0 0;
-  background: var(--fondo);
+  background: url("maranta-rama.svg") no-repeat right 0.5rem top -0.25rem / 88px auto, var(--fondo);
   color: var(--tinta);
   overflow-y: auto;
 }

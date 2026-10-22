@@ -9,6 +9,10 @@ const T = TARIFAS_TALLERES;
 
 let plan = null;       // mi_plan() con cuenta
 let horarios = [];     // horarios activos
+let clases = [];       // disponibilidad(): cada clase de los próximos dos meses con sus plazas
+let talleres = [];     // talleres_proximos()
+let mesVisto = null;   // "2026-11-01": el mes que enseña el calendario
+let diaElegido = null; // "2026-11-03"
 let hayCuenta = false;
 
 let temporizadorAviso;
@@ -38,6 +42,8 @@ const aFecha = (iso) => new Date(iso + "T12:00");
 const diaLargo = (iso) => aFecha(iso).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 const diaCorto = (iso) => aFecha(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
 const mesNombre = (iso) => aFecha(iso).toLocaleDateString("es-ES", { month: "long" });
+const mesYAno = (iso) => aFecha(iso).toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+const sumarMeses = (iso, n) => { const d = aFecha(iso.slice(0, 8) + "01"); d.setMonth(d.getMonth() + n); return d.toLocaleDateString("sv-SE"); };
 const hoyIso = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
 const sumarDias = (iso, n) => { const d = aFecha(iso); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 function horaFin(hora, minutos) {
@@ -57,8 +63,54 @@ async function rpc(nombre, args) {
 // ---------- Mi plan ----------
 
 function nombreBono(b) {
-  if (b.tipo === "mensual") return `Mensualidad · ${DIAS[b.dia] ?? ""} ${b.hora ?? ""} · ${mesNombre(b.mes)}`;
+  if (b.tipo === "mensual") return `Mensualidad · ${DIAS[b.dia] ?? ""} ${b.hora ?? ""}`;
   return T[b.tipo]?.nombre ?? b.tipo;
+}
+
+// La mensualidad sigue sola: aquí se pausa un mes o se deja
+function detalleMensual(b) {
+  const pausas = b.pausas ?? [];
+  const texto = b.hasta
+    ? `Tu puesto está guardado todos los ${DIAS[b.dia]} hasta final de ${mesNombre(b.hasta)}.`
+    : `Tu puesto está guardado todos los ${DIAS[b.dia]}. Se renueva sola cada mes.`;
+  const puedeCambiar = b.estado === "activo" || b.estado === "pendiente";
+  // Meses que aún se pueden pausar: el primero cambiable y los dos siguientes
+  const meses = [0, 1, 2].map((n) => sumarMeses(plan.cambiable, n)).filter((m) => m >= b.mes && (!b.hasta || m <= b.hasta));
+  return [
+    h("small", {}, b.estado === "pendiente" ? "Pendiente: págala en el taller y queda activa. " : "", texto),
+    pausas.length > 0 && h("small", { class: "pausas" }, `En pausa: ${pausas.map(mesNombre).join(", ")}.`),
+    puedeCambiar && !b.hasta && h("details", { class: "cambiar-mensual" },
+      h("summary", {}, "Pausar o dejarla"),
+      h("p", { class: "ayuda" }, `Los cambios del mes que viene se hacen hasta el día 24. El mes que pausas, tu puesto queda libre para clases sueltas y luego vuelve a ser tuyo.`),
+      h("div", { class: "botones-pausa" }, meses.map((m) => {
+        const pausado = pausas.includes(m);
+        return h("button", { type: "button", class: `boton pequeno ${pausado ? "" : "secundario"}`, "aria-pressed": String(pausado),
+          onclick: () => pausar(b, m, pausado) }, pausado ? `Volver en ${mesNombre(m)}` : `Pausar ${mesNombre(m)}`);
+      })),
+      h("button", { type: "button", class: "boton texto peligro", onclick: () => dejar(b) }, "Dejar la mensualidad")),
+  ];
+}
+
+async function pausar(b, mes, pausado) {
+  try {
+    await rpc("pausar_mes", { p_bono: b.id, p_mes: mes });
+    avisar(pausado ? `Vuelves en ${mesNombre(mes)} ✓` : `${mesNombre(mes)[0].toUpperCase()}${mesNombre(mes).slice(1)} en pausa`);
+    await recargar();
+  } catch (e) {
+    avisar(mensajeError(e));
+  }
+}
+
+async function dejar(b) {
+  const ultimo = sumarMeses(plan.cambiable, -1);
+  if (!confirm(`¿Dejar la mensualidad de los ${DIAS[b.dia]}? ${ultimo >= b.mes ? `Sigues viniendo hasta final de ${mesNombre(ultimo)}.` : "Aún no había empezado: se anula."}`)) return;
+  try {
+    await rpc("dejar_mensualidad", { p_bono: b.id });
+    avisar("Hecho. Puedes volver a pedirla cuando quieras");
+    await recargar();
+  } catch (e) {
+    avisar(mensajeError(e));
+  }
 }
 
 function pintarPlan() {
@@ -69,10 +121,10 @@ function pintarPlan() {
     const restantes = b.sesiones - b.usadas;
     return h("article", { class: `bono-mio ${b.estado}` },
       h("strong", {}, nombreBono(b)),
-      b.estado === "pendiente"
-        ? h("small", {}, "Pendiente: págalo en el taller y queda activo.")
-        : b.tipo === "mensual"
-          ? h("small", {}, `Tu puesto está guardado todos los ${DIAS[b.dia]} de ${mesNombre(b.mes)}.`)
+      b.tipo === "mensual"
+        ? detalleMensual(b)
+        : b.estado === "pendiente"
+          ? h("small", {}, "Pendiente: págalo en el taller y queda activo.")
           : h("small", {}, `Te quedan ${restantes} de ${b.sesiones} sesiones${b.caduca ? ` · caduca el ${aFecha(b.caduca).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}` : ""}.`),
       b.tipo !== "mensual" && b.estado === "activo" && h("span", { class: "barra-sesiones", "aria-hidden": "true" },
         ...Array.from({ length: b.sesiones }, (_, i) => h("span", { class: i < b.usadas ? "usada" : "" }))));
@@ -99,7 +151,6 @@ async function cancelar(r) {
 
 async function pintarTalleres() {
   const lista = $("#lista-talleres");
-  let talleres;
   try {
     talleres = await rpc("talleres_proximos", {});
   } catch {
@@ -185,7 +236,7 @@ function abrirPedir(tipo) {
   tipoPedido = tipo;
   const m = T[tipo];
   $("#titulo-pedir").textContent = m.nombre;
-  $("#texto-pedir").textContent = `${euros.format(m.precio)}${m.por ? ` ${m.por}` : ""}. Lo pagas en el taller y entonces queda activo.`;
+  $("#texto-pedir").textContent = `${euros.format(m.precio)}${m.por ? ` ${m.por}` : ""}. Lo pagas en el taller y entonces queda activo.${tipo === "mensual" ? " Se renueva sola cada mes hasta que la pauses o la dejes." : ""}`;
   const mensual = tipo === "mensual";
   $("#caja-horario").hidden = !mensual;
   $("#caja-mes").hidden = !mensual;
@@ -245,40 +296,133 @@ function tieneBonoFlexible() {
   return plan?.bonos.some((b) => b.estado === "activo" && b.tipo !== "mensual" && b.sesiones > b.usadas);
 }
 
-async function pintarAgenda() {
-  const hoy = hoyIso();
-  const clases = await rpc("disponibilidad", { p_desde: hoy, p_hasta: sumarDias(hoy, T.diasReserva) });
-  if (!clases.length) {
-    $("#agenda").replaceChildren(h("p", { class: "ayuda" }, "Todavía no hay horarios publicados."));
-    return;
-  }
-  const porDia = new Map();
-  for (const c of clases) {
-    if (c.empezada) continue;
-    if (!porDia.has(c.fecha)) porDia.set(c.fecha, []);
-    porDia.get(c.fecha).push(c);
-  }
-  $("#agenda").replaceChildren(...[...porDia].map(([fecha, lista]) =>
-    h("section", { class: "dia-agenda" },
-      h("h3", {}, diaLargo(fecha)),
-      h("ul", {}, lista.map((c) => {
-        let estado;
-        if (c.cerrado) estado = h("span", { class: "plazas completo" }, "Cerrado");
-        else if (c.fija) estado = h("span", { class: "etiqueta-mia" }, "Tu puesto fijo");
-        else if (c.reserva) estado = h("span", { class: "etiqueta-mia" }, "Reservada ✓");
-        else if (c.libres <= 0) estado = h("span", { class: "plazas completo" }, "Completa");
-        else estado = h("span", { class: "plazas" }, c.libres === 1 ? "1 plaza" : `${c.libres} plazas`);
-        const puedeReservar = !c.cerrado && !c.fija && !c.reserva && c.libres > 0;
-        return h("li", { class: "clase" },
-          h("span", { class: "hora" }, `${c.hora}–${horaFin(c.hora, c.duracion)}`),
-          h("span", { class: "actividad" }, c.actividad),
-          estado,
-          puedeReservar && (hayCuenta
-            ? h("button", { type: "button", class: "boton pequeno", onclick: () => reservar(c) }, "Reservar")
-            : h("a", { class: "boton pequeno secundario", href: volverAqui() }, "Entrar")));
-      }))))
-  );
+// ---------- Calendario ----------
+
+// Cómo está una clase para quien mira: suya, cerrada, completa, con pocas plazas o libre
+function estadoClase(c) {
+  if (c.cerrado) return "cerrada";
+  if (c.fija || c.reserva) return "mia";
+  if (c.libres <= 0) return "llena";
+  if (c.libres <= Math.max(1, Math.floor(c.plazas / 3))) return "pocas";
+  return "libre";
 }
+
+async function cargarClases() {
+  const hoy = hoyIso();
+  clases = (await rpc("disponibilidad", { p_desde: hoy, p_hasta: sumarDias(hoy, 62) })).filter((c) => !c.empezada);
+}
+
+function pintarCalendario() {
+  const hoy = hoyIso();
+  const primerMes = hoy.slice(0, 8) + "01";
+  const ultimoDia = sumarDias(hoy, 62);
+  mesVisto ??= primerMes;
+  $("#titulo-mes").textContent = mesYAno(mesVisto);
+  $("#mes-anterior").disabled = mesVisto <= primerMes;
+  $("#mes-siguiente").disabled = sumarMeses(mesVisto, 1) > ultimoDia;
+
+  const porDia = Map.groupBy ? Map.groupBy(clases, (c) => c.fecha) : clases.reduce((m, c) => m.set(c.fecha, [...(m.get(c.fecha) ?? []), c]), new Map());
+  const tallerDe = (fecha) => talleres.filter((t) => t.fecha === fecha);
+  const huecosAntes = (aFecha(mesVisto).getDay() + 6) % 7; // el calendario empieza en lunes
+  const diasMes = new Date(aFecha(mesVisto).getFullYear(), aFecha(mesVisto).getMonth() + 1, 0).getDate();
+
+  const celdas = Array.from({ length: huecosAntes }, () => h("span", { class: "dia vacio", "aria-hidden": "true" }));
+  for (let n = 1; n <= diasMes; n++) {
+    const fecha = mesVisto.slice(0, 8) + String(n).padStart(2, "0");
+    const delDia = porDia.get(fecha) ?? [];
+    const delTaller = tallerDe(fecha);
+    const pasado = fecha < hoy;
+    const hayAlgo = !pasado && (delDia.length || delTaller.length);
+    const libres = delDia.filter((c) => !c.cerrado).reduce((t, c) => t + c.libres, 0);
+    const etiqueta = hayAlgo
+      ? `${diaLargo(fecha)}: ${[delDia.length && `${delDia.length === 1 ? "1 clase" : `${delDia.length} clases`}, ${libres === 1 ? "1 plaza libre" : `${libres} plazas libres`}`,
+          delTaller.length && "taller de un día"].filter(Boolean).join(", ")}`
+      : diaLargo(fecha);
+    celdas.push(h(hayAlgo ? "button" : "span", {
+      type: hayAlgo ? "button" : null,
+      class: `dia${pasado ? " pasado" : ""}${hayAlgo ? " con-clases" : ""}${fecha === hoy ? " hoy" : ""}${fecha === diaElegido ? " elegido" : ""}`,
+      "aria-label": etiqueta,
+      "aria-pressed": hayAlgo ? String(fecha === diaElegido) : null,
+      onclick: hayAlgo ? () => elegirDia(fecha) : null,
+    },
+      h("span", { class: "numero" }, String(n)),
+      !pasado && delDia.map((c) => {
+        const estado = estadoClase(c);
+        const ocupadas = c.plazas - c.libres;
+        return h("span", { class: `hueco ${estado}`, "aria-hidden": "true" },
+          h("span", { class: "hora-hueco" }, c.hora),
+          h("span", { class: "barra-plazas" }, h("span", { style: `width:${c.cerrado ? 100 : Math.round((ocupadas / c.plazas) * 100)}%` })),
+          h("span", { class: "libres-hueco" }, c.cerrado ? "—" : estado === "mia" ? "tú" : String(c.libres)));
+      }),
+      !pasado && delTaller.length > 0 && h("span", { class: "marca-taller", "aria-hidden": "true" }, "taller")));
+  }
+  $("#rejilla-calendario").replaceChildren(...celdas);
+  if (diaElegido) pintarDia(diaElegido);
+}
+
+function elegirDia(fecha) {
+  diaElegido = fecha;
+  pintarCalendario();
+  const panel = $("#dia-elegido");
+  // La ramita de maranta crece cada vez que se abre un día
+  panel.classList.remove("abriendo");
+  void panel.offsetWidth;
+  panel.classList.add("abriendo");
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// Plazas de una clase, una a una: las ocupadas llenas y las libres en hueco
+function asientos(c) {
+  const ocupadas = c.plazas - c.libres;
+  return h("span", { class: "asientos", "aria-hidden": "true" },
+    Array.from({ length: c.plazas }, (_, i) => h("span", { class: i < ocupadas ? (i === 0 && (c.fija || c.reserva) ? "asiento tuyo" : "asiento ocupado") : "asiento" })));
+}
+
+function pintarDia(fecha) {
+  const panel = $("#dia-elegido");
+  const hoy = hoyIso();
+  const limite = sumarDias(hoy, T.diasReserva);
+  const delDia = clases.filter((c) => c.fecha === fecha);
+  const delTaller = talleres.filter((t) => t.fecha === fecha);
+  panel.hidden = false;
+  panel.replaceChildren(...[
+    h("img", { class: "ramita", src: "maranta-rama.svg", alt: "", "aria-hidden": "true" }),
+    h("div", { class: "cabeza-dia" },
+      h("h3", {}, diaLargo(fecha)),
+      h("button", { type: "button", class: "cerrar-dia", "aria-label": "Cerrar", onclick: () => { diaElegido = null; panel.hidden = true; pintarCalendario(); } }, "✕")),
+    delTaller.map((t) => h("article", { class: "clase-dia taller" },
+      h("div", { class: "datos-clase" },
+        h("strong", {}, `${t.hora}–${horaFin(t.hora, t.duracion)} · ${t.titulo}`),
+        h("small", {}, `Taller de un día${t.precio != null ? ` · ${euros.format(t.precio)}` : ""}`),
+        asientos({ plazas: t.plazas, libres: t.libres }),
+        h("small", { class: "cuenta-plazas" }, `${t.plazas - t.libres} ocupadas · ${t.libres === 1 ? "1 libre" : `${t.libres} libres`}`)),
+      t.reserva ? h("span", { class: "etiqueta-mia" }, "Apuntado ✓")
+        : t.libres <= 0 ? h("span", { class: "plazas completo" }, "Completo")
+        : hayCuenta ? h("button", { type: "button", class: "boton pequeno", onclick: () => abrirTaller(t) }, "Apuntarme")
+        : h("a", { class: "boton pequeno secundario", href: volverAqui() }, "Entrar"))),
+    delDia.map((c) => {
+      const ocupadas = c.plazas - c.libres;
+      let accion;
+      if (c.cerrado) accion = h("span", { class: "plazas completo" }, "Cerrado");
+      else if (c.fija) accion = h("span", { class: "etiqueta-mia" }, "Tu puesto fijo");
+      else if (c.reserva) accion = h("button", { type: "button", class: "boton pequeno secundario", onclick: () => cancelar({ id: c.reserva, tipo: "clase", nombre: c.actividad, fecha: c.fecha }) }, "Cancelar mi plaza");
+      else if (c.libres <= 0) accion = h("span", { class: "plazas completo" }, "Completa");
+      else if (fecha > limite) accion = h("small", { class: "se-abre" }, `Se reserva desde el ${aFecha(sumarDias(fecha, -T.diasReserva)).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}`);
+      else if (!hayCuenta) accion = h("a", { class: "boton pequeno secundario", href: volverAqui() }, "Entrar");
+      else accion = h("button", { type: "button", class: "boton pequeno", onclick: () => reservar(c) }, "Reservar");
+      return h("article", { class: `clase-dia ${estadoClase(c)}` },
+        h("div", { class: "datos-clase" },
+          h("strong", {}, `${c.hora}–${horaFin(c.hora, c.duracion)} · ${c.actividad}`),
+          c.pausa && h("small", {}, "Tu mensualidad está en pausa este mes."),
+          !c.cerrado && asientos(c),
+          !c.cerrado && h("small", { class: "cuenta-plazas" }, `${ocupadas === 1 ? "1 ocupada" : `${ocupadas} ocupadas`} · ${c.libres === 1 ? "queda 1 libre" : `quedan ${c.libres} libres`}`)),
+        accion);
+    }),
+  ].flat());
+}
+
+$("#mes-anterior").addEventListener("click", () => { mesVisto = sumarMeses(mesVisto, -1); pintarCalendario(); });
+$("#mes-siguiente").addEventListener("click", () => { mesVisto = sumarMeses(mesVisto, 1); pintarCalendario(); });
 
 async function reservar(c) {
   if (!tieneBonoFlexible()) {
@@ -304,18 +448,21 @@ async function recargar() {
   }
   pintarPlan();
   pintarModalidades();
-  await Promise.allSettled([pintarTalleres(), pintarAgenda().catch(() => {
-    $("#agenda").replaceChildren(h("p", { class: "ayuda" }, "Ahora mismo no se pueden cargar los horarios. Prueba en un rato."));
-  })]);
+  const [, horas] = await Promise.allSettled([pintarTalleres(), cargarClases()]);
+  if (horas.status === "rejected") {
+    $("#rejilla-calendario").replaceChildren(h("p", { class: "ayuda" }, "Ahora mismo no se pueden cargar los horarios. Prueba en un rato."));
+    return;
+  }
+  pintarCalendario();
 }
 
 (async () => {
-  $("#texto-horarios").textContent = `Las clases sueltas se reservan con bono, como mucho ${T.diasReserva} días antes, y se cancelan hasta 24 horas antes. Las mensualidades tienen su puesto guardado.`;
+  $("#texto-horarios").textContent = `Toca un día para ver sus clases, las plazas ocupadas y las que quedan. Las clases sueltas se reservan con bono, como mucho ${T.diasReserva} días antes, y se cancelan hasta 24 horas antes.`;
   pintarModalidades();
   const nube = window.nube;
   if (!nube?.activa) {
     $("#lista-talleres").replaceChildren(h("p", { class: "ayuda" }, "Pronto podrás apuntarte desde aquí."));
-    $("#agenda").replaceChildren(h("p", { class: "ayuda" }, "Pronto podrás ver los horarios y reservar desde aquí."));
+    $("#rejilla-calendario").replaceChildren(h("p", { class: "ayuda" }, "Pronto podrás ver los horarios y reservar desde aquí."));
     return;
   }
   await nube.listo;

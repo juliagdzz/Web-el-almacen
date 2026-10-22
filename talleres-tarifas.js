@@ -1,5 +1,5 @@
 // Precios de las clases semanales. Cámbialos aquí: la web los enseña tal cual.
-// Las reglas (plazas, 14 días, 24 h para cancelar, preferencia hasta el día 25)
+// Las reglas (plazas, 14 días, 24 h para cancelar, cambios de la mensualidad hasta el día 24)
 // están en supabase/esquema.sql; si cambias una, cambia también su texto aquí.
 const TARIFAS_TALLERES = {
   mensual: {
@@ -7,7 +7,7 @@ const TARIFAS_TALLERES = {
     precio: 80,
     por: "al mes",
     resumen: "Tu día y tu hora todas las semanas, con el puesto guardado.",
-    detalles: ["Una clase a la semana en tu horario (4 o 5 al mes)", "Puesto reservado todo el mes", "Preferencia para renovar: hasta el día 24 el mes siguiente es tuyo"],
+    detalles: ["Una clase a la semana en tu horario (4 o 5 al mes)", "Se renueva sola cada mes: tu puesto sigue siendo tuyo", "Pausa un mes o déjala cuando quieras, avisando hasta el día 24 del mes anterior"],
   },
   bono4: {
     nombre: "Bono de 4 sesiones",

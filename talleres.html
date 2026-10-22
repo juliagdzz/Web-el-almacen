@@ -28,8 +28,13 @@
   </header>
 
   <main class="contenedor talleres">
-    <h1>Talleres</h1>
-    <p class="entradilla">Talleres de un día para probar algo nuevo y clases cada semana para ir aprendiendo a tu ritmo. <span id="incluye"></span></p>
+    <div class="cabeza-talleres">
+      <div>
+        <h1>Talleres</h1>
+        <p class="entradilla">Talleres de un día para probar algo nuevo y clases cada semana para ir aprendiendo a tu ritmo. <span id="incluye"></span></p>
+      </div>
+      <img class="maranta" src="maranta.svg" alt="" width="240" height="262">
+    </div>
 
     <!-- Lo tuyo: bonos, sesiones y reservas (solo con cuenta) -->
     <section id="mi-plan" class="bloque mi-plan" hidden>
@@ -52,10 +57,25 @@
     </section>
 
     <section class="seccion-talleres">
-      <h2>Horarios y plazas</h2>
+      <h2>Calendario</h2>
       <p id="texto-horarios" class="ayuda"></p>
       <div id="semana" class="semana"></div>
-      <div id="agenda" class="agenda"><p class="ayuda">Cargando…</p></div>
+      <div id="calendario" class="calendario">
+        <div class="cabeza-calendario">
+          <button id="mes-anterior" type="button" class="flecha-mes" aria-label="Mes anterior">‹</button>
+          <h3 id="titulo-mes" aria-live="polite"></h3>
+          <button id="mes-siguiente" type="button" class="flecha-mes" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="nombres-dias" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div id="rejilla-calendario" class="rejilla-calendario"><p class="ayuda">Cargando…</p></div>
+        <p class="leyenda">
+          <span><i class="muestra libre"></i> Plazas libres</span>
+          <span><i class="muestra pocas"></i> Quedan pocas</span>
+          <span><i class="muestra llena"></i> Completa</span>
+          <span><i class="muestra taller"></i> Taller de un día</span>
+        </p>
+      </div>
+      <div id="dia-elegido" class="dia-elegido" hidden aria-live="polite"></div>
     </section>
   </main>
 

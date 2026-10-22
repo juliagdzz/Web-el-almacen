@@ -97,6 +97,8 @@ async function pintarAgenda() {
 
 // ---------- Alumnos y bonos ----------
 
+const mes = (iso) => aFecha(iso).toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+
 async function pintarAlumnos() {
   let alumnos;
   try { alumnos = await rpc("alumnos_admin", {}); }
@@ -106,7 +108,8 @@ async function pintarAlumnos() {
   $("#pendientes").hidden = !pendientes;
   $("#lista-alumnos").replaceChildren(...(alumnos.length ? alumnos.map((a) => {
     const detalle = a.tipo === "mensual"
-      ? `${DIAS[a.dia] ?? ""} ${a.hora ?? ""} · ${aFecha(a.mes).toLocaleDateString("es-ES", { month: "long" })} · ${a.sesiones} clases`
+      ? [`${DIAS[a.dia] ?? ""} ${a.hora ?? ""}`, `desde ${mes(a.mes)}`, a.hasta ? `hasta ${mes(a.hasta)}` : "se renueva sola",
+         a.pausas?.length && `en pausa: ${a.pausas.map(mes).join(", ")}`].filter(Boolean).join(" · ")
       : a.estado === "activo" ? `${a.usadas} de ${a.sesiones} usadas${a.caduca ? ` · caduca ${fechaCorta(a.caduca)}` : ""}` : `${a.sesiones} sesiones`;
     return h("article", { class: `fila-gestion ${a.estado}` },
       h("div", {}, h("strong", {}, `${a.nombre} · ${TIPOS[a.tipo]}`),
