@@ -466,13 +466,14 @@ async function abrirPublicar() {
     ...mias.piezas.map((x) => ["pieza", x]),
     ...mias.recetas.map((x) => ["receta", x]),
   ];
-  $("#adjuntar").hidden = !opciones.length;
-  $("#lista-adjuntar").replaceChildren(...opciones.slice(0, 30).map(([tipo, x]) => {
+  $("#lista-adjuntar").replaceChildren(
+    botonNuevo("pieza"), botonNuevo("receta"),
+    ...opciones.slice(0, 30).map(([tipo, x]) => {
     const foto = (x.fotos ?? []).find((f) => f instanceof Blob);
     return h("button", { type: "button", class: "opcion-adjuntar", onclick: () => elegirAdjunto(tipo, x) },
       foto ? h("img", { src: URL.createObjectURL(foto), alt: "" }) : h("span", { class: "sin-foto" }, tipo === "pieza" ? "🏺" : "🧪"),
       h("span", {}, x.nombre || (tipo === "pieza" ? "Pieza sin nombre" : "Receta sin nombre")));
-  }));
+    }));
   // Viene de «Compartir en la comunidad» en una pieza o una receta
   try {
     const pedido = JSON.parse(sessionStorage.getItem("compartirComunidad"));
@@ -480,6 +481,29 @@ async function abrirPublicar() {
     const x = pedido && (pedido.almacen === "piezas" ? mias.piezas : mias.recetas).find((y) => y.id === pedido.id);
     if (x) elegirAdjunto(pedido.almacen === "piezas" ? "pieza" : "receta", x);
   } catch {}
+  // Lo que ya habías escrito antes de ir a crear la pieza o el esmalte
+  try {
+    const borrador = JSON.parse(sessionStorage.getItem("borradorComunidad"));
+    sessionStorage.removeItem("borradorComunidad");
+    if (borrador?.titulo) $("#p-titulo").value = borrador.titulo;
+    if (borrador?.cuerpo) $("#p-cuerpo").value = borrador.cuerpo;
+  } catch {}
+}
+
+// «＋ Nueva pieza» / «＋ Nuevo esmalte»: se crea en Mis creaciones y, al darle a
+// «Listo», vuelve aquí ya puesto. Lo escrito se guarda mientras tanto.
+function botonNuevo(tipo) {
+  const pieza = tipo === "pieza";
+  return h("button", { type: "button", class: "opcion-adjuntar nueva", onclick: () => {
+    if (nueva.fotos.length && !nueva.adjunto && !confirm("Las fotos que has añadido aquí se quitarán. ¿Seguir?")) return;
+    try {
+      sessionStorage.setItem("creandoParaComunidad", "1");
+      sessionStorage.setItem("borradorComunidad", JSON.stringify({ titulo: $("#p-titulo").value, cuerpo: $("#p-cuerpo").value }));
+    } catch {}
+    location.href = pieza ? "piezas.html#/pieza/nueva" : "piezas.html#/esmalte/nuevo";
+  } },
+    h("span", { class: "sin-foto" }, "＋"),
+    h("span", {}, pieza ? "Nueva pieza" : "Nuevo esmalte"));
 }
 
 $("#form-publicar").addEventListener("submit", async (e) => {

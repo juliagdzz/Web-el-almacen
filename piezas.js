@@ -517,13 +517,19 @@ function textoReceta(r) {
 }
 
 // Abre la comunidad con la pieza o la receta ya puesta en «Publicar»
-function botonComunidad(almacen, id) {
-  return h("button", { type: "button", class: "boton secundario", onclick: async () => {
+function botonComunidad(almacen, id, texto = "A la comunidad", clase = "boton secundario") {
+  return h("button", { type: "button", class: clase, onclick: async () => {
     await guardarYa();
-    try { sessionStorage.setItem("compartirComunidad", JSON.stringify({ almacen, id })); } catch {}
+    try {
+      sessionStorage.setItem("compartirComunidad", JSON.stringify({ almacen, id }));
+      sessionStorage.removeItem("creandoParaComunidad");
+    } catch {}
     location.href = "comunidad.html#publicar";
-  } }, "A la comunidad");
+  } }, texto);
 }
+
+// Se ha venido desde «Publicar» de la comunidad a crear una pieza o un esmalte nuevo
+const creandoParaComunidad = () => { try { return sessionStorage.getItem("creandoParaComunidad") === "1"; } catch { return false; } };
 
 function abrirFicha(...contenido) {
   const hoja = $("#hoja-ver");
@@ -772,7 +778,9 @@ async function vistaPieza(id) {
       salioMal(p, guardar),
       campo("Notas", h("textarea", { rows: 4, value: p.notas, placeholder: "Qué salió bien, qué cambiarías, defectos…", oninput: (e) => { p.notas = e.target.value; guardar(); } }))),
     h("div", { class: "acciones-ficha" },
-      h("a", { href: "#/", class: "boton" }, "Listo"),
+      creandoParaComunidad()
+        ? botonComunidad("piezas", p.id, "Listo: compartir en la comunidad", "boton")
+        : h("a", { href: "#/", class: "boton" }, "Listo"),
       existente && h("button", { type: "button", class: "peligro", onclick: async () => {
         if (!confirm("¿Borrar esta pieza y sus fotos?")) return;
         pendiente = null;
@@ -895,7 +903,9 @@ async function vistaReceta(id) {
       h("h2", {}, "Piezas con este esmalte"),
       h("ul", { class: "usada-en" }, usadaEn.map((p) => h("li", {}, h("a", { href: `#/pieza/${p.id}` }, p.nombre || "Pieza sin nombre"), ` · ${fecha(p.fecha)}`)))),
     h("div", { class: "acciones-ficha" },
-      h("a", { href: "#/esmaltes", class: "boton" }, "Listo"),
+      creandoParaComunidad()
+        ? botonComunidad("recetas", r.id, "Listo: compartir en la comunidad", "boton")
+        : h("a", { href: "#/esmaltes", class: "boton" }, "Listo"),
       existente && h("button", { type: "button", class: "peligro", onclick: async () => {
         const aviso = usadaEn.length ? ` Sale en ${usadaEn.length === 1 ? "1 pieza" : `${usadaEn.length} piezas`}: ahí se quedará solo el nombre.` : "";
         if (!confirm(`¿Borrar esta receta?${aviso}`)) return;

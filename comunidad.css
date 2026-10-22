@@ -122,8 +122,9 @@
 
 /* Publicar */
 .bloque { margin: 0.5rem 0 3rem; padding: 1rem; border-radius: 14px; background: white; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
-.form-publicar { display: grid; gap: 0.25rem; }
-.campo-grupo { margin: 0 0 0.75rem; padding: 0; border: 0; }
+.form-publicar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
+.form-publicar > * { min-width: 0; } /* la fila de piezas se desliza dentro, sin ensanchar la página */
+.campo-grupo { min-inline-size: 0; margin: 0 0 0.75rem; padding: 0; border: 0; }
 .campo-grupo legend { margin-bottom: 0.35rem; font-weight: 500; }
 .campo { display: grid; gap: 0.25rem; margin-bottom: 0.9rem; font-size: 0.95rem; font-weight: 500; }
 .campo small { font-weight: 400; color: var(--verde); }
@@ -139,7 +140,7 @@
 }
 .campo textarea { resize: vertical; line-height: 1.5; }
 .campo input:focus, .campo textarea:focus, .buscar input:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
-.adjuntar { margin-bottom: 0.5rem; }
+.adjuntar { min-width: 0; margin-bottom: 0.5rem; }
 .lista-adjuntar { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
 .opcion-adjuntar, .opcion-adjuntar:hover {
   flex: none;
@@ -154,6 +155,8 @@
   font-size: 0.75rem;
   line-height: 1.2;
 }
+.opcion-adjuntar.nueva .sin-foto { background: white; box-shadow: inset 0 0 0 2px var(--oliva); color: var(--oliva-oscuro); font-size: 2rem; }
+.opcion-adjuntar.nueva span:last-child { font-weight: 600; color: var(--oliva-oscuro); }
 .opcion-adjuntar img, .opcion-adjuntar .sin-foto { width: 4.5rem; height: 4.5rem; border-radius: 8px; object-fit: cover; display: grid; place-items: center; background: #efd9ca; font-size: 1.6rem; }
 .opcion-adjuntar span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; }
 .adjunto-elegido { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; padding: 0.6rem 0.8rem; border-radius: 12px; background: #eef0de; font-size: 0.9rem; }
