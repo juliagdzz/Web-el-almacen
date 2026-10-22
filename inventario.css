@@ -40,6 +40,30 @@
   .estados-inv button { flex: 1; }
 }
 
+/* Catálogo para ir marcando: muestras por series */
+.catalogo-inventario:empty { display: none; }
+.catalogo-inventario { margin-bottom: 1.5rem; }
+.serie-cat h3 { position: sticky; top: calc(3.6rem + env(safe-area-inset-top)); z-index: 2; margin: 1rem 0 0.5rem; padding: 0.4rem 0; background: var(--fondo); font-size: 1rem; color: var(--terracota-oscuro); }
+.serie-cat h3 small { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.8rem; color: var(--verde); }
+.rejilla-cat { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr)); gap: 0.6rem; }
+.ficha-cat, .ficha-cat:hover {
+  display: grid; justify-items: center; align-content: start; gap: 0.15rem; padding: 0.3rem 0.25rem 0.45rem;
+  border-radius: 12px; background: white; color: var(--tinta); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); line-height: 1.2;
+}
+.ficha-cat:disabled { opacity: 0.6; }
+.img-cat { position: relative; display: block; width: 100%; aspect-ratio: 1; }
+.img-cat img { width: 100%; height: 100%; display: block; border-radius: 8px; object-fit: cover; background: #e8dcc6; }
+.ficha-cat strong { font-size: 0.82rem; }
+.ficha-cat small { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 0.7rem; color: var(--verde); text-align: center; }
+.tick {
+  position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 1.6rem; height: 1.6rem;
+  border-radius: 50%; background: rgb(255 255 255 / 0.85); box-shadow: inset 0 0 0 2px #cdbfb4; color: transparent; font-weight: 700; font-size: 0.95rem;
+}
+.ficha-cat[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--oliva-oscuro); }
+.ficha-cat[aria-pressed="true"] .tick { background: var(--oliva-oscuro); box-shadow: none; color: white; }
+.ficha-cat.poco[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--terracota); }
+.ficha-cat.poco[aria-pressed="true"] .tick { background: var(--terracota); }
+
 .propio { margin-bottom: 3rem; padding: 0.75rem 1rem; border-radius: 14px; background: white; }
 .propio summary { cursor: pointer; font-weight: 500; color: var(--terracota-oscuro); }
 .form-propio { display: grid; gap: 0.6rem; margin-top: 0.75rem; }

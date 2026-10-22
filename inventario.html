@@ -37,18 +37,19 @@
 
   <main class="contenedor inventario">
     <h1>Esmaltes del taller</h1>
-    <p class="ayuda">Marca los que tienes. Los alumnos lo ven en sus tableros y en sus piezas: «en el taller», «queda poco» o «no hay».</p>
+    <p class="ayuda">Ve tickando en el catálogo los que tienes. En «En el taller» puedes marcar de cuáles queda poco. Los alumnos lo ven en sus tableros y en sus piezas.</p>
 
     <div class="resumen-inventario" id="resumen-inventario"></div>
 
     <div class="filtros-inventario" role="tablist">
-      <button type="button" role="tab" data-filtro="taller" aria-selected="true">En el taller</button>
+      <button type="button" role="tab" data-filtro="todos" aria-selected="true">Catálogo</button>
+      <button type="button" role="tab" data-filtro="taller" aria-selected="false">En el taller</button>
       <button type="button" role="tab" data-filtro="poco" aria-selected="false">Queda poco</button>
-      <button type="button" role="tab" data-filtro="todos" aria-selected="false">Catálogo de Prodesco</button>
     </div>
     <input id="buscar-inventario" class="buscar-inventario" type="search" placeholder="Número o nombre: 5546, celadón…" autocomplete="off" aria-label="Buscar esmalte">
     <p id="cuenta-inventario" class="ayuda">Cargando…</p>
     <ul id="lista-inventario" class="lista-inventario"></ul>
+    <div id="catalogo-inventario" class="catalogo-inventario"></div>
 
     <details class="propio">
       <summary>＋ Añadir un esmalte que no es de Prodesco</summary>
