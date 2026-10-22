@@ -7,7 +7,9 @@ const MAXIMO = 100; // filas a la vez en el catálogo; para más, buscar
 
 let catalogo = [];
 let inventario = new Map(); // clave → fila de inventario_esmaltes
-let filtro = "todos"; // se empieza por el catálogo, para ir tickando
+let filtro = "todos";
+let cargandoCatalogo = true;
+let faltaTabla = false; // Supabase sin la tabla inventario_esmaltes (falta ejecutar esquema.sql) // se empieza por el catálogo, para ir tickando
 let temporizadorCopia;
 
 let temporizadorAviso;
@@ -40,6 +42,7 @@ const claveDe = (e) => window.inventarioTaller.clave(e);
 // El catálogo de Prodesco, el mismo que en los tableros (con copia en el móvil)
 async function cargarCatalogo() {
   try { catalogo = JSON.parse(localStorage.getItem("catalogoEsmaltes")) ?? []; } catch {}
+  if (catalogo.length) pintar(); // la copia del móvil, mientras llega la nueva
   try {
     const r = await fetch("/api/esmaltes");
     if (!r.ok) throw new Error();
@@ -59,6 +62,11 @@ async function cargarInventario() {
 // ---------- Pintar ----------
 
 function pintarResumen() {
+  if (faltaTabla) {
+    $("#resumen-inventario").textContent = "Para que se guarde lo que marques, falta un paso en Supabase: vuelve a ejecutar supabase/esquema.sql (SQL Editor → pegar entero → Run) y recarga esta página.";
+    $("#resumen-inventario").classList.add("aviso-falta");
+    return;
+  }
   const filas = [...inventario.values()];
   const poco = filas.filter((x) => x.estado === "poco").length;
   $("#resumen-inventario").textContent = filas.length
@@ -112,7 +120,8 @@ function pintarCatalogo(lista, buscando) {
   const marcados = lista.filter((e) => inventario.has(claveDe(e))).length;
   $("#cuenta-inventario").textContent = lista.length
     ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " en esta búsqueda" : ""}.`
-    : "Ninguno con esa búsqueda.";
+    : cargandoCatalogo ? "Cargando el catálogo de Prodesco… (la primera vez tarda unos segundos)"
+    : buscando ? "Ninguno con esa búsqueda." : "No he podido cargar el catálogo de Prodesco. Prueba en un rato.";
   const series = new Map();
   for (const e of lista) series.set(e.serie, [...(series.get(e.serie) ?? []), e]);
   $("#catalogo-inventario").replaceChildren(...[...series].map(([serie, esmaltes]) => {
@@ -174,7 +183,7 @@ async function cambiar(e, clave, estado, { repintar = true, preguntar = true } =
     if (!error) inventario.set(clave, nueva);
   }
   if (error) {
-    avisar("No se ha podido guardar");
+    avisar(faltaTabla ? "Antes hay que ejecutar esquema.sql en Supabase" : "No se ha podido guardar");
     return false;
   }
   avisar(estado === "no" ? `${nombreDe(e)}: no hay` : estado === "poco" ? `${nombreDe(e)}: queda poco` : `${nombreDe(e)}: en el taller ✓`);
@@ -218,18 +227,17 @@ $("#buscar-inventario").addEventListener("input", () => {
 
 (async () => {
   await window.accesoTaller;
-  try {
-    await cargarInventario();
-  } catch {
-    $("#cuenta-inventario").textContent = "No se ha podido cargar el inventario. Comprueba la conexión y recarga.";
-    return;
-  }
+  // El inventario y el catálogo se cargan a la vez; si falla uno, el otro se ve igual
+  const inventarioListo = cargarInventario().catch((e) => {
+    faltaTabla = /inventario_esmaltes|PGRST205|does not exist|schema cache/i.test(`${e?.code} ${e?.message}`);
+    if (!faltaTabla) $("#resumen-inventario").textContent = "No se ha podido cargar lo que ya tenías marcado. Comprueba la conexión y recarga.";
+  });
+  pintar();
+  await inventarioListo;
   pintar();
   try {
     await cargarCatalogo();
-  } catch {
-    if (filtro === "todos") $("#cuenta-inventario").textContent = "No he podido cargar el catálogo de Prodesco. Prueba en un rato.";
-    return;
-  }
+  } catch {}
+  cargandoCatalogo = false;
   pintar();
 })();

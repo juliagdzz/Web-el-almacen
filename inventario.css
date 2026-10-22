@@ -2,6 +2,7 @@
 .inventario .ayuda { margin: 0 0 0.75rem; font-size: 0.88rem; color: var(--verde); line-height: 1.45; }
 .resumen-inventario { margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 14px; background: white; font-weight: 500; color: var(--granate); box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
 
+.resumen-inventario.aviso-falta { border-left: 4px solid var(--terracota); color: var(--terracota-oscuro); font-weight: 400; line-height: 1.45; }
 .filtros-inventario { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.6rem; padding-bottom: 0.2rem; scrollbar-width: none; }
 .filtros-inventario button, .filtros-inventario button:hover {
   flex: none; padding: 0.4rem 0.9rem; border-radius: 999px; background: white; color: var(--verde);

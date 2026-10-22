@@ -226,8 +226,9 @@ body.en-tablero .subnav { display: none; }
 
 @media (max-width: 900px) {
   /* En tablet, más juntos para que quepan en una línea */
-  .cabecera nav { gap: 0.25rem 1.1rem; }
-  .cabecera nav a { font-size: 0.9rem; }
+  .cabecera { padding-left: 3.75rem; padding-right: 3.75rem; }
+  .cabecera nav { gap: 0.25rem 0.85rem; }
+  .cabecera nav a { font-size: 0.85rem; }
 }
 
 @media (max-width: 600px) {
