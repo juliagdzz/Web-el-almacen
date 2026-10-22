@@ -80,6 +80,7 @@ function pintar() {
   const coincide = (e) => palabras.every((p) => sinAcentos(`${e.codigo} ${e.nombre} ${e.serie} ${e.nota ?? ""}`).includes(p));
   let lista;
   if (filtro === "todos") return pintarCatalogo(catalogo.filter(coincide), palabras.length > 0);
+  $("#series-inventario").hidden = true;
   {
     $("#catalogo-inventario").replaceChildren();
     lista = [...inventario.values()].filter((x) => (filtro === "taller" || x.estado === "poco") && coincide(x));
@@ -115,21 +116,69 @@ function fila(e) {
 // Todas las muestras de Prodesco por series; al tocar una se marca (hay) o se
 // desmarca. «Queda poco» se pone en la pestaña «En el taller».
 
+// ---------- Series: «mis series» (las mismas que en los tableros) y filtro ----------
+
+const SERIES_POR_DEFECTO = ["Especiales EESP", "Transparentes ETSP", "Opacos EOSP", "PSE con Plomo", "ENSP"];
+let serieElegida = "mias"; // "mias", "todas" o el nombre de una serie
+function leerSeries() {
+  try {
+    const guardadas = JSON.parse(localStorage.getItem("seriesFavoritas"));
+    if (Array.isArray(guardadas)) return new Set(guardadas);
+  } catch {}
+  return new Set(SERIES_POR_DEFECTO);
+}
+function cambiarFavorita(serie) {
+  const series = leerSeries();
+  series.has(serie) ? series.delete(serie) : series.add(serie);
+  try { localStorage.setItem("seriesFavoritas", JSON.stringify([...series])); } catch {}
+  if (serieElegida === "mias" && !series.size) serieElegida = "todas";
+  pintar();
+}
+// Primero tus series y luego las demás, por orden alfabético
+function ordenSeries(nombres) {
+  const favoritas = leerSeries();
+  return [...nombres].sort((a, b) => favoritas.has(b) - favoritas.has(a) || a.localeCompare(b, "es"));
+}
+
+function pintarSeries() {
+  const caja = $("#series-inventario");
+  caja.hidden = filtro !== "todos" || !catalogo.length;
+  if (caja.hidden) return;
+  const favoritas = leerSeries();
+  const cuantos = new Map();
+  for (const e of catalogo) cuantos.set(e.serie, (cuantos.get(e.serie) ?? 0) + 1);
+  const chip = (valor, texto, extra) => h("button", { type: "button", class: `chip-serie${favoritas.has(valor) ? " favorita" : ""}`,
+    "aria-pressed": String(serieElegida === valor), onclick: () => { serieElegida = valor; pintar(); } }, texto, extra && h("small", {}, extra));
+  caja.replaceChildren(
+    favoritas.size > 0 && chip("mias", "★ Mis series"),
+    chip("todas", "Todas", String(catalogo.length)),
+    ...ordenSeries(cuantos.keys()).map((s) => chip(s, s, String(cuantos.get(s)))));
+}
+
 function pintarCatalogo(lista, buscando) {
   $("#lista-inventario").replaceChildren();
+  pintarSeries();
+  const favoritas = leerSeries();
+  if (serieElegida === "mias" && !favoritas.size) serieElegida = "todas";
+  // Buscando se mira en todo el catálogo; si no, en la serie o las series elegidas
+  if (!buscando) lista = lista.filter((e) => serieElegida === "todas" || (serieElegida === "mias" ? favoritas.has(e.serie) : e.serie === serieElegida));
   const marcados = lista.filter((e) => inventario.has(claveDe(e))).length;
   $("#cuenta-inventario").textContent = lista.length
-    ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " en esta búsqueda" : ""}.`
+    ? `Toca una muestra para marcarla. ${marcados} de ${lista.length} marcadas${buscando ? " (la búsqueda mira en todo el catálogo)" : ""}.`
     : cargandoCatalogo ? "Cargando el catálogo de Prodesco… (la primera vez tarda unos segundos)"
     : buscando ? "Ninguno con esa búsqueda." : "No he podido cargar el catálogo de Prodesco. Prueba en un rato.";
   const series = new Map();
   for (const e of lista) series.set(e.serie, [...(series.get(e.serie) ?? []), e]);
-  $("#catalogo-inventario").replaceChildren(...[...series].map(([serie, esmaltes]) => {
+  $("#catalogo-inventario").replaceChildren(...ordenSeries(series.keys()).map((serie) => {
+    const esmaltes = series.get(serie);
     const cuenta = h("small", {});
     const contar = () => (cuenta.textContent = `${esmaltes.filter((e) => inventario.has(claveDe(e))).length} de ${esmaltes.length}`);
     contar();
+    const favorita = favoritas.has(serie);
     return h("section", { class: "serie-cat" },
-      h("h3", {}, serie, " ", cuenta),
+      h("h3", {}, h("button", { type: "button", class: `estrella${favorita ? " puesta" : ""}`, "aria-pressed": String(favorita),
+        "aria-label": favorita ? `Quitar ${serie} de mis series` : `Poner ${serie} en mis series`, title: favorita ? "Quitar de mis series" : "Poner en mis series",
+        onclick: () => cambiarFavorita(serie) }, favorita ? "★" : "☆"), serie, " ", cuenta),
       h("div", { class: "rejilla-cat" }, esmaltes.map((e) => ficha(e, contar))));
   }));
 }
