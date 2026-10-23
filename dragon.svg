@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 220"><!-- Dragón cociendo un jarrón con su fuego -->
+  <!-- sombras en el suelo -->
+  <ellipse cx="192" cy="208" rx="62" ry="6" fill="#551C25" opacity=".15"/>
+  <ellipse cx="36" cy="208" rx="22" ry="4" fill="#551C25" opacity=".15"/>
+
+  <!-- cola enroscada con la punta en pica -->
+  <path d="M218 186C252 192 270 172 262 150C256 134 238 136 240 150" fill="none" stroke="#551C25" stroke-width="13" stroke-linecap="round"/>
+  <path d="M240 150l-12 -14 18 -2z" fill="#9B9A3A"/>
+
+  <!-- ala de atrás -->
+  <path d="M206 112C214 76 232 46 262 30C258 52 262 74 270 92C258 88 248 92 244 102C236 96 224 98 220 110Z" fill="#8F4220"/>
+  <!-- cuerpo -->
+  <path d="M148 150C146 120 168 104 196 106C226 108 242 132 236 160C232 186 210 200 184 200C160 200 150 178 148 150Z" fill="#551C25"/>
+  <!-- pata de atrás -->
+  <path d="M206 160C226 158 236 178 228 196C224 204 200 206 196 200C192 192 198 184 204 182C196 176 196 164 206 160Z" fill="#6E2A33"/>
+  <path d="M198 202l-4 5M206 203l-1 6M214 203l2 5" stroke="#F3E9D8" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- tripa con sus franjas -->
+  <path d="M158 132C152 152 156 182 176 196C186 198 192 186 188 170C184 152 176 136 166 124Z" fill="#E9D4BC"/>
+  <path d="M160 142l14 -4M158 154l20 -3M160 166l22 -1M165 178l20 1M172 189l15 2" stroke="#C86A3E" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+  <!-- cuello -->
+  <path d="M150 140C140 118 128 100 118 84L138 70C148 90 162 108 176 120Z" fill="#551C25"/>
+  <path d="M146 132C138 116 130 102 122 90L130 86C138 100 146 114 156 126Z" fill="#E9D4BC"/>
+  <!-- pata de delante con garras -->
+  <path d="M160 166C170 170 172 186 166 198L152 199C150 192 156 188 158 184C152 180 152 170 160 166Z" fill="#6E2A33"/>
+  <path d="M150 201l-4 5M157 202l-2 6M164 201l1 6" stroke="#F3E9D8" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- crestas por el lomo y el cuello -->
+  <g fill="#9B9A3A">
+    <path d="M132 66l10 -12 2 15z"/><path d="M142 82l12 -9 -1 15z"/><path d="M152 98l13 -7 -3 15z"/>
+    <path d="M166 110l14 -4 -6 13z"/><path d="M186 106l12 -8 0 14z"/><path d="M206 108l13 -6 -3 14z"/>
+    <path d="M224 118l13 -2 -6 12z"/><path d="M234 136l13 1 -8 10z"/>
+  </g>
+
+  <!-- ala de delante -->
+  <path d="M190 118C192 80 208 46 240 22C238 46 244 66 254 84C240 82 230 88 226 98C216 92 204 96 200 108C196 104 192 110 190 118Z" fill="#A44E26"/>
+  <path d="M192 112C204 80 220 48 240 22M200 108C214 82 230 60 240 22M226 98C232 80 236 52 240 22" fill="none" stroke="#8F4220" stroke-width="2.4" stroke-linecap="round"/>
+
+  <!-- cabeza -->
+  <path d="M96 66C104 54 124 50 138 58C146 64 146 78 138 86C130 92 116 90 108 92L82 96C74 97 70 92 72 86C74 80 84 76 96 74Z" fill="#551C25"/>
+  <!-- mandíbula abierta -->
+  <path d="M84 100L112 96C122 96 132 92 136 86C136 98 126 108 110 108L86 108C80 108 80 101 84 100Z" fill="#6E2A33"/>
+  <path d="M84 96L82 100" stroke="#551C25" stroke-width="2"/>
+  <!-- dientes -->
+  <path d="M84 96l3 5 3 -5M94 95l3 5 3 -5M88 101l3 -5 3 5" fill="#F3E9D8"/>
+  <!-- cuernos -->
+  <path d="M124 56C130 40 142 32 156 32C146 38 138 46 134 58Z" fill="#F3E9D8"/>
+  <path d="M112 56C114 44 120 36 130 32C124 40 120 48 120 56Z" fill="#E9D4BC"/>
+  <!-- ojo, ceja y nariz -->
+  <ellipse cx="118" cy="68" rx="6.5" ry="5.5" fill="#F3E9D8"/>
+  <ellipse cx="116.5" cy="68.5" rx="2.4" ry="4" fill="#2A1A1A"/>
+  <path d="M108 60l18 2" stroke="#2A1A1A" stroke-width="2.6" stroke-linecap="round"/>
+  <ellipse cx="80" cy="83" rx="2.2" ry="1.6" fill="#2A1A1A"/>
+  <path d="M74 76c-4 -6 -2 -12 3 -14M80 74c-2 -5 0 -9 4 -10" fill="none" stroke="#9B9A3A" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+
+  <!-- el jarrón que se está cociendo -->
+  <path d="M28 150h18l-2 8c10 6 14 18 12 30-2 12-12 20-21 20s-19-8-21-20c-2-12 2-24 12-30z" fill="#C86A3E"/>
+  <path d="M26 146h22v6H26z" fill="#8F4220"/>
+  <path d="M19 172c4 -4 8 -4 12 0s8 4 12 0 8 -4 12 0v-6c-6 -10 -30 -10 -36 0z" fill="#F3E9D8"/>
+  <rect x="24" y="170" width="5" height="12" rx="2.5" fill="#F3E9D8"/><rect x="40" y="170" width="5" height="9" rx="2.5" fill="#F3E9D8"/>
+
+  <!-- fuego: capas de fuera a dentro -->
+  <path d="M80 92C64 84 54 72 40 74C46 80 44 86 36 88C30 90 22 86 16 92C22 98 18 104 10 108C20 112 24 120 18 128C26 128 34 132 36 140C42 132 52 134 58 128C56 120 62 114 70 114C66 108 72 102 80 100Z" fill="#B85A2B"/>
+  <path d="M80 94C68 90 60 82 50 84C54 90 50 94 44 96C38 98 32 96 28 100C34 104 32 110 26 114C34 116 38 122 36 128C42 124 50 126 54 120C54 114 60 110 66 110C64 104 72 100 80 98Z" fill="#D9772B"/>
+  <path d="M80 95C72 94 66 90 60 92C62 96 58 98 54 100C50 102 46 102 44 104C48 108 46 112 44 116C50 116 54 118 56 116C58 110 62 106 68 104C70 100 76 98 80 97Z" fill="#F3E9D8"/>
+  <!-- chispas -->
+  <g fill="#D9772B"><circle cx="30" cy="70" r="2.5"/><circle cx="12" cy="94" r="2"/><circle cx="64" cy="140" r="2.2"/><circle cx="6" cy="124" r="1.6"/></g>
+</svg>
