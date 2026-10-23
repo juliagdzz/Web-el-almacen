@@ -15,15 +15,19 @@ module.exports = async (req, res) => {
     if (req.query.prod && req.query.prod !== id) continue;
     const html = await leer(url);
     const grupos = [...html.matchAll(/name="group\[(\d+)\]"[^>]*value="(\d+)"[^>]*(checked|selected)?/g)].map((m) => ({ g: m[1], v: m[2], marcado: Boolean(m[3]) }));
-    const tamano = grupos.find((x) => x.g !== "2" && x.marcado) ?? grupos.find((x) => x.g !== "2");
-    for (const c of grupos.filter((x) => x.g === "2")) tareas.push({ id, url, tamano, valor: c.v });
+    // el grupo de colores es el <ul id="group_N"> con muestras; el otro, el tamaño
+    const gColor = [...html.matchAll(/<ul id="group_(\d+)">([\s\S]*?)<\/ul>/g)].find(([, , cuerpo]) => /input-color/.test(cuerpo))?.[1] ?? "2";
+    const tamano = grupos.find((x) => x.g !== gColor && x.marcado) ?? grupos.find((x) => x.g !== gColor);
+    for (const c of grupos.filter((x) => x.g === gColor)) tareas.push({ id, url, tamano, gColor, valor: c.v });
   }
   const salida = await enTandas(tareas, 10, async (t) => {
-    const cuerpo = new URLSearchParams({ ajax: "1", action: "refresh", quantity_wanted: "1", id_product: t.id, "group[2]": t.valor });
+    const cuerpo = new URLSearchParams({ ajax: "1", action: "refresh", quantity_wanted: "1", id_product: t.id, [`group[${t.gColor}]`]: t.valor });
     if (t.tamano) cuerpo.set(`group[${t.tamano.g}]`, t.tamano.v);
     const r = await fetch(t.url, { method: "POST", headers: { ...CAB, "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest", Accept: "application/json" }, body: cuerpo });
     const j = await r.json();
-    return { id: t.id, valor: t.valor, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
+    const det = j.product_details ?? "";
+    const i = det.indexOf("sku");
+    return { id: t.id, valor: t.valor, cerca: i >= 0 ? det.slice(i - 40, i + 120).replace(/\s+/g, " ") : null, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
   });
   res.setHeader("Cache-Control", "no-store");
   res.json({ productos: [...productos.keys()], total: tareas.length, salida });
