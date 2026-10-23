@@ -258,6 +258,91 @@ function selector({ valor = "", opciones, tipo, etiqueta, placeholder, registrar
     lista);
 }
 
+// Añadir esmalte a una pieza: un campo de escribir que busca a la vez en el
+// catálogo (Prodesco y Tecniglaze), en tus recetas y en los que ya has usado.
+// Si no hay nada parecido, lo escrito se añade tal cual.
+function buscadorEsmalte({ usados, alElegir }) {
+  const MAXIMO = 30;
+  const input = h("input", { type: "text", inputMode: "search", placeholder: "Escribe un esmalte: 5546, celadón, speckle…", autocomplete: "off",
+    enterKeyHint: "done", role: "combobox", "aria-expanded": "false", "aria-label": "Añadir esmalte" });
+  const lista = h("ul", { class: "desplegable sugerencias-esmalte", role: "listbox", hidden: true });
+  const sinPerderFoco = (e) => e.preventDefault();
+  let recetas = null;
+
+  const opcion = (contenido, alPulsar, clase) => h("li", { role: "option", class: clase },
+    h("button", { type: "button", onpointerdown: sinPerderFoco, onclick: () => { alPulsar(); input.value = ""; cerrar(); } }, contenido));
+  const grupo = (texto) => h("li", { class: "grupo-sugerencias", role: "presentation" }, texto);
+
+  async function pintar() {
+    const texto = input.value.trim();
+    if (!texto) return cerrar();
+    const palabras = sinAcentos(texto).split(/\s+/).filter(Boolean);
+    const encaja = (t, codigo = "") => palabras.every((pal) => sinAcentos(t).includes(pal) || (compacto(pal) && compacto(codigo).includes(compacto(pal))));
+    recetas ??= await datos.todos("recetas");
+    let catalogoVisto = [], total = 0, fallo = false;
+    try {
+      const favoritas = seriesFavoritas();
+      const encontrados = (await cargarCatalogo())
+        .filter((e) => encaja(`${e.codigo} ${e.nombre} ${e.serie} ${e.marca ?? ""}`, e.codigo ?? ""))
+        .sort((a, b) => favoritas.has(b.serie) - favoritas.has(a.serie));
+      total = encontrados.length;
+      catalogoVisto = encontrados.slice(0, MAXIMO);
+    } catch { fallo = true; }
+    if (input.value.trim() !== texto) return; // ya se ha escrito otra cosa
+    const mias = recetas.filter((r) => r.nombre && encaja(r.nombre)).slice(0, 5);
+    const otros = usados.filter((n) => encaja(n)).slice(0, 5);
+    const yaEsta = [...mias.map((r) => r.nombre), ...otros].some((n) => sinAcentos(n) === sinAcentos(texto)) ||
+      catalogoVisto.some((e) => compacto(e.codigo ?? "") === compacto(texto) || sinAcentos(e.nombre ?? "") === sinAcentos(texto));
+    lista.replaceChildren(...[
+      mias.length && grupo("Mis esmaltes"),
+      ...mias.map((r) => opcion([
+        h("span", { class: "muestra sin-foto" }, iconos.el("receta")),
+        h("span", { class: "texto-sugerencia" }, h("strong", {}, r.nombre), r.temperatura && h("small", {}, `${r.temperatura} ºC`)),
+      ], () => alElegir({ origen: "propio", receta: r.id, nombre: r.nombre }))),
+      otros.length && grupo("Usados antes"),
+      ...otros.map((n) => opcion([
+        h("span", { class: "muestra sin-foto" }, iconos.el("color")),
+        h("span", { class: "texto-sugerencia" }, h("strong", {}, n)),
+      ], () => alElegir({ origen: "otro", nombre: n }))),
+      catalogoVisto.length && grupo(total > MAXIMO ? `Catálogo · ${total} coinciden, salen ${MAXIMO}` : "Catálogo"),
+      ...catalogoVisto.map((e) => opcion([
+        h("img", { class: "muestra", src: e.miniatura, alt: "", loading: "lazy" }),
+        h("span", { class: "texto-sugerencia" },
+          h("strong", {}, [e.codigo, e.nombre].filter(Boolean).join(" · ") || e.serie),
+          h("small", {}, marcasEsmaltes.etiqueta(e), " ", e.serie, " ", inventarioTaller.marca(e))),
+      ], () => alElegir({ origen: "prodesco", marca: e.marca || "Prodesco", codigo: e.codigo, nombre: e.nombre, serie: e.serie, miniatura: e.miniatura, url: e.url }))),
+      fallo && h("li", { class: "vacio-lista" }, "No he podido cargar el catálogo ahora mismo."),
+      !fallo && !catalogoVisto.length && !mias.length && !otros.length && h("li", { class: "vacio-lista" }, "No hay ninguno parecido en el catálogo."),
+      !yaEsta && opcion(`＋ Añadir «${texto}» como esmalte propio`, () => alElegir({ origen: "otro", nombre: texto }), "registrar"),
+    ].filter(Boolean));
+    lista.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(() => lista.scrollIntoView({ block: "nearest" }));
+  }
+  function cerrar() {
+    lista.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+  }
+
+  input.addEventListener("input", pintar);
+  input.addEventListener("focus", pintar);
+  input.addEventListener("blur", cerrar);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { input.value = ""; cerrar(); }
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    lista.querySelector("li:not(.grupo-sugerencias) button")?.click();
+  });
+  return h("div", { class: "anadir-capa" },
+    h("div", { class: "cabeza-anadir" },
+    h("span", { class: "etiqueta-anadir" }, "Añadir esmalte"),
+    h("p", { class: "ver-todo" },
+      h("button", { type: "button", class: "enlace", onclick: () => elegirProdesco((e) => alElegir({ origen: "prodesco", marca: e.marca || "Prodesco", codigo: e.codigo, nombre: e.nombre, serie: e.serie, miniatura: e.miniatura, url: e.url }), input.value.trim()) }, "Ver todo el catálogo"),
+      " · ",
+      h("button", { type: "button", class: "enlace", onclick: () => elegirReceta((r) => alElegir({ origen: "propio", receta: r.id, nombre: r.nombre })) }, "Mis esmaltes"))),
+    h("div", { class: "selector buscador-esmalte" }, input, lista));
+}
+
 // Fotos: miniaturas con botón de quitar, y botones de cámara y galería
 function editorFotos(obj, alCambiar) {
   const caja = h("div", { class: "fotos" });
@@ -406,9 +491,9 @@ async function pintarProdesco() {
       inventarioTaller.marca(e))));
 }
 
-function elegirProdesco(callback) {
+function elegirProdesco(callback, texto = "") {
   alElegirProdesco = callback;
-  $("#buscar-prodesco").value = "";
+  $("#buscar-prodesco").value = texto;
   $("#hoja-prodesco").showModal();
   pintarProdesco();
 }
@@ -675,11 +760,7 @@ async function vistaPieza(id) {
   const capas = h("div", { class: "capas" });
   function pintarCapas() {
     capas.replaceChildren(...p.capas.map((c, i) => fichaCapa(c, i)),
-      h("div", { class: "anadir-capa" },
-        h("span", {}, "Añadir esmalte:"),
-        h("button", { type: "button", class: "secundario", onclick: () => elegirProdesco((e) => nuevaCapa({ origen: "prodesco", marca: e.marca || "Prodesco", codigo: e.codigo, nombre: e.nombre, serie: e.serie, miniatura: e.miniatura, url: e.url })) }, "Catálogo"),
-        h("button", { type: "button", class: "secundario", onclick: () => elegirReceta((r) => nuevaCapa({ origen: "propio", receta: r.id, nombre: r.nombre })) }, "Mis esmaltes"),
-        h("button", { type: "button", class: "secundario", onclick: () => nuevaCapa({ origen: "otro", nombre: "" }) }, "Otro")));
+      buscadorEsmalte({ usados: otrosUsados, alElegir: nuevaCapa }));
   }
   function nuevaCapa(datosCapa) {
     p.capas.push({ id: nuevoId(), capas: 1, aplicacion: "Pincel", pincel: "", zona: "", nota: "", ...datosCapa });

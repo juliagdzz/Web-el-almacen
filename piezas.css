@@ -199,7 +199,22 @@
   .rejilla-capa { grid-template-columns: 5rem 1fr 1fr 1fr; }
   .rejilla-capa .campo:nth-child(n + 3) { grid-column: auto; }
 }
-.anadir-capa { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+/* Añadir esmalte: un campo que busca en el catálogo, tus recetas y los ya usados */
+.anadir-capa { display: grid; gap: 0.35rem; }
+.cabeza-anadir { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.1rem 0.75rem; }
+.etiqueta-anadir { font-size: 0.9rem; font-weight: 500; }
+.buscador-esmalte input { width: 100%; box-sizing: border-box; }
+.piezas .buscador-esmalte input { padding-right: 0.8rem; }
+.sugerencias-esmalte { max-height: 22rem; }
+.desplegable.sugerencias-esmalte button, .desplegable.sugerencias-esmalte button:hover { justify-content: flex-start; align-items: center; gap: 0.6rem; padding: 0.4rem 0.6rem; }
+.desplegable.sugerencias-esmalte .muestra { width: 2.2rem; height: 2.2rem; font-size: 1rem; display: grid; place-items: center; background: #efd9ca; color: var(--terracota-oscuro); border-color: #f3e9d8; }
+.texto-sugerencia { display: grid; gap: 0.05rem; min-width: 0; line-height: 1.25; }
+.texto-sugerencia strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desplegable .texto-sugerencia small { max-width: none; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.grupo-sugerencias { padding: 0.5rem 0.7rem 0.2rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--verde); }
+.grupo-sugerencias:first-child { padding-top: 0.25rem; }
+.ver-todo { margin: 0; font-size: 0.85rem; color: var(--verde); }
+.ver-todo .enlace, .ver-todo .enlace:hover { padding: 0; border: 0; background: none; color: var(--terracota-oscuro); font: inherit; text-decoration: underline; cursor: pointer; }
 
 /* Técnicas */
 .chips-elegir { display: flex; flex-wrap: wrap; gap: 0.4rem; }
