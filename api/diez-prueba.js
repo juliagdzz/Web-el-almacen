@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     const r = await fetch(url, { method: "POST", headers: { ...CAB, "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest", Accept: "application/json" }, body: cuerpo });
     const t = await r.text();
     let j = null; try { j = JSON.parse(t); } catch {}
-    salida.push({ valor: c.v, status: r.status, combinacion: j?.id_product_attribute, sku: (j?.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1] ?? null, otra: j ? null : t.slice(0, 200) });
+    salida.push({ valor: c.v, status: r.status, combinacion: j?.id_product_attribute, sku: (j?.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null, trozo: (j?.product_details ?? "").replace(/\s+/g, " ").slice(0, 400), otra: j ? null : t.slice(0, 200) });
   }
   res.setHeader("Cache-Control", "no-store");
   res.json({ producto, tamano, ncolores: grupos.filter((x) => x.g === "2").length, salida });
