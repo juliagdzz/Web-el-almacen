@@ -29,15 +29,14 @@
 .opcion-creacion .cuenta { font-size: 0.85rem; font-weight: 500; color: var(--granate); }
 .opcion-creacion .cuenta:empty { display: none; }
 
-/* En el móvil, tarjetas en fila: dibujo a la izquierda y texto al lado */
+/* En el móvil, mosaico de cuatro cuadros: dibujo arriba y solo el nombre debajo */
 @media (max-width: 600px) {
-  .opciones-creaciones { grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1rem; }
-  .opcion-creacion { flex-direction: row; align-items: stretch; }
-  .opcion-creacion img { width: 6.5rem; aspect-ratio: auto; min-height: 6.5rem; flex: none; }
-  .opcion-creacion .texto { align-self: center; }
-  .opcion-creacion .texto { padding: 0.5rem 0.9rem; }
-  .opcion-creacion strong { font-size: 1.05rem; }
-  .opcion-creacion small { font-size: 0.8rem; }
+  .opciones-creaciones { gap: 0.75rem; margin-top: 1rem; }
+  .opcion-creacion img { aspect-ratio: 4 / 3; }
+  .opcion-creacion .texto { flex: 1; align-content: start; padding: 0.55rem 0.7rem 0.7rem; }
+  .opcion-creacion strong { font-size: 0.98rem; line-height: 1.2; }
+  .opcion-creacion small { display: none; }
+  .opcion-creacion .cuenta { font-size: 0.78rem; }
 }
 
 /* Barra de la cuenta */
