@@ -213,7 +213,7 @@ const tramo = (t, inicio, fin) => Math.min(1, Math.max(0, (t - inicio) / (fin - 
 function pintarFotograma(t) {
   // 0-1 s abre · 1-2,2 s entra la pieza · 2,2-3,2 s cierra · 3,2-6,5 s calienta
   const abierta = suave(tramo(t, 0, 1)) - suave(tramo(t, 2.2, 3.2));
-  $("#tapa").setAttribute("transform", `rotate(${72 * abierta} 256 96)`);
+  $("#tapa").setAttribute("transform", `rotate(${72 * abierta} 240 84)`);
   const baja = suave(tramo(t, 1, 2.2));
   // La pieza aparece justo encima de la boca cuando la tapa ya está abierta y baja hasta dentro
   $("#pieza").setAttribute("transform", `translate(0 ${-55 + baja * 75})`);
@@ -243,7 +243,6 @@ function animarHorno() {
   animacion = requestAnimationFrame(paso);
 }
 
-$("#ver-otra-vez").addEventListener("click", animarHorno);
 
 // ---------- Arranque ----------
 

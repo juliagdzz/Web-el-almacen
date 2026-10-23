@@ -32,8 +32,8 @@
 
     <!-- El horno: se abre, entra la pieza, se cierra y sube la temperatura -->
     <figure class="escena-horno">
-      <svg id="horno" viewBox="0 -112 320 392" role="img" aria-labelledby="horno-titulo">
-        <title id="horno-titulo">Horno cerámico circular abriéndose para meter una pieza</title>
+      <svg id="horno" viewBox="0 -112 320 426" role="img" aria-labelledby="horno-titulo">
+        <title id="horno-titulo">Horno cerámico alto de carga superior abriéndose para meter una pieza</title>
         <defs>
           <linearGradient id="acero" x1="0" x2="1">
             <stop offset="0" stop-color="#8d9499"/>
@@ -54,54 +54,54 @@
         </defs>
 
         <!-- resplandor alrededor cuando está caliente -->
-        <ellipse id="aura" cx="160" cy="165" rx="150" ry="110" fill="url(#brasa)" opacity="0"/>
-        <ellipse cx="160" cy="262" rx="120" ry="12" fill="rgb(40 20 0 / 0.18)"/>
+        <ellipse id="aura" cx="160" cy="185" rx="135" ry="150" fill="url(#brasa)" opacity="0"/>
+        <ellipse cx="160" cy="302" rx="100" ry="11" fill="rgb(40 20 0 / 0.18)"/>
         <!-- patas -->
-        <rect x="92" y="226" width="10" height="34" rx="2" fill="#5d6368"/>
-        <rect x="218" y="226" width="10" height="34" rx="2" fill="#5d6368"/>
+        <rect x="102" y="270" width="10" height="30" rx="2" fill="#5d6368"/>
+        <rect x="208" y="270" width="10" height="30" rx="2" fill="#5d6368"/>
 
         <!-- interior, la pieza y el cuerpo por delante -->
-        <ellipse cx="160" cy="108" rx="96" ry="24" fill="#3b2a22"/>
-        <ellipse id="interior" cx="160" cy="110" rx="80" ry="18" fill="url(#brasa)" opacity="0"/>
+        <ellipse cx="160" cy="96" rx="80" ry="20" fill="#3b2a22"/>
+        <ellipse id="interior" cx="160" cy="98" rx="66" ry="15" fill="url(#brasa)" opacity="0"/>
         <g id="pieza" transform="translate(0 -55)" style="opacity: 0">
           <path d="M146 70c-4 6-6 13-6 20 0 13 9 22 20 22s20-9 20-22c0-7-2-14-6-20-1-2-1-4 0-6h-28c1 2 1 4 0 6z" fill="#b5532c"/>
           <rect x="145" y="60" width="30" height="5" rx="2" fill="#c86a3e"/>
         </g>
-        <path d="M64 108A96 24 0 0 0 256 108V212A96 24 0 0 1 64 212Z" fill="url(#acero)"/>
+        <path d="M80 96A80 20 0 0 0 240 96V272A80 20 0 0 1 80 272Z" fill="url(#acero)"/>
         <!-- aros y cierres -->
-        <path d="M64 136A96 24 0 0 0 256 136" fill="none" stroke="#6f767b" stroke-width="2.5"/>
-        <path d="M64 196A96 24 0 0 0 256 196" fill="none" stroke="#6f767b" stroke-width="2.5"/>
-        <rect x="74" y="122" width="8" height="18" rx="2" fill="#5d6368"/>
-        <rect x="238" y="122" width="8" height="18" rx="2" fill="#5d6368"/>
+        <path d="M80 124A80 20 0 0 0 240 124" fill="none" stroke="#6f767b" stroke-width="2.5"/>
+        <path d="M80 186A80 20 0 0 0 240 186" fill="none" stroke="#6f767b" stroke-width="2.5"/>
+        <path d="M80 248A80 20 0 0 0 240 248" fill="none" stroke="#6f767b" stroke-width="2.5"/>
+        <rect x="88" y="110" width="8" height="18" rx="2" fill="#5d6368"/>
+        <rect x="224" y="110" width="8" height="18" rx="2" fill="#5d6368"/>
         <!-- mirilla -->
-        <circle cx="96" cy="168" r="6" fill="#2b211c" stroke="#6f767b" stroke-width="2"/>
-        <circle id="mirilla" cx="96" cy="168" r="4" style="fill: var(--fuego, #ff8a3d)" opacity="0"/>
+        <circle cx="106" cy="220" r="6" fill="#2b211c" stroke="#6f767b" stroke-width="2"/>
+        <circle id="mirilla" cx="106" cy="220" r="4" style="fill: var(--fuego, #ff8a3d)" opacity="0"/>
         <!-- programador -->
-        <rect x="128" y="150" width="64" height="40" rx="5" fill="#2f3438"/>
-        <rect x="134" y="156" width="52" height="16" rx="2" fill="#141818"/>
-        <text id="pantalla" x="160" y="168.5" text-anchor="middle" font-family="monospace" font-size="11" fill="#7dff9a">20 ºC</text>
-        <circle id="led" cx="140" cy="181" r="2.6" fill="#4b5257"/>
-        <circle cx="150" cy="181" r="2.6" fill="#4b5257"/>
-        <rect x="160" y="178" width="26" height="6" rx="3" fill="#4b5257"/>
+        <rect x="128" y="200" width="64" height="40" rx="5" fill="#2f3438"/>
+        <rect x="134" y="206" width="52" height="16" rx="2" fill="#141818"/>
+        <text id="pantalla" x="160" y="218.5" text-anchor="middle" font-family="monospace" font-size="11" fill="#7dff9a">20 ºC</text>
+        <circle id="led" cx="140" cy="231" r="2.6" fill="#4b5257"/>
+        <circle cx="150" cy="231" r="2.6" fill="#4b5257"/>
+        <rect x="160" y="228" width="26" height="6" rx="3" fill="#4b5257"/>
 
         <!-- tapa con bisagra atrás a la derecha -->
         <g id="tapa">
-          <path d="M64 104A96 24 0 0 0 256 104V96A96 24 0 0 0 64 96Z" fill="#7d8489"/>
-          <ellipse cx="160" cy="96" rx="96" ry="24" fill="url(#acero-tapa)"/>
-          <ellipse cx="160" cy="96" rx="40" ry="9" fill="none" stroke="#8a9196" stroke-width="2"/>
-          <rect x="146" y="114" width="28" height="7" rx="3.5" fill="#4b5257"/>
+          <path d="M80 92A80 20 0 0 0 240 92V84A80 20 0 0 0 80 84Z" fill="#7d8489"/>
+          <ellipse cx="160" cy="84" rx="80" ry="20" fill="url(#acero-tapa)"/>
+          <ellipse cx="160" cy="84" rx="34" ry="8" fill="none" stroke="#8a9196" stroke-width="2"/>
+          <rect x="146" y="100" width="28" height="7" rx="3.5" fill="#4b5257"/>
         </g>
 
         <!-- calor que sube -->
         <g id="calor" fill="none" style="stroke: var(--fuego, #ff8a3d)" stroke-width="3" stroke-linecap="round" opacity="0">
-          <path d="M120 60c-8-10 8-16 0-26s8-16 0-26"/>
-          <path d="M160 52c-8-10 8-16 0-26s8-16 0-26"/>
-          <path d="M200 60c-8-10 8-16 0-26s8-16 0-26"/>
+          <path d="M124 48c-8-10 8-16 0-26s8-16 0-26"/>
+          <path d="M160 40c-8-10 8-16 0-26s8-16 0-26"/>
+          <path d="M196 48c-8-10 8-16 0-26s8-16 0-26"/>
         </g>
       </svg>
       <figcaption>
         <span id="estado-horno">Horno listo</span>
-        <button id="ver-otra-vez" type="button" class="secundario">▶ Ver cómo se hornea</button>
       </figcaption>
     </figure>
 
