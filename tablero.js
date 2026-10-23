@@ -150,6 +150,10 @@ async function mostrarLista() {
     cuenta.textContent = [fotos && (fotos === 1 ? "1 foto" : `${fotos} fotos`), esmaltes && (esmaltes === 1 ? "1 esmalte" : `${esmaltes} esmaltes`)]
       .filter(Boolean).join(" · ") || "Vacío";
     info.append(nombre, cuenta);
+    if (t.de) {
+      tarjeta.classList.add("ajeno");
+      info.append(marcaAjena(t.de, "de-otra"));
+    }
 
     tarjeta.append(collage, info);
     lista.append(tarjeta);
@@ -170,6 +174,8 @@ async function mostrarTablero(id) {
   pintarFondo([corcho, vista], tablero.fondo);
   $("#nombre-tablero").textContent = tablero.nombre;
   document.title = `${tablero.nombre} · El Almacén`;
+  $("#tablero-de").replaceChildren(...(tablero.de ? [marcaAjena(tablero.de, "de-otra"), " · guardado en tus tableros"] : []));
+  $("#tablero-de").hidden = !tablero.de;
 
   const pins = await db.pins(id);
   await colocarSinPosicion(pins);
@@ -698,11 +704,21 @@ const rutasDe = (datos) => [datos?.fondo?.imagen, ...(datos?.pins ?? []).map((p)
 
 async function compartirEnlace() {
   $("#hoja-opciones").open && $("#hoja-opciones").close();
-  const nube = window.nube;
-  if (!nube?.usuario) return avisar("Para compartir con enlace necesitas una cuenta");
-  const pins = [...pinsActuales.values()].sort((a, b) => a.orden - b.orden);
-  if (!pins.length) return avisar("El tablero está vacío");
+  if (!window.nube?.usuario) return avisar("Para compartir con enlace necesitas una cuenta");
+  if (!pinsActuales.size) return avisar("El tablero está vacío");
   avisar("Preparando el enlace…");
+  try {
+    const id = await subirCompartido();
+    mostrarEnlace(new URL(`inspiracion.html#/compartido/${id}`, location.href).href);
+  } catch {
+    avisar("No se ha podido preparar el enlace. Prueba otra vez con conexión");
+  }
+}
+
+// Sube (o actualiza) la copia pública del tablero y devuelve el id del enlace
+async function subirCompartido() {
+  const nube = window.nube;
+  const pins = [...pinsActuales.values()].sort((a, b) => a.orden - b.orden);
   const cliente = nube.cliente;
   const carpeta = `${nube.usuario.id}/${tableroActual.id}/${Date.now().toString(36)}`;
   const subidas = [];
@@ -743,11 +759,11 @@ async function compartirEnlace() {
       tableroActual.compartido = id;
       await db.guardarTablero(tableroActual);
     }
-    mostrarEnlace(new URL(`inspiracion.html#/compartido/${id}`, location.href).href);
+    return id;
   } catch (e) {
     console.error(e);
     if (subidas.length) cliente.storage.from("tableros").remove(subidas);
-    avisar("No se ha podido preparar el enlace. Prueba otra vez con conexión");
+    throw e;
   }
 }
 
@@ -797,6 +813,42 @@ $("#btn-dejar-compartir").addEventListener("click", dejarDeCompartir);
 // Abrir un enlace: se enseña el tablero y se puede guardar una copia en los tuyos
 let compartidoActual = null;
 
+// Fotos y fondo de un tablero que viene de otra persona (enlace o archivo), con
+// cada dato comprobado. imagen(ruta) devuelve el Blob de cada foto.
+async function leerDatosAjenos(datos, imagen) {
+  const numero = (n, por) => (Number.isFinite(Number(n)) ? Number(n) : por);
+  const pins = [];
+  for (const [i, p] of (Array.isArray(datos?.pins) ? datos.pins : []).slice(0, 200).entries()) {
+    pins.push({
+      id: `c${i}`,
+      imagen: await imagen(p.imagen),
+      proporcion: limitar(numero(p.proporcion, 1), 0.1, 10),
+      x: limitar(numero(p.x, 0.05), -1, 2),
+      y: Math.max(0, numero(p.y, 0.05)),
+      ancho: limitar(numero(p.ancho, ANCHO_INICIAL), ANCHO_MINIMO, 1),
+      orden: i,
+      nota: typeof p.nota === "string" ? p.nota.slice(0, 500) : "",
+      origen: typeof p.origen === "string" && /^https:\/\//.test(p.origen) ? p.origen : null,
+      esmalte: p.esmalte && typeof p.esmalte === "object" ? p.esmalte : undefined,
+    });
+  }
+  const f = datos?.fondo;
+  const fondo = f?.tipo === "color" && /^#[0-9a-f]{6}$/i.test(f.color) ? { tipo: "color", color: f.color }
+    : f?.tipo === "foto" && f.imagen ? { tipo: "foto", imagen: await imagen(f.imagen) } : undefined;
+  return { fondo, pins };
+}
+
+// Guarda una copia como tablero tuyo; «de» marca que es de otra persona
+async function guardarCopia({ nombre, fondo, pins, de }) {
+  const nuevo = { id: nuevoId(), nombre, creado: Date.now(), ...(fondo && { fondo }), ...(de && { de: { ...de, guardado: Date.now() } }) };
+  await db.guardarTablero(nuevo);
+  const ahora = Date.now();
+  for (const p of pins) {
+    await db.guardarPin({ ...p, id: nuevoId(), tableroId: nuevo.id, orden: ahora + p.orden, creado: ahora });
+  }
+  return nuevo;
+}
+
 async function mostrarCompartido(id) {
   tableroActual = null;
   compartidoActual = null;
@@ -827,27 +879,12 @@ async function mostrarCompartido(id) {
     if (!r.ok) throw new Error("imagen");
     return r.blob();
   };
-  const numero = (n, por) => (Number.isFinite(Number(n)) ? Number(n) : por);
   try {
-    const pins = [];
-    for (const [i, p] of (data.datos?.pins ?? []).slice(0, 200).entries()) {
-      pins.push({
-        id: `c${i}`,
-        imagen: await bajar(p.imagen),
-        proporcion: limitar(numero(p.proporcion, 1), 0.1, 10),
-        x: limitar(numero(p.x, 0.05), -1, 2),
-        y: Math.max(0, numero(p.y, 0.05)),
-        ancho: limitar(numero(p.ancho, ANCHO_INICIAL), ANCHO_MINIMO, 1),
-        orden: i,
-        nota: typeof p.nota === "string" ? p.nota.slice(0, 500) : "",
-        origen: typeof p.origen === "string" && /^https:\/\//.test(p.origen) ? p.origen : null,
-        esmalte: p.esmalte && typeof p.esmalte === "object" ? p.esmalte : undefined,
-      });
-    }
-    const f = data.datos?.fondo;
-    const fondo = f?.tipo === "color" && /^#[0-9a-f]{6}$/i.test(f.color) ? { tipo: "color", color: f.color }
-      : f?.tipo === "foto" && f.imagen ? { tipo: "foto", imagen: await bajar(f.imagen) } : undefined;
-    compartidoActual = { nombre: String(data.nombre || "Tablero").slice(0, 120), fondo, pins };
+    compartidoActual = {
+      nombre: String(data.nombre || "Tablero").slice(0, 120),
+      ...(await leerDatosAjenos(data.datos, bajar)),
+      de: data.mio ? null : { autor: data.autor || null, enlace: id },
+    };
   } catch {
     return fallo("No se han podido bajar las fotos del tablero. Prueba otra vez con conexión.");
   }
@@ -855,7 +892,7 @@ async function mostrarCompartido(id) {
   const { nombre, fondo, pins } = compartidoActual;
   titulo.textContent = nombre;
   document.title = `${nombre} · El Almacén`;
-  $("#compartido-autor").textContent = data.mio ? "Es tu tablero compartido." : data.autor ? `Te lo comparte ${data.autor}.` : "Te lo han compartido.";
+  $("#compartido-autor").textContent = data.mio ? "Es tu tablero compartido." : `${data.autor ? `Es de ${data.autor}.` : "Es de otra persona."} Si lo guardas, te quedará marcado como suyo.`;
   const fotos = pins.filter((p) => !p.esmalte).length;
   const esmaltes = pins.length - fotos;
   $("#compartido-cuenta").textContent = [fotos && (fotos === 1 ? "1 foto" : `${fotos} fotos`), esmaltes && (esmaltes === 1 ? "1 esmalte" : `${esmaltes} esmaltes`)].filter(Boolean).join(" · ") || "Está vacío";
@@ -870,13 +907,7 @@ $("#btn-guardar-compartido").addEventListener("click", async () => {
   const boton = $("#btn-guardar-compartido");
   boton.disabled = true;
   try {
-    const { nombre, fondo, pins } = compartidoActual;
-    const nuevo = { id: nuevoId(), nombre, creado: Date.now(), ...(fondo && { fondo }) };
-    await db.guardarTablero(nuevo);
-    const ahora = Date.now();
-    for (const p of pins) {
-      await db.guardarPin({ ...p, id: nuevoId(), tableroId: nuevo.id, orden: ahora + p.orden, creado: ahora });
-    }
+    const nuevo = await guardarCopia(compartidoActual);
     avisar("Guardado en tus tableros");
     location.hash = `#/t/${nuevo.id}`;
   } catch {
@@ -886,6 +917,142 @@ $("#btn-guardar-compartido").addEventListener("click", async () => {
   }
 });
 $("#btn-compartir-opciones").addEventListener("click", compartirTablero);
+
+// ---------- Tableros de otra persona: marca, archivo y comunidad ----------
+// Un tablero guardado de otra persona lleva «de» ({ autor, enlace | archivo })
+// y se ve con este icono en la lista y dentro del tablero.
+
+const ICONO_AJENO = '<svg class="icono-ajeno" viewBox="0 0 24 24" aria-hidden="true" width="1em" height="1em"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3.3 2.8-5.2 5.5-5.2s4.9 1.9 5.5 5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M15 8h6M18 5l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const textoDe = (de) => (de.autor ? `de ${de.autor}` : "de otra persona");
+function marcaAjena(de, clase) {
+  const el = document.createElement("span");
+  el.className = clase;
+  el.innerHTML = ICONO_AJENO;
+  el.append(` ${textoDe(de)}`);
+  el.title = `Tablero ${textoDe(de)}, guardado en los tuyos`;
+  return el;
+}
+
+const aDatoUrl = (blob) => new Promise((ok, mal) => {
+  const lector = new FileReader();
+  lector.onload = () => ok(lector.result);
+  lector.onerror = () => mal(lector.error);
+  lector.readAsDataURL(blob);
+});
+
+// Sin cuenta, el archivo se reconoce como tuyo por este número del móvil
+function idDeEsteMovil() {
+  try {
+    let id = localStorage.getItem("idMovil");
+    if (!id) localStorage.setItem("idMovil", (id = nuevoId()));
+    return id;
+  } catch { return null; }
+}
+
+// Exportar: un archivo con el tablero entero (fotos dentro) para pasarlo por
+// WhatsApp, correo o guardarlo; quien lo importa lo tiene marcado como tuyo
+async function exportarTablero() {
+  $("#hoja-opciones").open && $("#hoja-opciones").close();
+  const pins = [...pinsActuales.values()].sort((a, b) => a.orden - b.orden);
+  if (!pins.length) return avisar("El tablero está vacío");
+  avisar("Preparando el archivo…");
+  try {
+    const nube = window.nube;
+    let autor = null;
+    let autorId = null;
+    if (tableroActual.de) ({ autor = null, autorId = null } = tableroActual.de);
+    else {
+      autorId = nube?.usuario?.id ?? idDeEsteMovil();
+      if (nube?.usuario) {
+        const { data } = await nube.cliente.from("perfiles").select("alias").eq("user_id", nube.usuario.id);
+        autor = data?.[0]?.alias ?? null;
+      }
+    }
+    const fondo = tableroActual.fondo;
+    const datos = {
+      formato: "elalmacen-tablero", version: 1, nombre: tableroActual.nombre, autor, autorId, exportado: new Date().toISOString(),
+      fondo: fondo?.tipo === "color" ? { tipo: "color", color: fondo.color }
+        : fondo?.tipo === "foto" && fondo.imagen instanceof Blob ? { tipo: "foto", imagen: await aDatoUrl(fondo.imagen) } : null,
+      pins: [],
+    };
+    for (const p of pins) {
+      datos.pins.push({ imagen: await aDatoUrl(p.imagen), proporcion: p.proporcion, x: p.x, y: p.y, ancho: p.ancho,
+        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null });
+    }
+    const archivo = new File([JSON.stringify(datos)], `${nombreDeArchivo(tableroActual.nombre) || "tablero"}.tablero.json`, { type: "application/json" });
+    if (navigator.canShare?.({ files: [archivo] })) {
+      try {
+        await navigator.share({ files: [archivo], title: tableroActual.nombre, text: `Tablero «${tableroActual.nombre}» de El Almacén: ábrelo en Mis tableros › Importar` });
+        return;
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+    }
+    const enlace = Object.assign(document.createElement("a"), { href: URL.createObjectURL(archivo), download: archivo.name });
+    document.body.append(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(enlace.href), 10000);
+    avisar("Archivo descargado");
+  } catch (e) {
+    console.error(e);
+    avisar("No se ha podido exportar el tablero");
+  }
+}
+
+async function importarTablero(archivo) {
+  if (!archivo) return;
+  if (archivo.size > 80 * 1024 * 1024) return avisar("Ese archivo es demasiado grande");
+  avisar("Importando…");
+  try {
+    const datos = JSON.parse(await archivo.text());
+    if (datos?.formato !== "elalmacen-tablero") throw new Error("formato");
+    const imagen = async (url) => {
+      if (typeof url !== "string" || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(url)) throw new Error("imagen");
+      return (await fetch(url)).blob();
+    };
+    const mios = [window.nube?.usuario?.id, idDeEsteMovil()].filter(Boolean);
+    const mio = datos.autorId && mios.includes(datos.autorId);
+    const nuevo = await guardarCopia({
+      nombre: String(datos.nombre || "Tablero").slice(0, 120),
+      ...(await leerDatosAjenos(datos, imagen)),
+      de: mio ? null : { autor: typeof datos.autor === "string" ? datos.autor.slice(0, 60) : null, autorId: typeof datos.autorId === "string" ? datos.autorId : null, archivo: true },
+    });
+    avisar(mio ? "Tablero importado" : `Tablero ${textoDe(nuevo.de)} importado`);
+    location.hash = `#/t/${nuevo.id}`;
+  } catch {
+    avisar("Ese archivo no es un tablero de El Almacén");
+  }
+}
+
+// Publicar en la comunidad: se comparte con enlace y se abre la comunidad con el
+// tablero ya puesto (y una imagen de portada); quien lo vea se lo puede guardar
+async function publicarEnComunidad() {
+  $("#hoja-opciones").open && $("#hoja-opciones").close();
+  if (!window.nube?.usuario) return avisar("Para publicar en la comunidad necesitas una cuenta");
+  if (!pinsActuales.size) return avisar("El tablero está vacío");
+  if (tableroActual.de && !confirm(`Este tablero es ${textoDe(tableroActual.de)}. ¿Publicarlo igualmente?`)) return;
+  avisar("Preparando el tablero…");
+  try {
+    const id = await subirCompartido();
+    let portada = null;
+    try { portada = await aDatoUrl(await imagenDelTablero()); } catch {}
+    const pedido = { almacen: "tablero", id, nombre: tableroActual.nombre, de: tableroActual.de?.autor ?? null };
+    try { sessionStorage.setItem("compartirComunidad", JSON.stringify({ ...pedido, portada })); }
+    catch { sessionStorage.setItem("compartirComunidad", JSON.stringify(pedido)); } // portada demasiado grande
+    location.href = "comunidad.html#publicar";
+  } catch {
+    avisar("No se ha podido preparar. Prueba otra vez con conexión");
+  }
+}
+
+$("#btn-exportar").addEventListener("click", exportarTablero);
+$("#btn-publicar-comunidad").addEventListener("click", publicarEnComunidad);
+$("#btn-importar").addEventListener("click", () => $("#input-importar").click());
+$("#input-importar").addEventListener("change", (e) => {
+  importarTablero(e.target.files[0]);
+  e.target.value = "";
+});
 
 $("#btn-renombrar").addEventListener("click", async () => {
   const nombre = prompt("Nuevo nombre", tableroActual.nombre)?.trim();

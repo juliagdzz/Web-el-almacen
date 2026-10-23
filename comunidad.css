@@ -240,3 +240,21 @@ button.autor:hover strong { text-decoration: underline; }
 .insignias-publicas .medalla { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: white; }
 .insignias-publicas .medalla svg { width: 2.6rem; height: 2.6rem; }
 .insignias-publicas small { font-size: 0.72rem; line-height: 1.2; }
+
+/* Tablero de inspiración publicado: se guarda desde su enlace */
+.adjunto-tablero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border-left: 4px solid var(--terracota);
+  border-radius: 0 14px 14px 0;
+  background: white;
+}
+.adjunto-tablero > div { display: grid; gap: 0.15rem; min-width: 0; flex: 1 1 14rem; }
+.adjunto-tablero strong { font-family: 'Fraunces', serif; color: var(--granate); }
+.adjunto-tablero small { color: var(--verde); line-height: 1.4; }
+.contenedor .adjunto-tablero a.boton { color: var(--crema); }

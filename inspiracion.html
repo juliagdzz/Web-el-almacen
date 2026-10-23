@@ -38,6 +38,8 @@
     <h1>Mis tableros</h1>
     <p class="aviso">Tus tableros se guardan en este móvil. Si borras los datos del navegador, se pierden.</p>
     <div id="lista-tableros" class="lista-tableros"></div>
+    <p class="importar-tablero">¿Te han pasado un tablero en un archivo? <button id="btn-importar" type="button" class="enlace">Importar tablero</button>
+      <input id="input-importar" type="file" accept=".json,application/json" hidden></p>
   </main>
 
   <!-- Un tablero que te han pasado con un enlace -->
@@ -58,6 +60,7 @@
       <button id="btn-compartir" class="icono" aria-label="Compartir tablero" title="Compartir tablero"><svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       <button id="btn-opciones" class="icono" aria-label="Opciones del tablero">⋯</button>
     </div>
+    <p id="tablero-de" class="tablero-de" hidden></p>
     <p class="ayuda">Arrastra el corcho para moverte. Toca una foto para elegirla y arrástrala; el círculo de la esquina cambia su tamaño.</p>
     <div id="corcho-vista" class="corcho-vista">
       <div id="corcho" class="corcho"></div>
@@ -149,6 +152,8 @@
     <h2>Opciones</h2>
     <button id="btn-enlace" class="opcion" type="button">Compartir con enlace <small>Quien lo abra puede guardárselo en sus tableros</small></button>
     <button id="btn-compartir-opciones" class="opcion" type="button">Compartir como imagen</button>
+    <button id="btn-publicar-comunidad" class="opcion" type="button">Publicar en la comunidad <small>Quien lo vea podrá guardárselo</small></button>
+    <button id="btn-exportar" class="opcion" type="button">Exportar archivo <small>Con todas las fotos, para pasarlo por WhatsApp o correo</small></button>
     <button id="btn-dejar-compartir" class="opcion" type="button" hidden>Dejar de compartir el enlace</button>
     <button id="btn-renombrar" class="opcion" type="button">Cambiar nombre</button>
     <button id="btn-borrar-tablero" class="opcion peligro" type="button">Borrar tablero</button>

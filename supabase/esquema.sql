@@ -852,7 +852,7 @@ alter table public.perfiles add column if not exists insignias text not null def
 create table if not exists public.publicaciones (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users on delete cascade,
-  categoria text not null check (categoria in ('esmaltes', 'recetas', 'problemas', 'piezas', 'charla')),
+  categoria text not null check (categoria in ('esmaltes', 'recetas', 'problemas', 'piezas', 'charla', 'inspiracion')),
   titulo text not null check (length(btrim(titulo)) between 3 and 140),
   cuerpo text not null default '' check (length(cuerpo) <= 10000),
   fotos text[] not null default '{}' check (cardinality(fotos) <= 6),
@@ -1348,3 +1348,13 @@ create policy "Tienda: ver fotos" on storage.objects for select to authenticated
 drop policy if exists "Tienda: borrar fotos" on storage.objects;
 create policy "Tienda: borrar fotos" on storage.objects for delete to authenticated
   using (bucket_id = 'tienda' and public.es_admin());
+
+-- ============================================================
+-- Comunidad: categoría «Inspiración» para publicar tableros
+-- ============================================================
+-- Si la tabla ya existía, se cambia la regla de categorías. El tablero va en
+-- «adjunto» ({ tipo: 'tablero', id: enlace compartido, nombre }) y quien lo ve
+-- se lo guarda desde ese enlace.
+alter table public.publicaciones drop constraint if exists publicaciones_categoria_check;
+alter table public.publicaciones add constraint publicaciones_categoria_check
+  check (categoria in ('esmaltes', 'recetas', 'problemas', 'piezas', 'charla', 'inspiracion'));

@@ -12,6 +12,7 @@ const CATEGORIAS = {
   problemas: { nombre: "Problemas y soluciones" },
   piezas: { nombre: "Piezas" },
   charla: { nombre: "Charla" },
+  inspiracion: { nombre: "Inspiración" },
 };
 const numero = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 
@@ -160,6 +161,7 @@ function tarjeta(p) {
         h("span", { class: `etiqueta-cat cat-${p.categoria}` }, cat.nombre),
         p.resuelto && h("span", { class: "resuelto" }, "✓ Resuelto"),
         p.adjunto === "receta" && h("span", { class: "con-receta" }, "Receta"),
+        p.adjunto === "tablero" && h("span", { class: "con-receta" }, "Tablero"),
         p.avisos > 0 && h("span", { class: "con-avisos" }, `${p.avisos} ${p.avisos === 1 ? "aviso" : "avisos"}`)),
       h("strong", { class: "titulo-post" }, p.titulo),
       p.extracto && h("span", { class: "extracto" }, p.extracto),
@@ -260,6 +262,19 @@ async function guardarReceta(a) {
   }
 }
 
+// Un tablero de inspiración publicado: se abre su enlace, donde se puede guardar
+// (queda marcado en tus tableros como de quien lo publicó)
+function tarjetaTablero(p) {
+  const id = String(p.adjunto.id ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const enlace = `inspiracion.html#/compartido/${id}`;
+  return h("div", { class: "adjunto-tablero" },
+    h("div", {},
+      h("strong", {}, `Tablero «${p.adjunto.nombre || p.titulo}»`),
+      h("small", {}, p.es_mia ? "Es tu tablero: quien lo vea puede guardárselo." : `Guárdatelo en tus tableros: te quedará marcado como de ${p.autor}.`)),
+    h("a", { class: "boton", href: enlace }, p.es_mia ? "Ver tablero" : "Guardar en mis tableros"));
+}
+
 async function abrirPublicacion(id) {
   let p;
   try { p = await rpc("comunidad_publicacion", { p_id: id }); } catch { p = null; }
@@ -279,6 +294,7 @@ async function abrirPublicacion(id) {
       p.fotos.map((f, i) => h("a", { href: urlFoto(f), target: "_blank", rel: "noopener" }, h("img", { src: urlFoto(f), alt: `Foto ${i + 1}` })))),
     p.cuerpo && h("p", { class: "texto-post" }, p.cuerpo),
     p.adjunto?.tipo === "receta" && tablaReceta(p.adjunto),
+    p.adjunto?.tipo === "tablero" && tarjetaTablero(p),
     h("div", { class: "acciones-post" },
       botonUtil(p, "horizontal"),
       h("button", { type: "button", class: "boton texto", onclick: () => compartir({ titulo: p.titulo, texto: `${p.titulo} · Comunidad de El Almacén\n${location.href}`, avisar }) }, "Compartir"),
@@ -429,6 +445,25 @@ function textoPieza(p) {
 }
 
 function elegirAdjunto(tipo, x) {
+  if (tipo === "tablero") {
+    nueva.categoria = "inspiracion";
+    if (!$("#p-titulo").value.trim()) $("#p-titulo").value = x.nombre || "Mi tablero de inspiración";
+    nueva.adjunto = { tipo: "tablero", id: x.id, nombre: x.nombre || "" };
+    nueva.fotos.forEach((f) => URL.revokeObjectURL(f.url));
+    nueva.fotos = [];
+    // la imagen del tablero, de portada
+    if (x.portada) fetch(x.portada).then((r) => r.blob()).then(prepararImagen).then((blob) => {
+      nueva.fotos = [{ blob, url: URL.createObjectURL(blob) }];
+      pintarFotosNueva();
+    }).catch(() => {});
+    $("#adjunto-elegido").replaceChildren(
+      h("span", {}, `Compartes tu tablero «${x.nombre || "sin nombre"}»: quien lo vea podrá guardárselo en sus tableros.`),
+      h("button", { type: "button", class: "boton texto", onclick: () => { nueva.adjunto = null; $("#adjunto-elegido").hidden = true; } }, "Quitar"));
+    $("#adjunto-elegido").hidden = false;
+    pintarCategoriasNueva();
+    pintarFotosNueva();
+    return;
+  }
   if (tipo === "pieza") {
     nueva.categoria = "piezas";
     $("#p-titulo").value = x.nombre || "Mi pieza";
@@ -478,7 +513,8 @@ async function abrirPublicar() {
   try {
     const pedido = JSON.parse(sessionStorage.getItem("compartirComunidad"));
     sessionStorage.removeItem("compartirComunidad");
-    const x = pedido && (pedido.almacen === "piezas" ? mias.piezas : mias.recetas).find((y) => y.id === pedido.id);
+    if (pedido?.almacen === "tablero") elegirAdjunto("tablero", pedido);
+    const x = pedido && pedido.almacen !== "tablero" && (pedido.almacen === "piezas" ? mias.piezas : mias.recetas).find((y) => y.id === pedido.id);
     if (x) elegirAdjunto(pedido.almacen === "piezas" ? "pieza" : "receta", x);
   } catch {}
   // Lo que ya habías escrito antes de ir a crear la pieza o el esmalte
@@ -537,7 +573,9 @@ $("#form-publicar").addEventListener("submit", async (e) => {
     avisar("¡Publicado!");
     location.hash = `#p/${data.id}`;
   } catch (err) {
-    error(/row-level security/i.test(String(err?.message)) ? "Has publicado mucho hoy: prueba mañana." : mensajeError(err));
+    error(/row-level security/i.test(String(err?.message)) ? "Has publicado mucho hoy: prueba mañana."
+      : /categoria_check/i.test(String(err?.message)) ? "Para publicar tableros falta un paso en Supabase: hay que volver a ejecutar supabase/esquema.sql."
+      : mensajeError(err));
   } finally {
     boton.disabled = false;
     boton.textContent = "Publicar";
