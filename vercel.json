@@ -1,6 +1,8 @@
 {
   "functions": {
-    "api/esmaltes.js": { "maxDuration": 30 },
-    "api/diez-prueba.js": { "maxDuration": 60 }
+    "api/esmaltes.js": {
+      "maxDuration": 30,
+      "includeFiles": "api/_tecniglaze-codigos.json"
+    }
   }
 }

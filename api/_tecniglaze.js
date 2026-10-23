@@ -7,6 +7,9 @@
 // (background-color), o una foto de la textura (Speckglaze).
 
 const TIENDA = "https://diezceramic.com/tienda";
+// Código DPC de cada color («producto-color» → "DPC-656"). La tienda solo lo
+// enseña en la referencia de cada variante, así que se guardó aparte.
+const CODIGOS = require("./_tecniglaze-codigos.json");
 const CATEGORIA = `${TIENDA}/15-esmaltes`;
 const CABECERAS = { "User-Agent": "Mozilla/5.0 (El Almacén; catálogo de esmaltes)", "Accept-Language": "es-ES" };
 
@@ -43,7 +46,9 @@ function coloresDelProducto(html) {
   const lista = [];
   for (const [, , cuerpo] of grupos) {
     for (const [, titulo, valor, estilo] of cuerpo.matchAll(/title="([^"]+)"[\s\S]*?value="(\d+)"[\s\S]*?<span\s+class="color[^"]*"\s*(?:style="([^"]*)")?/g)) {
-      const { codigo, nombre } = limpiarNombre(decodificar(titulo));
+      const limpio = limpiarNombre(decodificar(titulo));
+      const nombre = limpio.nombre;
+      const codigo = limpio.codigo || CODIGOS[`${producto.id_product}-${valor}`] || "";
       const hex = estilo?.match(/background-color:\s*(#[0-9a-f]{6})/i)?.[1]?.toLowerCase() ?? null;
       const textura = estilo?.match(/background-image:\s*url\(([^)]+)\)/)?.[1] ?? null;
       const foto = textura ? new URL(textura, TIENDA).href : null;
