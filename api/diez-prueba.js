@@ -1,19 +1,20 @@
-// TEMPORAL: busca dónde guarda Díez Ceramic el código DPC de los Reactivos. Se borra después.
+// TEMPORAL: busca dónde guarda Díez Ceramic el código DPC de cada color. Se borra después.
 const CAB = { "User-Agent": "Mozilla/5.0 (El Almacén; catálogo de esmaltes)", "Accept-Language": "es-ES" };
-const leer = async (u) => (await fetch(u, { headers: CAB })).text();
 module.exports = async (req, res) => {
-  const categoria = await leer("https://diezceramic.com/tienda/15-esmaltes");
-  // enlaces de variante: /50-1765-esmaltes-reactivos-ceramica.html#/195-tamano-200_ml/381-color-moss_green...
-  const variantes = new Map();
-  for (const m of categoria.matchAll(/https:\/\/diezceramic\.com\/tienda\/esmaltes\/(\d+)-(\d+)-[a-z0-9-]+\.html#\/(\d+)-tamano-[a-z0-9_]+\/(\d+)-color-([a-z0-9_]+)/g)) {
-    const [url, prod, combinacion, , valor, slug] = m;
-    if (!variantes.has(valor)) variantes.set(valor, { prod, combinacion, valor, slug, url: url.split("#")[0] });
+  const url = req.query.url || "https://diezceramic.com/tienda/esmaltes/50-1760-esmaltes-reactivos-ceramica.html";
+  const html = await (await fetch(url, { headers: CAB })).text();
+  const producto = html.match(/name="id_product" value="(\d+)"/)?.[1];
+  const grupos = [...html.matchAll(/name="group\[(\d+)\]"[^>]*value="(\d+)"[^>]*(checked|selected)?/g)].map((m) => ({ g: m[1], v: m[2], marcado: Boolean(m[3]) }));
+  const tamano = grupos.find((x) => x.g !== "2" && x.marcado) ?? grupos.find((x) => x.g !== "2");
+  const colores = grupos.filter((x) => x.g === "2").slice(0, Number(req.query.n || 4));
+  const salida = [];
+  for (const c of colores) {
+    const cuerpo = new URLSearchParams({ ajax: "1", action: "refresh", quantity_wanted: "1", id_product: producto, [`group[${tamano?.g ?? 1}]`]: tamano?.v ?? "195", "group[2]": c.v });
+    const r = await fetch(url, { method: "POST", headers: { ...CAB, "Content-Type": "application/x-www-form-urlencoded", "X-Requested-With": "XMLHttpRequest", Accept: "application/json" }, body: cuerpo });
+    const t = await r.text();
+    let j = null; try { j = JSON.parse(t); } catch {}
+    salida.push({ valor: c.v, status: r.status, combinacion: j?.id_product_attribute, sku: (j?.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1] ?? null, otra: j ? null : t.slice(0, 200) });
   }
-  const quiero = [...variantes.values()].filter((v) => v.prod === (req.query.prod || "50"));
-  const salida = await Promise.all(quiero.map(async (v) => {
-    const html = await leer(v.url).catch(() => "");
-    return { ...v, sku: html.match(/itemprop="sku">([^<]+)/)?.[1] ?? null };
-  }));
   res.setHeader("Cache-Control", "no-store");
-  res.json({ totalVariantes: variantes.size, productos: [...new Set([...variantes.values()].map((v) => v.prod))], salida });
+  res.json({ producto, tamano, ncolores: grupos.filter((x) => x.g === "2").length, salida });
 };
