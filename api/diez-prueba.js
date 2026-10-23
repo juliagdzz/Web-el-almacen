@@ -12,6 +12,7 @@ module.exports = async (req, res) => {
   for (const [url, id] of categoria.matchAll(/https:\/\/diezceramic\.com\/tienda\/esmaltes\/(\d+)-\d+-[a-z0-9-]+\.html/g)) if (!productos.has(id)) productos.set(id, url);
   const tareas = [];
   for (const [id, url] of productos) {
+    if (req.query.prod && req.query.prod !== id) continue;
     const html = await leer(url);
     const grupos = [...html.matchAll(/name="group\[(\d+)\]"[^>]*value="(\d+)"[^>]*(checked|selected)?/g)].map((m) => ({ g: m[1], v: m[2], marcado: Boolean(m[3]) }));
     const tamano = grupos.find((x) => x.g !== "2" && x.marcado) ?? grupos.find((x) => x.g !== "2");
