@@ -3,7 +3,7 @@
 .tienda .entradilla { margin-top: 0; }
 .cabeza-tienda { display: flex; align-items: flex-end; gap: 1rem; }
 .cabeza-tienda > div { flex: 1; min-width: 0; }
-.dragon-tienda { flex: none; width: clamp(9rem, 42vw, 16rem); height: auto; margin: -1.5rem -0.75rem -0.5rem 0; }
+.alocasia-tienda { flex: none; width: clamp(6.5rem, 28vw, 10rem); height: auto; margin: -1rem -0.5rem -0.5rem 0; }
 .ayuda { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--verde); line-height: 1.45; }
 
 .nota-pago {
