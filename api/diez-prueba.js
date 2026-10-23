@@ -1,18 +1,19 @@
 // TEMPORAL: busca dónde guarda Díez Ceramic el código DPC de los Reactivos. Se borra después.
 const CAB = { "User-Agent": "Mozilla/5.0 (El Almacén; catálogo de esmaltes)", "Accept-Language": "es-ES" };
+const leer = async (u) => (await fetch(u, { headers: CAB })).text();
 module.exports = async (req, res) => {
-  const url = "https://diezceramic.com/tienda/esmaltes/50-1760-esmaltes-reactivos-ceramica.html";
-  const html = await (await fetch(url, { headers: CAB })).text();
-  const alrededor = (re) => [...html.matchAll(re)].slice(0, 40).map((m) => html.slice(Math.max(0, m.index - 160), m.index + 160).replace(/\s+/g, " "));
-  const grupo = html.match(/<ul id="group_(\d+)">/)?.[1];
-  const valores = [...html.matchAll(/value="(\d+)"[^>]*>\s*<span\s+class="color/g)].map((m) => m[1]);
-  const refresco = [];
-  for (const v of valores) {
-    const r = await fetch(`https://diezceramic.com/tienda/index.php?controller=product&id_product=50&ajax=1&action=refresh&quantity_wanted=1&group%5B1%5D=195&group%5B${grupo}%5D=${v}`, { headers: { ...CAB, "X-Requested-With": "XMLHttpRequest", Accept: "application/json" } });
-    const t = await r.text();
-    let j = null; try { j = JSON.parse(t); } catch {}
-    refresco.push({ v, status: r.status, claves: j ? Object.keys(j) : null, referencia: (j?.product_details ?? t).match(/itemprop=\\?"sku\\?">([^<]+)/)?.[1] ?? (t.match(/[A-Z0-9-]*DPC-\d+[A-Z0-9-]*/) ?? [])[0], nombre: (j?.product_variants ?? "").match(/checked[^>]*>[\s\S]{0,200}?title=\\?"([^"\\]+)/)?.[1], trozo: j ? null : t.slice(0, 300) });
+  const categoria = await leer("https://diezceramic.com/tienda/15-esmaltes");
+  // enlaces de variante: /50-1765-esmaltes-reactivos-ceramica.html#/195-tamano-200_ml/381-color-moss_green...
+  const variantes = new Map();
+  for (const m of categoria.matchAll(/https:\/\/diezceramic\.com\/tienda\/esmaltes\/(\d+)-(\d+)-[a-z0-9-]+\.html#\/(\d+)-tamano-[a-z0-9_]+\/(\d+)-color-([a-z0-9_]+)/g)) {
+    const [url, prod, combinacion, , valor, slug] = m;
+    if (!variantes.has(valor)) variantes.set(valor, { prod, combinacion, valor, slug, url: url.split("#")[0] });
   }
+  const quiero = [...variantes.values()].filter((v) => v.prod === (req.query.prod || "50"));
+  const salida = await Promise.all(quiero.map(async (v) => {
+    const html = await leer(v.url).catch(() => "");
+    return { ...v, sku: html.match(/itemprop="sku">([^<]+)/)?.[1] ?? null };
+  }));
   res.setHeader("Cache-Control", "no-store");
-  res.json({ grupo, valores, dpc: alrededor(/DPC/g), referencia: alrededor(/reference|Referencia/g).slice(0, 8), dataProduct: (html.match(/data-product="([^"]{0,600})/)?.[1] ?? ""), refresco });
+  res.json({ totalVariantes: variantes.size, productos: [...new Set([...variantes.values()].map((v) => v.prod))], salida });
 };
