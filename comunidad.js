@@ -275,6 +275,41 @@ function tarjetaTablero(p) {
     h("a", { class: "boton", href: enlace }, p.es_mia ? "Ver tablero" : "Guardar en mis tableros"));
 }
 
+// Visor de fotos: se abre encima de la página, con flechas si hay varias
+const visor = { fotos: [], i: 0 };
+function pintarVisor() {
+  const { fotos, i } = visor;
+  $("#visor-img").src = fotos[i];
+  $("#visor-img").alt = `Foto ${i + 1} de ${fotos.length}`;
+  $("#visor-cuenta").textContent = fotos.length > 1 ? `${i + 1} / ${fotos.length}` : "";
+  $("#visor-anterior").hidden = $("#visor-siguiente").hidden = fotos.length < 2;
+}
+function abrirVisor(fotos, i) {
+  Object.assign(visor, { fotos, i });
+  pintarVisor();
+  $("#visor").showModal();
+}
+const moverVisor = (paso) => {
+  visor.i = (visor.i + paso + visor.fotos.length) % visor.fotos.length;
+  pintarVisor();
+};
+$("#visor-anterior").addEventListener("click", () => moverVisor(-1));
+$("#visor-siguiente").addEventListener("click", () => moverVisor(1));
+$("#visor").addEventListener("click", (e) => { if (e.target === e.currentTarget || e.target.classList.contains("marco-visor")) $("#visor").close(); });
+$("#visor").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") moverVisor(-1);
+  if (e.key === "ArrowRight") moverVisor(1);
+});
+// En el móvil, deslizar para pasar de foto
+let inicioToque = null;
+$("#visor").addEventListener("touchstart", (e) => { inicioToque = e.touches[0].clientX; }, { passive: true });
+$("#visor").addEventListener("touchend", (e) => {
+  if (inicioToque == null || visor.fotos.length < 2) return;
+  const dx = e.changedTouches[0].clientX - inicioToque;
+  if (Math.abs(dx) > 50) moverVisor(dx < 0 ? 1 : -1);
+  inicioToque = null;
+});
+
 async function abrirPublicacion(id) {
   let p;
   try { p = await rpc("comunidad_publicacion", { p_id: id }); } catch { p = null; }
@@ -291,7 +326,8 @@ async function abrirPublicacion(id) {
     h("h1", {}, p.titulo),
     h("p", { class: "autor-post" }, botonAutor(p), ` · ${haceCuanto(p.creado)}${p.editado ? " · editado" : ""}`),
     p.fotos.length > 0 && h("div", { class: `fotos-post n${Math.min(p.fotos.length, 3)}` },
-      p.fotos.map((f, i) => h("a", { href: urlFoto(f), target: "_blank", rel: "noopener" }, h("img", { src: urlFoto(f), alt: `Foto ${i + 1}` })))),
+      p.fotos.map((f, i) => h("a", { href: urlFoto(f), onclick: (e) => { e.preventDefault(); abrirVisor(p.fotos.map(urlFoto), i); } },
+        h("img", { src: urlFoto(f), alt: `Foto ${i + 1}` })))),
     p.cuerpo && h("p", { class: "texto-post" }, p.cuerpo),
     p.adjunto?.tipo === "receta" && tablaReceta(p.adjunto),
     p.adjunto?.tipo === "tablero" && tarjetaTablero(p),

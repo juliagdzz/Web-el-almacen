@@ -96,6 +96,17 @@
   </main>
 
   <!-- Nombre público, la primera vez -->
+  <!-- Visor de fotos de una publicación -->
+  <dialog id="visor" class="visor" aria-label="Foto">
+    <form method="dialog" class="cerrar-visor"><button class="boton-visor" aria-label="Cerrar">✕</button></form>
+    <div class="marco-visor">
+      <button id="visor-anterior" type="button" class="boton-visor flecha-visor anterior" aria-label="Foto anterior">‹</button>
+      <img id="visor-img" alt="">
+      <button id="visor-siguiente" type="button" class="boton-visor flecha-visor siguiente" aria-label="Foto siguiente">›</button>
+    </div>
+    <p id="visor-cuenta" class="cuenta-visor"></p>
+  </dialog>
+
   <dialog id="hoja-alias" class="hoja-comunidad">
     <form id="form-alias" class="form-publicar">
       <h2>¿Con qué nombre quieres aparecer?</h2>

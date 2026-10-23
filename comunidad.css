@@ -258,3 +258,44 @@ button.autor:hover strong { text-decoration: underline; }
 .adjunto-tablero strong { font-family: 'Fraunces', serif; color: var(--granate); }
 .adjunto-tablero small { color: var(--verde); line-height: 1.4; }
 .contenedor .adjunto-tablero a.boton { color: var(--crema); }
+
+/* Visor de fotos: encima de la página, a pantalla casi completa */
+.fotos-post a { cursor: zoom-in; }
+.visor {
+  box-sizing: border-box;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: calc(3.5rem + env(safe-area-inset-top)) 1rem calc(2.5rem + env(safe-area-inset-bottom));
+  border: 0;
+  background: transparent;
+  color: var(--crema);
+}
+.visor[open] { display: flex; flex-direction: column; }
+.visor::backdrop { background: rgb(20 12 10 / 0.88); }
+.marco-visor { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
+.marco-visor img { max-width: 100%; max-height: calc(100dvh - 6.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgb(0 0 0 / 0.5); cursor: default; }
+.boton-visor, .boton-visor:hover {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(243 233 216 / 0.16);
+  color: var(--crema);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.boton-visor:hover { background: rgb(243 233 216 / 0.3); }
+.cerrar-visor { position: absolute; top: calc(0.75rem + env(safe-area-inset-top)); right: 0.75rem; margin: 0; }
+.flecha-visor { position: absolute; top: 50%; transform: translateY(-50%); font-size: 2rem; }
+.flecha-visor.anterior { left: 0; }
+.flecha-visor.siguiente { right: 0; }
+.flecha-visor[hidden] { display: none; }
+.cuenta-visor { position: absolute; left: 0; right: 0; bottom: calc(0.75rem + env(safe-area-inset-bottom)); margin: 0; text-align: center; font-size: 0.9rem; opacity: 0.85; }
+@media (min-width: 700px) { .visor { padding-left: 4.5rem; padding-right: 4.5rem; } .flecha-visor.anterior { left: -3.75rem; } .flecha-visor.siguiente { right: -3.75rem; } }
