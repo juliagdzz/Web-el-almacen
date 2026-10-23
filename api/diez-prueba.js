@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
     const gColor = [...html.matchAll(/<ul id="group_(\d+)">([\s\S]*?)<\/ul>/g)].find(([, , cuerpo]) => /input-color/.test(cuerpo))?.[1] ?? "2";
     const tamano = grupos.find((x) => x.g !== gColor && x.marcado) ?? grupos.find((x) => x.g !== gColor);
     for (const c of grupos.filter((x) => x.g === gColor)) tareas.push({ id, url, tamano, gColor, valor: c.v });
+    if (req.query.ver) return res.json({ gColor, grupos: grupos.slice(0, 6), trozos: [...html.matchAll(/group\[\d+\]/g)].slice(0, 4).map((m) => html.slice(m.index - 300, m.index + 200).replace(/\s+/g, " ")), dpc: [...html.matchAll(/DPC/g)].slice(0, 5).map((m) => html.slice(m.index - 150, m.index + 60).replace(/\s+/g, " ")) });
   }
   const salida = await enTandas(tareas, 10, async (t) => {
     const cuerpo = new URLSearchParams({ ajax: "1", action: "refresh", quantity_wanted: "1", id_product: t.id, [`group[${t.gColor}]`]: t.valor });
@@ -27,7 +28,8 @@ module.exports = async (req, res) => {
     const j = await r.json();
     const det = j.product_details ?? "";
     const i = det.indexOf("sku");
-    return { id: t.id, valor: t.valor, cerca: i >= 0 ? det.slice(i - 40, i + 120).replace(/\s+/g, " ") : null, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
+    const k = det.indexOf("DPC");
+    return { id: t.id, valor: t.valor, dpc: k >= 0 ? det.slice(k - 200, k + 60).replace(/\s+/g, " ") : null, cerca: i >= 0 ? det.slice(i - 40, i + 120).replace(/\s+/g, " ") : null, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
   });
   res.setHeader("Cache-Control", "no-store");
   res.json({ productos: [...productos.keys()], total: tareas.length, salida });
