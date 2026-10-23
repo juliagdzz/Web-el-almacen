@@ -29,7 +29,8 @@ module.exports = async (req, res) => {
     const det = j.product_details ?? "";
     const i = det.indexOf("sku");
     const k = det.indexOf("DPC");
-    return { id: t.id, valor: t.valor, dpc: k >= 0 ? det.slice(Math.max(0, k - 200), k + 60).replace(/\s+/g, " ") : null, cerca: i >= 0 ? det.slice(i - 40, i + 120).replace(/\s+/g, " ") : null, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
+    const refs = [...det.replace(/&quot;/g, '"').matchAll(/"reference":"([^"]*)"/g)].map((m) => m[1]);
+    return { id: t.id, valor: t.valor, refs, dpc: k >= 0 ? det.slice(Math.max(0, k - 200), k + 60).replace(/\s+/g, " ") : null, cerca: i >= 0 ? det.slice(i - 40, i + 120).replace(/\s+/g, " ") : null, sku: (j.product_details ?? "").match(/itemprop="sku">([^<]+)/)?.[1]?.trim() ?? (j.product_details ?? "").match(/[A-Z0-9 -]*DPC[A-Z0-9 -]*/)?.[0] ?? null };
   });
   res.setHeader("Cache-Control", "no-store");
   res.json({ productos: [...productos.keys()], total: tareas.length, salida });
