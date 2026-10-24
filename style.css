@@ -196,6 +196,31 @@ button:hover, .boton:hover { background: var(--terracota-oscuro); }
 }
 .subnav a.subnav-inicio { color: var(--terracota-oscuro); font-weight: 500; padding-left: 0; }
 .subnav a[aria-current="page"] { background: var(--verde); color: var(--crema); }
+/* Mis creaciones: cuadraditos con icono y el nombre debajo */
+.subnav.subnav-iconos { justify-content: center; gap: 0.6rem; padding: 0.65rem 1rem; }
+.subnav-iconos a, .subnav-iconos a.subnav-inicio {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.2rem;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 4.4rem;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 0.35rem 0.2rem;
+  border-radius: 14px;
+  background: white;
+  color: var(--verde);
+  font-size: 0.72rem;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  transition: transform 0.15s;
+}
+.subnav-iconos a:hover { transform: translateY(-1px); }
+.subnav-iconos svg { width: 1.6rem; height: 1.6rem; }
+.subnav-iconos a.subnav-inicio { background: transparent; box-shadow: inset 0 0 0 1.5px rgb(143 66 32 / 0.35); color: var(--terracota-oscuro); }
+.subnav-iconos a[aria-current="page"] { background: var(--verde); color: var(--crema); box-shadow: none; }
 /* Dentro de un tablero no cabe: el corcho necesita toda la pantalla */
 body.en-tablero .subnav { display: none; }
 
