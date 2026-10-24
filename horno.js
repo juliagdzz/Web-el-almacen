@@ -163,6 +163,14 @@ $("#enviar-taller").addEventListener("click", () => {
 });
 $("#cancelar-enviar").addEventListener("click", () => $("#hoja-enviar").close());
 
+// "2026-11-07" → "sábado 7 de noviembre"
+const fechaLarga = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+// No se puede pedir un día que ya ha pasado
+{
+  const hoy = new Date();
+  $("#e-recoger").min = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+}
+
 $("#form-enviar").addEventListener("submit", async (e) => {
   e.preventDefault();
   const valor = (id) => $(`#${id}`).value.trim();
@@ -176,7 +184,9 @@ $("#form-enviar").addEventListener("submit", async (e) => {
   boton.disabled = true;
   try {
     await window.nube.listo;
-    const { error: fallo } = await window.nube.cliente.from("horneados").insert({
+    const recoger = valor("e-recoger") || null;
+    const horario = $("#e-horario").value || null;
+    const fila = {
       user_id: window.nube.usuario?.id ?? null,
       nombre: valor("e-nombre"),
       telefono: valor("e-telefono") || null,
@@ -186,7 +196,19 @@ $("#form-enviar").addEventListener("submit", async (e) => {
       total: Math.round(presupuesto.reduce((s, p) => s + p.total, 0) * 100) / 100,
       cuando: valor("e-cuando") || null,
       notas: valor("e-notas") || null,
-    });
+      recoger,
+      recoger_horario: horario,
+    };
+    let { error: fallo } = await window.nube.cliente.from("horneados").insert(fila);
+    // Si en Supabase todavía no está el día de recogida, se manda dentro de las notas
+    if (fallo && /recoger/i.test(String(fallo.message)) && (recoger || horario)) {
+      const { recoger: _, recoger_horario: __, ...sinRecoger } = fila;
+      const nota = `Le gustaría recogerlas: ${[recoger && fechaLarga(recoger), horario?.toLowerCase()].filter(Boolean).join(", ")}`;
+      ({ error: fallo } = await window.nube.cliente.from("horneados").insert({ ...sinRecoger, notas: [nota, fila.notas].filter(Boolean).join("\n\n") }));
+    } else if (fallo && /recoger/i.test(String(fallo.message))) {
+      const { recoger: _, recoger_horario: __, ...sinRecoger } = fila;
+      ({ error: fallo } = await window.nube.cliente.from("horneados").insert(sinRecoger));
+    }
     if (fallo) throw fallo;
     $("#hoja-enviar").close();
     presupuesto = [];

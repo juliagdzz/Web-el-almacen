@@ -165,7 +165,7 @@
     <form id="form-enviar" class="form-horno" novalidate>
       <h2>Enviar al taller</h2>
       <p id="resumen-envio" class="ayuda-horno"></p>
-      <label class="campo-horno">Tu nombre <input id="e-nombre" type="text" maxlength="120" autocomplete="name" required></label>
+      <label class="campo-horno">Tu nombre <input id="e-nombre" type="text" maxlength="120" autocomplete="given-name" placeholder="Solo tu nombre, sin apellidos" required></label>
       <label class="campo-horno">Teléfono o WhatsApp <input id="e-telefono" type="tel" maxlength="40" autocomplete="tel"></label>
       <label class="campo-horno">Correo <small>opcional</small><input id="e-correo" type="email" maxlength="200" autocomplete="email"></label>
       <fieldset class="contestar-horno">
@@ -174,6 +174,15 @@
         <label><input type="radio" name="contestar_por" value="correo"> Correo</label>
       </fieldset>
       <label class="campo-horno">¿Cuándo puedes traerlas? <small>opcional</small><input id="e-cuando" type="text" maxlength="120" placeholder="El sábado por la mañana"></label>
+      <div class="fila-recoger">
+        <label class="campo-horno">¿Qué día te gustaría recogerlas? <small>opcional</small><input id="e-recoger" type="date"></label>
+        <label class="campo-horno">¿A qué hora? <select id="e-horario">
+          <option value="">Me da igual</option>
+          <option value="Por la mañana">Por la mañana</option>
+          <option value="Por la tarde">Por la tarde</option>
+        </select></label>
+      </div>
+      <p class="ayuda-recoger">Cocer lleva unos días (secado, horno y enfriado): te confirmamos si ese día ya están listas.</p>
       <label class="campo-horno">Algo más <small>opcional</small><textarea id="e-notas" rows="3" maxlength="2000" placeholder="Esmaltes que usas, si alguna pieza es delicada…"></textarea></label>
       <label class="acepto-horno"><input id="e-acepto" type="checkbox" required> Acepto que El Almacén guarde estos datos para organizar la cocción.</label>
       <p id="error-enviar" class="error-horno" role="alert" hidden></p>

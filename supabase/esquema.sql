@@ -754,6 +754,9 @@ create table if not exists public.horneados (
   constraint horneado_con_contacto check (coalesce(correo, '') <> '' or coalesce(telefono, '') <> '')
 );
 create index if not exists horneados_por_fecha on public.horneados (creado desc);
+-- Qué día y a qué hora le gustaría recoger las piezas (lo confirma el taller)
+alter table public.horneados add column if not exists recoger date;
+alter table public.horneados add column if not exists recoger_horario text check (length(recoger_horario) <= 40);
 alter table public.horneados enable row level security;
 
 drop policy if exists "Cualquiera puede enviar un horneado" on public.horneados;
@@ -801,6 +804,7 @@ begin
         'Correo: ' || new.correo,
         'Prefiere que le contestes por ' || case new.contestar_por when 'whatsapp' then 'WhatsApp' else 'correo' end,
         'Puede traerlas: ' || new.cuando,
+        'Le gustaría recogerlas: ' || nullif(concat_ws(', ', to_char(new.recoger, 'DD/MM/YYYY'), lower(new.recoger_horario)), ''),
         case when coalesce(new.notas, '') <> '' then E'\n' || left(new.notas, 1500) end,
         '', 'Míralo en tu panel:', 'https://webelalmacen.vercel.app/panel.html')
     ))

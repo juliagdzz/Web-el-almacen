@@ -143,7 +143,7 @@
 .ayuda-horno { margin: 0 0 0.75rem; font-size: 0.88rem; color: var(--verde); line-height: 1.45; }
 .campo-horno { display: grid; gap: 0.25rem; margin-bottom: 0.8rem; font-size: 0.95rem; font-weight: 500; }
 .campo-horno small { font-weight: 400; color: var(--verde); }
-.campo-horno input, .campo-horno textarea {
+.campo-horno input, .campo-horno textarea, .campo-horno select {
   width: 100%;
   box-sizing: border-box;
   padding: 0.65rem 0.8rem;
@@ -153,10 +153,16 @@
   font: inherit;
   font-weight: 400;
 }
-.campo-horno input:focus, .campo-horno textarea:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
+.campo-horno input:focus, .campo-horno textarea:focus, .campo-horno select:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; }
 .contestar-horno { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; margin: 0 0 0.8rem; padding: 0; border: 0; font-size: 0.95rem; }
 .contestar-horno legend { width: 100%; margin-bottom: 0.35rem; font-weight: 500; }
 .contestar-horno input, .acepto-horno input { accent-color: var(--verde); }
 .acepto-horno { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.8rem; font-size: 0.85rem; line-height: 1.4; }
 .error-horno { margin: 0 0 0.75rem; padding: 0.6rem 0.8rem; border-radius: 10px; background: #fbe4df; color: #8a2414; font-size: 0.9rem; }
 .hoja-horno [hidden] { display: none !important; }
+
+/* Día y horario para recoger las piezas */
+.fila-recoger { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: end; gap: 0 0.75rem; }
+.fila-recoger .campo-horno { margin-bottom: 0.3rem; }
+.ayuda-recoger { margin: 0 0 0.8rem; font-size: 0.8rem; color: var(--verde); line-height: 1.4; }
+@media (max-width: 360px) { .fila-recoger { grid-template-columns: 1fr; } }

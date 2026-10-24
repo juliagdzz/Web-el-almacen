@@ -67,7 +67,7 @@ function pintar() {
       h("span", { class: "linea-1" },
         h("strong", {}, `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
         h("span", { class: `etiqueta-estado estado-${x.estado}` }, ESTADOS[x.estado])),
-      h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}`),
+      h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}${recogida(x) ? ` · recoge: ${recogida(x)}` : ""}`),
       h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · ")))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes horneados pendientes." : "No hay horneados aquí.")]));
 }
@@ -91,11 +91,15 @@ function telefonoWhatsApp(telefono) {
 // El mensaje cambia según el paso en que esté
 function mensaje(x, estado, precio) {
   const importe = euros.format(precio ?? x.total);
-  if (estado === "listo" || estado === "recogido") return `Hola, ${x.nombre}. ¡Tus piezas ya han salido del horno! Puedes pasar a recogerlas al taller. Son ${importe}.`;
+  if (estado === "listo" || estado === "recogido") return `Hola, ${x.nombre}. ¡Tus piezas ya han salido del horno! Puedes pasar a recogerlas al taller${recogida(x) ? ` (${recogida(x)}, como querías)` : ""}. Son ${importe}.`;
   if (estado === "en-horno") return `Hola, ${x.nombre}. Tus piezas ya están en el horno. Te aviso en cuanto salgan.`;
   if (estado === "descartado") return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: esta vez no podemos cocerlo. Si quieres, te cuento por qué.`;
-  return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: son ${importe}. Puedes traer las piezas bien secas${x.cuando ? ` (${x.cuando})` : ""}. ¿Te viene bien?`;
+  return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: son ${importe}. Puedes traer las piezas bien secas${x.cuando ? ` (${x.cuando})` : ""}${recogida(x) ? ` y te las tenemos para el ${recogida(x)}` : ""}. ¿Te viene bien?`;
 }
+
+// Qué día y a qué hora quiere recogerlas: «sábado 7 de noviembre, por la tarde»
+const recogida = (x) => [x.recoger && new Date(`${x.recoger}T12:00:00`).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }),
+  x.recoger_horario?.toLowerCase()].filter(Boolean).join(", ");
 
 function dato(etiqueta, valor) {
   return valor ? [h("dt", {}, etiqueta), h("dd", {}, valor)] : [];
@@ -115,7 +119,7 @@ function abrir(x) {
     h("dl", { class: "datos-encargo" },
       ...dato("Teléfono", x.telefono), ...dato("Correo", x.correo),
       ...dato("Prefiere", x.contestar_por === "whatsapp" ? "WhatsApp" : "Correo"),
-      ...dato("Puede traerlas", x.cuando), ...dato("Notas", x.notas)),
+      ...dato("Puede traerlas", x.cuando), ...dato("Quiere recogerlas", recogida(x)), ...dato("Notas", x.notas)),
     h("section", { class: "tu-respuesta" },
       h("h3", {}, "Tu respuesta"),
       h("div", { class: "fila-campos" },
