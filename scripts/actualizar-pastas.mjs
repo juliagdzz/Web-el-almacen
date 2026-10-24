@@ -1,5 +1,6 @@
 // Descarga las pastas cerámicas de SIO-2 con sus contracciones y las guarda en pastas.json.
 // Uso (desde la carpeta del proyecto):  node scripts/actualizar-pastas.mjs
+// Después, node scripts/catalogo-pastas.mjs para añadir las otras marcas.
 
 import { writeFile } from "node:fs/promises";
 

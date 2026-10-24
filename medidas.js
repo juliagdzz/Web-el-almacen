@@ -1,4 +1,5 @@
-// Calculadora de contracción con las pastas de SIO-2 (pastas.json).
+// Calculadora de contracción con las pastas de pastas.json que traen sus contracciones
+// (SIO-2, Vicar, La Bisbal…).
 // La pieza encoge primero al secarse y después, ya seca, al cocerse:
 //   seca = húmeda × (1 − secado)      cocida = seca × (1 − cocción)
 // Los volúmenes encogen al cubo de lo que encogen las medidas.
@@ -20,7 +21,7 @@ function guardar(datos) {
   try { localStorage.setItem("medidas", JSON.stringify(datos)); } catch {}
 }
 
-const pastaElegida = () => pastas.find((p) => p.id === Number($("#pasta").value));
+const pastaElegida = () => pastas.find((p) => String(p.id) === $("#pasta").value);
 const modo = () => document.querySelector('input[name="modo"]:checked').value;
 
 function coccionElegida(pasta) {
@@ -30,12 +31,14 @@ function coccionElegida(pasta) {
 
 function rellenarPastas() {
   const select = $("#pasta");
-  for (const tipo of [...new Set(pastas.map((p) => p.tipo))]) {
+  // Un grupo por marca y tipo: «SIO-2 · Baja temperatura», «Vicar · Porcelana»…
+  for (const grupoDe of [...new Set(pastas.map((p) => `${p.marca ?? "SIO-2"} · ${p.tipo}`))]) {
     const grupo = document.createElement("optgroup");
-    grupo.label = tipo;
-    for (const p of pastas.filter((x) => x.tipo === tipo)) {
+    grupo.label = grupoDe;
+    for (const p of pastas.filter((x) => `${x.marca ?? "SIO-2"} · ${x.tipo}` === grupoDe)) {
       const chamota = p.chamota ? ` · chamota ${p.chamota}` : "";
-      grupo.append(new Option(`${p.nombre} · ${p.descripcion}${chamota}`, p.id));
+      const colada = p.colada ? " · colada" : "";
+      grupo.append(new Option(`${p.nombre}${p.descripcion ? ` · ${p.descripcion}` : ""}${chamota}${colada}`, p.id));
     }
     select.append(grupo);
   }
@@ -60,12 +63,12 @@ function rellenarTemperaturas(pasta, guardada) {
 
 function mostrarFicha(pasta, coccion, total) {
   const filas = [
-    ["Cocción", pasta.coccion],
+    ["Cocción", pasta.coccion ?? `${coccion.temperatura} ºC`],
     ["Contracción al secar", `${pct.format(pasta.secado)} %`],
     [`Contracción al cocer (${coccion.temperatura} ºC)`, `${pct.format(coccion.contraccion)} %`],
     ["Contracción total", `${pct.format(total)} %`],
   ];
-  if (pasta.porosidad !== null) filas.push(["Absorción de agua", `${pct.format(pasta.porosidad)} %`]);
+  if (pasta.porosidad != null) filas.push(["Absorción de agua", `${pct.format(pasta.porosidad)} %`]);
   $("#ficha").replaceChildren(...filas.flatMap(([termino, valor], i) => {
     const dt = document.createElement("dt");
     dt.textContent = termino;
@@ -78,7 +81,7 @@ function mostrarFicha(pasta, coccion, total) {
   enlace.href = pasta.url;
   enlace.target = "_blank";
   enlace.rel = "noopener";
-  enlace.textContent = "Ficha en SIO-2 ↗";
+  enlace.textContent = `Ficha en ${pasta.tienda ?? "SIO-2"} ↗`;
   const dd = document.createElement("dd");
   dd.className = "enlace";
   dd.append(enlace);
@@ -142,14 +145,15 @@ function calcular() {
 
 async function arrancar() {
   try {
-    pastas = await (await fetch("pastas.json")).json();
+    // Solo las que traen contracción al secar y al cocer
+    pastas = (await (await fetch("pastas.json")).json()).filter((p) => p.secado != null && p.cocciones?.length);
   } catch {
     $("#resumen").textContent = "No he podido cargar las pastas.";
     return;
   }
   rellenarPastas();
   const guardado = leerGuardado();
-  if (pastas.some((p) => p.id === guardado.pasta)) $("#pasta").value = guardado.pasta;
+  if (pastas.some((p) => String(p.id) === String(guardado.pasta))) $("#pasta").value = guardado.pasta;
   if (guardado.modo) document.querySelector(`input[name="modo"][value="${guardado.modo}"]`).checked = true;
   for (const c of CAMPOS) if (guardado[c]) $(`#${c}`).value = guardado[c];
   rellenarTemperaturas(pastaElegida(), guardado.temperatura);

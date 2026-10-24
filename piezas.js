@@ -343,6 +343,27 @@ function buscadorEsmalte({ usados, alElegir }) {
     h("div", { class: "selector buscador-esmalte" }, input, lista));
 }
 
+// Pastas de varias marcas (pastas.json). Las de SIO-2 se llaman como siempre
+// («PRAI · Arcilla blanca…») para que las piezas de antes sigan cuadrando.
+const nombrePasta = (x) => (x.marca === "SIO-2" || !x.marca ? `${x.nombre} · ${x.descripcion}` : `${x.marca} · ${x.nombre}${x.codigo ? ` (${x.codigo})` : ""}`);
+const detallePasta = (x) => [x.tipo, x.colada && "colada", x.coccion].filter(Boolean).join(" · ");
+const leerMarcaPasta = () => { try { return localStorage.getItem("marcaPastas") || "todas"; } catch { return "todas"; } };
+const encajaMarcaPasta = (x) => leerMarcaPasta() === "todas" || (x.marca ?? "SIO-2") === leerMarcaPasta();
+
+// Fila «Todas · SIO-2 · Vicar…» con cuántas hay de cada una, como en los esmaltes
+function filtroMarcasPasta(pastas) {
+  const cuenta = new Map();
+  for (const x of pastas) cuenta.set(x.marca ?? "SIO-2", (cuenta.get(x.marca ?? "SIO-2") ?? 0) + 1);
+  const marcas = [...cuenta.keys()].sort((a, b) => cuenta.get(b) - cuenta.get(a));
+  const caja = h("div", { class: "marcas-esmaltes marcas-pasta", role: "group", "aria-label": "Marca de la pasta" });
+  const pintar = () => caja.replaceChildren(...["todas", ...marcas].map((m) => h("button", {
+    type: "button", class: "chip-marca", "aria-pressed": String(leerMarcaPasta() === m),
+    onclick: () => { try { localStorage.setItem("marcaPastas", m); } catch {} pintar(); },
+  }, m === "todas" ? "Todas" : m, h("small", {}, String(m === "todas" ? pastas.length : cuenta.get(m))))));
+  pintar();
+  return caja;
+}
+
 // Fotos: miniaturas con botón de quitar, y botones de cámara y galería
 function editorFotos(obj, alCambiar) {
   const caja = h("div", { class: "fotos" });
@@ -850,9 +871,14 @@ async function vistaPieza(id) {
       editorFotos(p, guardar)),
     h("section", { class: "bloque" },
       h("h2", {}, "Pasta y cocción"),
-      campo("Pasta", selector({ valor: p.pasta, tipo: "pasta", etiqueta: "Pastas", placeholder: "PRAI · Arcilla blanca alta temperatura", registrarComo: "Registrar pasta",
-        opciones: pastas.map((x) => ({ valor: `${x.nombre} · ${x.descripcion}`, detalle: x.tipo })),
-        alCambiar: (v) => { p.pasta = v; guardar(); } }), "Elige una de SIO-2 o registra la tuya"),
+      // No es un <label>: tocar una marca no debe ir al campo de escribir
+      h("div", { class: "campo campo-pasta" },
+        h("span", { class: "etiqueta" }, "Pasta"),
+        filtroMarcasPasta(pastas),
+        selector({ valor: p.pasta, tipo: "pasta", etiqueta: "Pastas", placeholder: "PRAI · Arcilla blanca alta temperatura", registrarComo: "Registrar pasta",
+          opciones: () => pastas.filter((x) => encajaMarcaPasta(x)).map((x) => ({ valor: nombrePasta(x), detalle: detallePasta(x) })),
+          alCambiar: (v) => { p.pasta = v; guardar(); } }),
+        h("small", {}, "Elige una del catálogo (SIO-2, Vicar, Sibelco, Vicente Díez…) o registra la tuya")),
       h("div", { class: "fila-campos" },
         campo("Temperatura", h("span", { class: "con-unidad" }, h("input", { type: "number", inputMode: "numeric", value: p.temperatura, placeholder: "1250", oninput: (e) => { p.temperatura = e.target.value; guardar(); } }), " ºC")),
         campo("Atmósfera", h("select", { onchange: (e) => { p.atmosfera = e.target.value; guardar(); } },

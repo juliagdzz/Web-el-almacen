@@ -561,3 +561,7 @@
 .titulo-capa .stock { align-self: flex-start; margin-top: 2px; }
 .opcion-prodesco .marca-esmalte { margin-top: 2px; font-size: 0.55rem; }
 .titulo-capa small .marca-esmalte { vertical-align: 1px; }
+
+/* Marcas de pasta: una fila que se desliza, dentro del ancho de la ficha */
+.campo-pasta { min-width: 0; }
+.marcas-pasta { min-width: 0; max-width: 100%; margin: 0.15rem 0 0.4rem; }
