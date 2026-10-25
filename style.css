@@ -219,6 +219,17 @@ button:hover, .boton:hover { background: var(--terracota-oscuro); }
 }
 .subnav-iconos a:hover { transform: translateY(-1px); }
 .subnav-iconos svg { width: 1.6rem; height: 1.6rem; }
+.subnav-iconos span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+/* Con cinco cuadros (el panel) en el móvil, un poco más justos para que quepa «Horneados» */
+@media (max-width: 480px) {
+  .subnav-iconos:has(> a:nth-child(5)) { gap: 0.4rem; padding-inline: 0.75rem; }
+  .subnav-iconos:has(> a:nth-child(5)) a { font-size: 0.66rem; padding-inline: 0.1rem; }
+}
+@media (max-width: 380px) {
+  .subnav.subnav-iconos { gap: 0.35rem; padding-inline: 0.5rem; }
+  .subnav-iconos:has(> a:nth-child(5)) a { font-size: 0.6rem; }
+  .subnav-iconos svg { width: 1.4rem; height: 1.4rem; }
+}
 .subnav-iconos a.subnav-inicio { background: transparent; box-shadow: inset 0 0 0 1.5px rgb(143 66 32 / 0.35); color: var(--terracota-oscuro); }
 .subnav-iconos a[aria-current="page"] { background: var(--verde); color: var(--crema); box-shadow: none; }
 /* Dentro de un tablero no cabe: el corcho necesita toda la pantalla */
