@@ -39,8 +39,14 @@
 
     <section class="bloque">
       <h2>1. Tu pasta</h2>
-      <label for="pasta" class="etiqueta">Pasta</label>
-      <select id="pasta"></select>
+      <label for="buscar-pasta" class="etiqueta">Pasta</label>
+      <div id="marcas-pasta" class="marcas-esmaltes marcas-pasta" role="group" aria-label="Marca de la pasta"></div>
+      <div class="buscador-pasta">
+        <input id="buscar-pasta" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lista-pasta" placeholder="Escribe: PRAI, Europa, colada, porcelana…">
+        <ul id="lista-pasta" class="desplegable" role="listbox" hidden></ul>
+      </div>
+      <!-- La pasta elegida (lo que lee la calculadora) -->
+      <select id="pasta" hidden aria-hidden="true" tabindex="-1"></select>
       <div id="temperaturas" class="temperaturas" hidden></div>
       <dl id="ficha" class="ficha"></dl>
     </section>

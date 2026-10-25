@@ -44,6 +44,117 @@ function rellenarPastas() {
   }
 }
 
+// ---------- Elegir la pasta: marcas y buscador, como en el registro de piezas ----------
+// La marca elegida se recuerda y es la misma que en las piezas («marcaPastas»).
+
+const marcaDe = (p) => p.marca ?? "SIO-2";
+const leerMarca = () => { try { return localStorage.getItem("marcaPastas") || "todas"; } catch { return "todas"; } };
+const sinAcentos = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const etiquetaPasta = (p) => `${marcaDe(p) === "SIO-2" ? "" : `${marcaDe(p)} · `}${p.nombre}${p.descripcion ? ` · ${p.descripcion}` : ""}`;
+const detallePasta = (p) => [p.chamota && `chamota ${p.chamota}`, p.colada && "colada", p.coccion].filter(Boolean).join(" · ");
+
+function pintarMarcas() {
+  const cuenta = new Map();
+  for (const p of pastas) cuenta.set(marcaDe(p), (cuenta.get(marcaDe(p)) ?? 0) + 1);
+  const marcas = [...cuenta.keys()].sort((a, b) => cuenta.get(b) - cuenta.get(a));
+  if (leerMarca() !== "todas" && !cuenta.has(leerMarca())) try { localStorage.setItem("marcaPastas", "todas"); } catch {}
+  $("#marcas-pasta").replaceChildren(...["todas", ...marcas].map((m) => {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "chip-marca";
+    boton.setAttribute("aria-pressed", String(leerMarca() === m));
+    const n = document.createElement("small");
+    n.textContent = String(m === "todas" ? pastas.length : cuenta.get(m));
+    boton.append(m === "todas" ? "Todas" : m, n);
+    boton.addEventListener("click", () => {
+      try { localStorage.setItem("marcaPastas", m); } catch {}
+      pintarMarcas();
+      if (!$("#lista-pasta").hidden) pintarLista();
+    });
+    return boton;
+  }));
+}
+
+// La lista: lo que encaja con lo escrito, en grupos «Marca · tipo»
+function pintarLista() {
+  const buscar = $("#buscar-pasta");
+  const elegida = pastaElegida();
+  const texto = buscar.value === (elegida && etiquetaPasta(elegida)) ? "" : buscar.value;
+  const palabras = sinAcentos(texto).split(/\s+/).filter(Boolean);
+  const encajan = pastas.filter((p) => (leerMarca() === "todas" || marcaDe(p) === leerMarca())
+    && palabras.every((pal) => sinAcentos(`${marcaDe(p)} ${p.nombre} ${p.descripcion} ${p.codigo ?? ""} ${p.tipo} ${detallePasta(p)}`).includes(pal)));
+  const lista = $("#lista-pasta");
+  const filas = [];
+  let grupo = null;
+  for (const p of encajan) {
+    const g = `${marcaDe(p)} · ${p.tipo}`;
+    if (g !== grupo) {
+      const cabeza = document.createElement("li");
+      cabeza.className = "grupo-pastas";
+      cabeza.setAttribute("role", "presentation");
+      cabeza.textContent = (grupo = g);
+      filas.push(cabeza);
+    }
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.setAttribute("aria-selected", String(p === elegida));
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.addEventListener("pointerdown", (e) => e.preventDefault()); // que no se cierre antes de elegir
+    boton.addEventListener("click", () => elegirPasta(p));
+    const nombre = document.createElement("span");
+    nombre.textContent = `${p.nombre}${p.descripcion ? ` · ${p.descripcion}` : ""}`;
+    const detalle = document.createElement("small");
+    detalle.textContent = detallePasta(p);
+    boton.append(nombre, detalle);
+    li.append(boton);
+    filas.push(li);
+  }
+  if (!encajan.length) {
+    const vacio = document.createElement("li");
+    vacio.className = "vacio-lista";
+    vacio.textContent = leerMarca() === "todas" ? "Ninguna pasta con contracciones encaja con eso." : `Ninguna de ${leerMarca()} encaja: prueba con «Todas».`;
+    filas.push(vacio);
+  }
+  lista.replaceChildren(...filas);
+  lista.hidden = false;
+  buscar.setAttribute("aria-expanded", "true");
+}
+
+function cerrarLista() {
+  $("#lista-pasta").hidden = true;
+  $("#buscar-pasta").setAttribute("aria-expanded", "false");
+  const elegida = pastaElegida();
+  if (elegida) $("#buscar-pasta").value = etiquetaPasta(elegida);
+}
+
+function elegirPasta(p) {
+  $("#pasta").value = String(p.id);
+  $("#pasta").dispatchEvent(new Event("change"));
+  cerrarLista();
+  $("#buscar-pasta").blur();
+}
+
+function prepararBuscador() {
+  const buscar = $("#buscar-pasta");
+  buscar.addEventListener("focus", () => {
+    buscar.select();
+    pintarLista();
+    // arriba de la pantalla, para que la lista se vea entera
+    buscar.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+  buscar.addEventListener("input", pintarLista);
+  buscar.addEventListener("blur", cerrarLista);
+  buscar.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { cerrarLista(); buscar.blur(); }
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    $("#lista-pasta li[role=option] button")?.click();
+  });
+  pintarMarcas();
+  cerrarLista();
+}
+
 // Las pastas «Hobby cerámico» traen contracción a baja y a alta: se elige
 function rellenarTemperaturas(pasta, guardada) {
   const caja = $("#temperaturas");
@@ -157,6 +268,7 @@ async function arrancar() {
   if (guardado.modo) document.querySelector(`input[name="modo"][value="${guardado.modo}"]`).checked = true;
   for (const c of CAMPOS) if (guardado[c]) $(`#${c}`).value = guardado[c];
   rellenarTemperaturas(pastaElegida(), guardado.temperatura);
+  prepararBuscador();
 
   $("#pasta").addEventListener("change", () => {
     rellenarTemperaturas(pastaElegida());
