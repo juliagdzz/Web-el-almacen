@@ -113,18 +113,11 @@
   function filtro(caja, lista, alCambiar) {
     const actual = leer();
     const cuenta = (m) => (m === "todas" ? lista.length : lista.filter((e) => marcaDe(e) === m).length);
-    caja.replaceChildren(...["todas", ...MARCAS].map((m) => {
-      const boton = document.createElement("button");
-      boton.type = "button";
-      boton.className = `chip-marca${m === "todas" ? "" : ` marca-${m.toLowerCase()}`}`;
-      boton.setAttribute("aria-pressed", String(actual === m));
-      boton.append(m === "todas" ? "Todas las marcas" : m);
-      const n = document.createElement("small");
-      n.textContent = String(cuenta(m));
-      boton.append(n);
-      boton.addEventListener("click", () => { guardar(m); alCambiar(m); });
-      return boton;
-    }));
+    caja.replaceChildren(...["todas", ...MARCAS].map((m) => window.tarjetaMarca({
+      marca: m, cuenta: cuenta(m), activa: actual === m,
+      clase: m === "todas" ? "" : `marca-${m.toLowerCase()}`,
+      alPulsar: () => { guardar(m); alCambiar(m); },
+    })));
   }
 
   const encaja = (e, marca = leer()) => marca === "todas" || marcaDe(e) === marca;

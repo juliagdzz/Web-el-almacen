@@ -533,13 +533,44 @@ html.comprobando-acceso main, html.comprobando-acceso .subnav { visibility: hidd
 .marca-esmalte { display: inline-block; padding: 0 0.4rem; border-radius: 4px; font: 600 0.6rem/1.5 'DM Sans', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
 .marca-esmalte.marca-prodesco { background: #f3dfd3; color: var(--terracota-oscuro); }
 .marca-esmalte.marca-tecniglaze { background: #e0e6f0; color: #2f4a73; }
-.marcas-esmaltes { display: flex; gap: 0.35rem; overflow-x: auto; margin: 0 0 0.5rem; padding-bottom: 0.2rem; scrollbar-width: none; }
+.marcas-esmaltes { display: flex; gap: 0.5rem; overflow-x: auto; margin: 0 0 0.5rem; padding: 0.15rem 0.1rem 0.3rem; scrollbar-width: none; }
 .marcas-esmaltes:empty { display: none; }
-.chip-marca, .chip-marca:hover { flex: none; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.8rem; border-radius: 999px; background: white; color: var(--tinta); box-shadow: inset 0 0 0 1.5px #e3d2c3; font: 500 0.85rem 'DM Sans', sans-serif; white-space: nowrap; }
-.chip-marca small { font-size: 0.72rem; opacity: 0.7; }
-.chip-marca[aria-pressed="true"] { background: var(--granate); color: var(--crema); box-shadow: none; }
-.chip-marca.marca-prodesco[aria-pressed="true"] { background: var(--terracota-oscuro); }
-.chip-marca.marca-tecniglaze[aria-pressed="true"] { background: #2f4a73; }
+/* Marcas: rectángulos con el sello (siglas en su color), el nombre y cuántos hay */
+.chip-marca, .chip-marca:hover {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 8.5rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+  border-radius: 12px;
+  background: white;
+  color: var(--tinta);
+  box-shadow: inset 0 0 0 1.5px #e3d2c3;
+  font: 500 0.85rem 'DM Sans', sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip-marca:hover { box-shadow: inset 0 0 0 1.5px #c9b2a1; }
+.sello-marca {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 8px;
+  background: var(--marca, var(--verde));
+  color: var(--crema);
+  font: 700 0.9rem 'Fraunces', serif;
+  letter-spacing: -0.02em;
+}
+.sello-marca svg { width: 1.2rem; height: 1.2rem; }
+.texto-marca { display: grid; line-height: 1.2; }
+.texto-marca strong { font-weight: 600; }
+.texto-marca small { font-size: 0.72rem; opacity: 0.7; font-weight: 400; }
+.chip-marca[aria-pressed="true"] { background: color-mix(in srgb, var(--marca-activa, var(--granate)) 10%, white); box-shadow: inset 0 0 0 2.5px var(--marca-activa, var(--granate)); }
+.chip-marca[aria-pressed="true"] .texto-marca strong { color: var(--granate); }
 
 /* Iconos de trazo (iconos.js): sin emojis en ninguna parte */
 .icono-trazo { display: inline-block; vertical-align: -0.15em; flex: none; }

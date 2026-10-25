@@ -356,10 +356,10 @@ function filtroMarcasPasta(pastas) {
   for (const x of pastas) cuenta.set(x.marca ?? "SIO-2", (cuenta.get(x.marca ?? "SIO-2") ?? 0) + 1);
   const marcas = [...cuenta.keys()].sort((a, b) => cuenta.get(b) - cuenta.get(a));
   const caja = h("div", { class: "marcas-esmaltes marcas-pasta", role: "group", "aria-label": "Marca de la pasta" });
-  const pintar = () => caja.replaceChildren(...["todas", ...marcas].map((m) => h("button", {
-    type: "button", class: "chip-marca", "aria-pressed": String(leerMarcaPasta() === m),
-    onclick: () => { try { localStorage.setItem("marcaPastas", m); } catch {} pintar(); },
-  }, m === "todas" ? "Todas" : m, h("small", {}, String(m === "todas" ? pastas.length : cuenta.get(m))))));
+  const pintar = () => caja.replaceChildren(...["todas", ...marcas].map((m) => window.tarjetaMarca({
+    marca: m, cuenta: m === "todas" ? pastas.length : cuenta.get(m), activa: leerMarcaPasta() === m,
+    alPulsar: () => { try { localStorage.setItem("marcaPastas", m); } catch {} pintar(); },
+  })));
   pintar();
   return caja;
 }

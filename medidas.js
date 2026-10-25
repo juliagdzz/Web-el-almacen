@@ -58,21 +58,14 @@ function pintarMarcas() {
   for (const p of pastas) cuenta.set(marcaDe(p), (cuenta.get(marcaDe(p)) ?? 0) + 1);
   const marcas = [...cuenta.keys()].sort((a, b) => cuenta.get(b) - cuenta.get(a));
   if (leerMarca() !== "todas" && !cuenta.has(leerMarca())) try { localStorage.setItem("marcaPastas", "todas"); } catch {}
-  $("#marcas-pasta").replaceChildren(...["todas", ...marcas].map((m) => {
-    const boton = document.createElement("button");
-    boton.type = "button";
-    boton.className = "chip-marca";
-    boton.setAttribute("aria-pressed", String(leerMarca() === m));
-    const n = document.createElement("small");
-    n.textContent = String(m === "todas" ? pastas.length : cuenta.get(m));
-    boton.append(m === "todas" ? "Todas" : m, n);
-    boton.addEventListener("click", () => {
+  $("#marcas-pasta").replaceChildren(...["todas", ...marcas].map((m) => window.tarjetaMarca({
+    marca: m, cuenta: m === "todas" ? pastas.length : cuenta.get(m), activa: leerMarca() === m,
+    alPulsar: () => {
       try { localStorage.setItem("marcaPastas", m); } catch {}
       pintarMarcas();
       if (!$("#lista-pasta").hidden) pintarLista();
-    });
-    return boton;
-  }));
+    },
+  })));
 }
 
 // La lista: lo que encaja con lo escrito, en grupos «Marca · tipo»
