@@ -16,6 +16,8 @@ const CERRADOS = ["recogido", "descartado"];
 
 let horneados = [];
 let filtro = "pendientes";
+let horarios = []; // las clases fijas activas: cuando se puede pasar a recoger
+const PENDIENTES_DE_HORNO = ["nuevo", "aceptado", "en-horno"];
 
 let temporizadorAviso;
 function avisar(texto) {
@@ -63,13 +65,55 @@ function pintar() {
   }).filter(Boolean));
   const visibles = horneados.filter((x) => filtro === "todos" || (filtro === "pendientes" ? !CERRADOS.includes(x.estado) : x.estado === filtro));
   $("#lista-encargos").replaceChildren(...(visibles.length ? visibles.map((x) =>
-    h("button", { type: "button", class: `tarjeta-encargo estado-${x.estado}`, onclick: () => abrir(x) },
-      h("span", { class: "linea-1" },
-        h("strong", {}, `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
-        h("span", { class: `etiqueta-estado estado-${x.estado}` }, ESTADOS[x.estado])),
-      h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}${recogida(x) ? ` · recoge: ${recogida(x)}` : ""}`),
-      h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · ")))
+    h("article", { class: `tarjeta-horneado estado-${x.estado}` },
+      h("button", { type: "button", class: `tarjeta-encargo estado-${x.estado}`, onclick: () => abrir(x) },
+        h("span", { class: "linea-1" },
+          h("strong", {}, `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
+          h("span", { class: `etiqueta-estado estado-${x.estado}` }, ESTADOS[x.estado])),
+        h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}${recogida(x) ? ` · recoge: ${recogida(x)}` : ""}`),
+        h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · "))),
+      accionesRapidas(x))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes horneados pendientes." : "No hay horneados aquí.")]));
+}
+
+// Debajo de cada pedido: «Hecho» mientras se cuece; cuando está hecho, avisar
+function accionesRapidas(x) {
+  if (PENDIENTES_DE_HORNO.includes(x.estado)) {
+    return h("div", { class: "acciones-tarjeta" },
+      h("button", { type: "button", class: "boton hecho", onclick: () => marcarHecho(x) }, "✓ Hecho, ya está listo"));
+  }
+  if (x.estado !== "listo") return null;
+  return h("div", { class: "acciones-tarjeta" },
+    h("span", { class: `avisado${x.avisado ? "" : " sin-avisar"}` }, x.avisado ? `Avisado ${haceCuanto(x.avisado)}` : "Falta avisar"),
+    ...botonesAviso(x, "listo", x.precio_final));
+}
+
+async function marcarHecho(x) {
+  const { error } = await window.nube.cliente.from("horneados").update({ estado: "listo" }).eq("id", x.id);
+  if (error) return avisar("No se ha podido marcar");
+  x.estado = "listo";
+  pintar();
+  avisar("Hecho ✓ Ahora avísale para que pase a recogerlas");
+}
+
+// Enlaces de WhatsApp y correo con el mensaje ya escrito; al usarlos se apunta
+// que se le ha avisado (si el pedido está listo)
+function botonesAviso(x, estadoDe, precioDe, textos = { whatsapp: "Avisar por WhatsApp", correo: "Avisar por correo" }) {
+  const tel = telefonoWhatsApp(x.telefono);
+  const estado = typeof estadoDe === "function" ? estadoDe : () => estadoDe;
+  const precio = typeof precioDe === "function" ? precioDe : () => precioDe;
+  const apuntar = async () => {
+    if (estado() !== "listo") return;
+    const ahora = new Date().toISOString();
+    const { error } = await window.nube.cliente.from("horneados").update({ avisado: ahora }).eq("id", x.id);
+    if (!error) { x.avisado = ahora; setTimeout(pintar, 300); }
+  };
+  return [
+    tel && h("a", { class: `boton pequeno${x.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${tel}`,
+      onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, textos.whatsapp),
+    x.correo && h("a", { class: `boton pequeno${x.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${encodeURIComponent(x.correo)}`,
+      onclick: (ev) => { ev.currentTarget.href = `mailto:${encodeURIComponent(x.correo)}?subject=${encodeURIComponent(asunto(estado()))}&body=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, textos.correo),
+  ].filter(Boolean);
 }
 
 async function cargar() {
@@ -91,7 +135,12 @@ function telefonoWhatsApp(telefono) {
 // El mensaje cambia según el paso en que esté
 function mensaje(x, estado, precio) {
   const importe = euros.format(precio ?? x.total);
-  if (estado === "listo" || estado === "recogido") return `Hola, ${x.nombre}. ¡Tus piezas ya han salido del horno! Puedes pasar a recogerlas al taller${recogida(x) ? ` (${recogida(x)}, como querías)` : ""}. Son ${importe}.`;
+  if (estado === "listo" || estado === "recogido") {
+    const cuando = textoHorarios();
+    return `Hola, ${x.nombre}. ¡Tus piezas ya han salido del horno y están listas! ` +
+      (cuando ? `Puedes pasar a recogerlas al taller cuando hay clase: ${cuando}.` : "Puedes pasar a recogerlas al taller cuando te venga bien; avísame antes.") +
+      `${notaRecogida(x)} Son ${importe}. ¡Hasta pronto!`;
+  }
   if (estado === "en-horno") return `Hola, ${x.nombre}. Tus piezas ya están en el horno. Te aviso en cuanto salgan.`;
   if (estado === "descartado") return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: esta vez no podemos cocerlo. Si quieres, te cuento por qué.`;
   return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: son ${importe}. Puedes traer las piezas bien secas${x.cuando ? ` (${x.cuando})` : ""}${recogida(x) ? ` y te las tenemos para el ${recogida(x)}` : ""}. ¿Te viene bien?`;
@@ -100,6 +149,31 @@ function mensaje(x, estado, precio) {
 // Qué día y a qué hora quiere recogerlas: «sábado 7 de noviembre, por la tarde»
 const recogida = (x) => [x.recoger && new Date(`${x.recoger}T12:00:00`).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }),
   x.recoger_horario?.toLowerCase()].filter(Boolean).join(", ");
+
+// Si pidió un día: ¿ese día hay clase? (1 lunes … 7 domingo, como en horarios)
+function notaRecogida(x) {
+  if (!x.recoger) return "";
+  const dia = ((new Date(`${x.recoger}T12:00:00`).getDay() + 6) % 7) + 1;
+  const quiere = recogida(x);
+  if (!horarios.length || horarios.some((c) => c.dia === dia)) return ` Querías recogerlas el ${quiere}: ese día ya las tienes.`;
+  return ` Querías recogerlas el ${quiere}, pero ese día no hay clase: pásate en alguno de esos horarios.`;
+}
+
+const asunto = (estado) => (estado === "listo" ? "Tus piezas ya están listas · El Almacén" : "Tu horneado en El Almacén");
+
+// «los lunes de 18:00 a 20:00, los jueves de 10:00 a 12:00 y de 17:00 a 19:00»
+const DIAS = ["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábados", "domingos"];
+function textoHorarios() {
+  const hora = (min) => `${String(Math.floor(min / 60) % 24).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+  const porDia = new Map();
+  for (const c of [...horarios].sort((a, b) => a.dia - b.dia || a.hora.localeCompare(b.hora))) {
+    const [hh, mm] = c.hora.split(":").map(Number);
+    const inicio = hh * 60 + mm;
+    porDia.set(c.dia, [...(porDia.get(c.dia) ?? []), `de ${hora(inicio)} a ${hora(inicio + c.duracion)}`]);
+  }
+  const trozos = [...porDia].map(([dia, tramos]) => `los ${DIAS[dia]} ${tramos.join(" y ")}`);
+  return trozos.length > 1 ? `${trozos.slice(0, -1).join(", ")} y ${trozos.at(-1)}` : trozos[0] ?? "";
+}
 
 function dato(etiqueta, valor) {
   return valor ? [h("dt", {}, etiqueta), h("dd", {}, valor)] : [];
@@ -110,7 +184,6 @@ function abrir(x) {
   const estado = h("select", {}, ...Object.entries(ESTADOS).map(([clave, nombre]) => h("option", { value: clave, selected: x.estado === clave }, nombre)));
   const notas = h("textarea", { rows: 3, value: x.notas_taller ?? "", placeholder: "Solo las ves tú: en qué hornada va, en qué placa…" });
   const actual = () => ({ estado: estado.value, precio: precio.value ? Number(precio.value) : null });
-  const tel = telefonoWhatsApp(x.telefono);
   $("#contenido-ficha").replaceChildren(
     h("h2", {}, `Horneado de ${x.nombre}`),
     h("p", { class: "quien" }, `Enviado el ${fecha(x.creado)}`),
@@ -138,10 +211,8 @@ function abrir(x) {
         avisar("Guardado ✓");
       } }, "Guardar"),
       h("div", { class: "contestar" },
-        tel && h("a", { class: `boton${x.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${tel}`,
-          onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje(x, actual().estado, actual().precio))}`; } }, "Contestar por WhatsApp"),
-        x.correo && h("a", { class: `boton${x.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${encodeURIComponent(x.correo)}`,
-          onclick: (ev) => { ev.currentTarget.href = `mailto:${encodeURIComponent(x.correo)}?subject=${encodeURIComponent("Tu horneado en El Almacén")}&body=${encodeURIComponent(mensaje(x, actual().estado, actual().precio))}`; } }, "Contestar por correo"))),
+        ...botonesAviso(x, () => actual().estado, () => actual().precio, { whatsapp: "Contestar por WhatsApp", correo: "Contestar por correo" })),
+      h("p", { class: "ayuda-aviso" }, "El mensaje cambia con el estado: con «Listo para recoger» le dice que ya puede pasar y los horarios de las clases fijas.")),
     h("button", { type: "button", class: "borrar-encargo", onclick: async () => {
       if (!confirm(`¿Borrar el horneado de ${x.nombre}?`)) return;
       const { error } = await window.nube.cliente.from("horneados").delete().eq("id", x.id);
@@ -163,6 +234,9 @@ $("#ficha-encargo").addEventListener("click", (e) => e.target === e.currentTarge
 
 (async () => {
   await window.accesoTaller;
+  // Las clases fijas, para decir cuándo se puede pasar a recoger
+  window.nube.cliente.from("horarios").select("dia,hora,duracion").eq("activo", true)
+    .then(({ data }) => { horarios = data ?? []; });
   try {
     await cargar();
     $("#estado-panel").hidden = true;

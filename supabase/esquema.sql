@@ -757,6 +757,8 @@ create index if not exists horneados_por_fecha on public.horneados (creado desc)
 -- Qué día y a qué hora le gustaría recoger las piezas (lo confirma el taller)
 alter table public.horneados add column if not exists recoger date;
 alter table public.horneados add column if not exists recoger_horario text check (length(recoger_horario) <= 40);
+-- Cuándo le avisó el taller de que ya podía pasar a recogerlas
+alter table public.horneados add column if not exists avisado timestamptz;
 alter table public.horneados enable row level security;
 
 drop policy if exists "Cualquiera puede enviar un horneado" on public.horneados;

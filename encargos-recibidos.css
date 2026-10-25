@@ -88,3 +88,17 @@
 .lineas-horneado li { display: flex; justify-content: space-between; gap: 0.75rem; }
 .total-horneado { display: flex; justify-content: space-between; margin: 0 0 0.5rem; padding: 0 1rem; }
 .total-horneado strong { font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--granate); }
+
+/* Horneados: cada pedido con sus botones debajo («Hecho», avisar) */
+.tarjeta-horneado { display: grid; border-radius: 14px; background: white; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); overflow: hidden; }
+.tarjeta-horneado .tarjeta-encargo, .tarjeta-horneado .tarjeta-encargo:hover { box-shadow: none; border-radius: 0; }
+.tarjeta-horneado.estado-recogido, .tarjeta-horneado.estado-descartado { opacity: 0.7; }
+.tarjeta-horneado .tarjeta-encargo.estado-recogido, .tarjeta-horneado .tarjeta-encargo.estado-descartado { opacity: 1; }
+.acciones-tarjeta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0 1rem 0.85rem calc(1rem + 5px); }
+.acciones-tarjeta .boton { padding: 0.45rem 0.9rem; font-size: 0.88rem; text-decoration: none; }
+.boton.hecho { background: var(--verde); color: var(--crema); }
+.boton.hecho:hover { background: var(--oliva-oscuro); }
+.contenedor .acciones-tarjeta a.boton:not(.secundario) { color: var(--crema); }
+.avisado { flex: 1 1 100%; font-size: 0.8rem; color: var(--verde); }
+.avisado.sin-avisar { color: var(--terracota-oscuro); font-weight: 600; }
+.ayuda-aviso { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--verde); line-height: 1.4; }
