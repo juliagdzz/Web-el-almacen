@@ -152,13 +152,13 @@ function mensaje(x, estado, precio) {
   const importe = euros.format(precio ?? x.total);
   if (estado === "listo" || estado === "recogido") {
     const cuando = textoHorarios();
-    return `Hola, ${x.nombre}. ¡Tus piezas ya han salido del horno y están listas! ` +
+    return `Hola ${x.nombre}. ¡Tus piezas ya han salido del horno y están listas! ` +
       (cuando ? `Puedes pasar a recogerlas al taller cuando hay clase: ${cuando}.` : "Puedes pasar a recogerlas al taller cuando te venga bien; avísame antes.") +
       `${notaRecogida(x)} Son ${importe}. ¡Hasta pronto!`;
   }
-  if (estado === "en-horno") return `Hola, ${x.nombre}. Tus piezas ya están en el horno. Te aviso en cuanto salgan.`;
-  if (estado === "descartado") return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: esta vez no podemos cocerlo. Si quieres, te cuento por qué.`;
-  return `Hola, ${x.nombre}. Te escribo de El Almacén por tu horneado: son ${importe}. Puedes traer las piezas bien secas${x.cuando ? ` (${x.cuando})` : ""}${recogida(x) ? ` y te las tenemos para el ${recogida(x)}` : ""}. ¿Te viene bien?`;
+  if (estado === "en-horno") return `Hola ${x.nombre}. Tus piezas ya están en el horno. Te aviso en cuanto salgan.`;
+  if (estado === "descartado") return `Hola ${x.nombre}. Te escribo de El Almacén por tu horneado: esta vez no podemos cocerlo. Si quieres, te cuento por qué.`;
+  return `Hola ${x.nombre}. Te escribo de El Almacén por tu horneado: son ${importe}. Puedes traer las piezas bien secas${x.cuando ? ` (${x.cuando})` : ""}${recogida(x) ? ` y te las tenemos para el ${recogida(x)}` : ""}. ¿Te viene bien?`;
 }
 
 // Qué día y a qué hora quiere recogerlas: «sábado 7 de noviembre, por la tarde»

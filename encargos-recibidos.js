@@ -118,7 +118,7 @@ function telefonoWhatsApp(telefono) {
 }
 
 function mensajeRespuesta(e, { precio, plazo }) {
-  const partes = [`Hola, ${e.nombre}. Te escribo de El Almacén por tu encargo (${(e.tipo || "pieza").toLowerCase()}${e.cantidad > 1 ? `, ${e.cantidad} unidades` : ""}).`];
+  const partes = [`Hola ${e.nombre}. Te escribo de El Almacén por tu encargo (${(e.tipo || "pieza").toLowerCase()}${e.cantidad > 1 ? `, ${e.cantidad} unidades` : ""}).`];
   if (precio) partes.push(`El presupuesto es de ${euros.format(precio)}${plazo ? ` y el plazo, ${plazo}` : ""}.`);
   else if (plazo) partes.push(`El plazo sería ${plazo}.`);
   partes.push("¿Te encaja?");
