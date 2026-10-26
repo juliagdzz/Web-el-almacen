@@ -102,3 +102,11 @@
 .avisado { flex: 1 1 100%; font-size: 0.8rem; color: var(--verde); }
 .avisado.sin-avisar { color: var(--terracota-oscuro); font-weight: 600; }
 .ayuda-aviso { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--verde); line-height: 1.4; }
+
+/* Cómo prefiere que le contesten (WhatsApp o correo), con su icono */
+.prefiere { justify-self: start; display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.3rem; padding: 0.15rem 0.6rem 0.15rem 0.45rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+.prefiere svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.prefiere-whatsapp { background: #e4ecd5; color: var(--oliva-oscuro); }
+.prefiere-correo { background: #e0e6f0; color: #2f4a73; }
+.prefiere.grande { margin: 0 0 0.75rem; padding: 0.4rem 0.85rem 0.4rem 0.6rem; font-size: 0.9rem; }
+.prefiere.grande svg { width: 1.3rem; height: 1.3rem; }

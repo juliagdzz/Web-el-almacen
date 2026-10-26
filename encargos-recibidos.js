@@ -65,6 +65,19 @@ function pintarFiltros() {
   }).filter(Boolean));
 }
 
+// Cómo prefiere que le contesten, con su icono: «Prefiere WhatsApp» / «Prefiere correo»
+const ICONOS_CONTACTO = {
+  whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l1.2-3.6A7.8 7.8 0 1 1 8.6 18.4z"/><path d="M9.3 9.2c.2 1.9 1.8 3.7 3.8 4.4l1.1-1.1 1.7.8-.4 1.4c-3.4.2-6.6-2.9-6.6-6.3l1.4-.4.8 1.7z"/></svg>',
+  correo: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></svg>',
+};
+function preferencia(x, grande = false) {
+  const via = x.contestar_por === "whatsapp" ? "whatsapp" : "correo";
+  const el = h("span", { class: `prefiere prefiere-${via}${grande ? " grande" : ""}` });
+  el.innerHTML = ICONOS_CONTACTO[via];
+  el.append(grande ? `Prefiere que le contestes por ${via === "whatsapp" ? "WhatsApp" : "correo"}` : `Prefiere ${via === "whatsapp" ? "WhatsApp" : "correo"}`);
+  return el;
+}
+
 function pintar() {
   pintarFiltros();
   const visibles = encargos.filter((e) => filtro === "todos" || (filtro === "pendientes" ? !CERRADOS.includes(e.estado) : e.estado === filtro));
@@ -74,6 +87,7 @@ function pintar() {
         h("strong", {}, `${e.tipo || "Pieza"}${e.cantidad > 1 ? ` × ${e.cantidad}` : ""}`),
         h("span", { class: `etiqueta-estado estado-${e.estado}` }, ESTADOS[e.estado] ?? e.estado)),
       h("span", { class: "linea-2" }, `${e.nombre} · ${haceCuanto(e.creado)}`, e.fotos?.length || e.tablero ? " · con adjuntos" : ""),
+      preferencia(e),
       h("span", { class: "idea-corta" }, e.idea),
       e.precio != null && h("span", { class: "linea-3" }, `${euros.format(e.precio)}${e.plazo ? ` · ${e.plazo}` : ""}`))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes encargos pendientes." : "No hay encargos aquí.")]));
@@ -125,16 +139,20 @@ async function abrir(e) {
   const actual = () => ({ precio: precio.value ? Number(precio.value) : null, plazo: plazo.value.trim() });
 
   const telefono = telefonoWhatsApp(e.telefono);
-  const contestar = h("div", { class: "contestar" },
-    telefono && h("a", { class: `boton${e.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${telefono}`,
-      onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${telefono}?text=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } }, "Contestar por WhatsApp"),
-    e.correo && h("a", { class: `boton${e.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${e.correo}`,
-      onclick: (ev) => { ev.currentTarget.href = `mailto:${e.correo}?subject=${encodeURIComponent("Tu encargo en El Almacén")}&body=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } }, "Contestar por correo"));
+  const porWhatsApp = telefono && h("a", { class: `boton${e.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${telefono}`,
+    onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${telefono}?text=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } },
+    `Contestar por WhatsApp${e.contestar_por === "whatsapp" ? " (lo prefiere)" : ""}`);
+  const porCorreo = e.correo && h("a", { class: `boton${e.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${e.correo}`,
+    onclick: (ev) => { ev.currentTarget.href = `mailto:${e.correo}?subject=${encodeURIComponent("Tu encargo en El Almacén")}&body=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } },
+    `Contestar por correo${e.contestar_por === "correo" ? " (lo prefiere)" : ""}`);
+  // El que prefiere, primero
+  const contestar = h("div", { class: "contestar" }, ...(e.contestar_por === "whatsapp" ? [porWhatsApp, porCorreo] : [porCorreo, porWhatsApp]));
 
   const galeria = h("div", { class: "galeria-encargo" });
   $("#contenido-ficha").replaceChildren(
     h("h2", {}, `${e.tipo || "Pieza"}${e.cantidad > 1 ? ` × ${e.cantidad}` : ""}`),
     h("p", { class: "quien" }, `${e.nombre} · ${fecha(e.creado, { day: "numeric", month: "long", year: "numeric" })}`),
+    preferencia(e, true),
     h("p", { class: "idea" }, e.idea),
     h("dl", { class: "datos-encargo" },
       ...dato("Uso", e.uso),
@@ -143,8 +161,7 @@ async function abrir(e) {
       ...dato("Para cuándo", e.para_cuando && fecha(e.para_cuando + "T12:00", { day: "numeric", month: "long", year: "numeric" })),
       ...dato("Quiere gastar", e.presupuesto_cliente),
       ...dato("Teléfono", e.telefono),
-      ...dato("Correo", e.correo),
-      ...dato("Prefiere", e.contestar_por === "whatsapp" ? "WhatsApp" : "Correo")),
+      ...dato("Correo", e.correo)),
     galeria,
     h("section", { class: "tu-respuesta" },
       h("h3", {}, "Tu respuesta"),

@@ -54,6 +54,19 @@ const piezas = (x) => x.piezas.reduce((n, p) => n + (parseInt(p.descripcion, 10)
 
 // ---------- Lista ----------
 
+// Cómo prefiere que le contesten, con su icono: «Prefiere WhatsApp» / «Prefiere correo»
+const ICONOS_CONTACTO = {
+  whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l1.2-3.6A7.8 7.8 0 1 1 8.6 18.4z"/><path d="M9.3 9.2c.2 1.9 1.8 3.7 3.8 4.4l1.1-1.1 1.7.8-.4 1.4c-3.4.2-6.6-2.9-6.6-6.3l1.4-.4.8 1.7z"/></svg>',
+  correo: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></svg>',
+};
+function preferencia(x, grande = false) {
+  const via = x.contestar_por === "whatsapp" ? "whatsapp" : "correo";
+  const el = h("span", { class: `prefiere prefiere-${via}${grande ? " grande" : ""}` });
+  el.innerHTML = ICONOS_CONTACTO[via];
+  el.append(grande ? `Prefiere que le contestes por ${via === "whatsapp" ? "WhatsApp" : "correo"}` : `Prefiere ${via === "whatsapp" ? "WhatsApp" : "correo"}`);
+  return el;
+}
+
 function pintar() {
   $("#filtros").replaceChildren(...Object.entries(FILTROS).map(([clave, nombre]) => {
     const cuantos = clave === "todos" ? horneados.length
@@ -71,7 +84,8 @@ function pintar() {
           h("strong", {}, `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
           h("span", { class: `etiqueta-estado estado-${x.estado}` }, ESTADOS[x.estado])),
         h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}${recogida(x) ? ` · recoge: ${recogida(x)}` : ""}`),
-        h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · "))),
+        h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · ")),
+        preferencia(x)),
       accionesRapidas(x))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes horneados pendientes." : "No hay horneados aquí.")]));
 }
@@ -108,12 +122,13 @@ function botonesAviso(x, estadoDe, precioDe, textos = { whatsapp: "Avisar por Wh
     const { error } = await window.nube.cliente.from("horneados").update({ avisado: ahora }).eq("id", x.id);
     if (!error) { x.avisado = ahora; setTimeout(pintar, 300); }
   };
-  return [
+  const botones = [
     tel && h("a", { class: `boton pequeno${x.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${tel}`,
-      onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, textos.whatsapp),
+      onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, `${textos.whatsapp}${x.contestar_por === "whatsapp" ? " (lo prefiere)" : ""}`),
     x.correo && h("a", { class: `boton pequeno${x.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${encodeURIComponent(x.correo)}`,
-      onclick: (ev) => { ev.currentTarget.href = `mailto:${encodeURIComponent(x.correo)}?subject=${encodeURIComponent(asunto(estado()))}&body=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, textos.correo),
-  ].filter(Boolean);
+      onclick: (ev) => { ev.currentTarget.href = `mailto:${encodeURIComponent(x.correo)}?subject=${encodeURIComponent(asunto(estado()))}&body=${encodeURIComponent(mensaje(x, estado(), precio()))}`; apuntar(); } }, `${textos.correo}${x.contestar_por === "correo" ? " (lo prefiere)" : ""}`),
+  ];
+  return (x.contestar_por === "correo" ? botones.reverse() : botones).filter(Boolean);
 }
 
 async function cargar() {
@@ -187,11 +202,11 @@ function abrir(x) {
   $("#contenido-ficha").replaceChildren(
     h("h2", {}, `Horneado de ${x.nombre}`),
     h("p", { class: "quien" }, `Enviado el ${fecha(x.creado)}`),
+    preferencia(x, true),
     h("ul", { class: "lineas-horneado" }, x.piezas.map((p) => h("li", {}, h("span", {}, p.descripcion), p.total != null && h("strong", {}, euros.format(p.total))))),
     h("p", { class: "total-horneado" }, "Total orientativo ", h("strong", {}, euros.format(x.total ?? 0))),
     h("dl", { class: "datos-encargo" },
       ...dato("Teléfono", x.telefono), ...dato("Correo", x.correo),
-      ...dato("Prefiere", x.contestar_por === "whatsapp" ? "WhatsApp" : "Correo"),
       ...dato("Puede traerlas", x.cuando), ...dato("Quiere recogerlas", recogida(x)), ...dato("Notas", x.notas)),
     h("section", { class: "tu-respuesta" },
       h("h3", {}, "Tu respuesta"),
