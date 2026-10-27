@@ -148,13 +148,22 @@ async function prepararImagen(blob) {
 }
 
 let temporizadorAviso;
-function avisar(texto) {
+// accion: { texto: "Deshacer", alPulsar } pone un botón en el aviso y lo deja más rato
+function avisar(texto, accion) {
   const el = $("#aviso");
-  el.textContent = texto;
+  el.replaceChildren(texto);
+  el.classList.toggle("con-accion", Boolean(accion));
+  if (accion) {
+    el.append(h("button", { type: "button", onclick: () => { el.classList.remove("visible"); accion.alPulsar(); } }, accion.texto));
+  }
   el.classList.add("visible");
   clearTimeout(temporizadorAviso);
-  temporizadorAviso = setTimeout(() => el.classList.remove("visible"), 2500);
+  temporizadorAviso = setTimeout(() => el.classList.remove("visible"), accion ? 6000 : 2500);
 }
+
+const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg>';
+const ICONO_LAPIZ = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></svg>';
+const conIcono = (el, svg) => { el.innerHTML = svg; return el; };
 
 // ---------- Guardado automático ----------
 
@@ -372,13 +381,18 @@ function editorFotos(obj, alCambiar) {
       ...obj.fotos.map((foto, i) =>
         h("figure", { class: "foto" },
           h("img", { src: urlDe(foto), alt: "" }),
-          h("button", { type: "button", class: "editar-foto", "aria-label": "Editar foto", onclick: () => editar(i) }, "✎"),
-          h("button", { type: "button", class: "quitar", "aria-label": "Quitar foto", onclick: () => {
-            if (!confirm("¿Quitar esta foto?")) return;
-            obj.fotos.splice(i, 1);
+          conIcono(h("button", { type: "button", class: "editar-foto", "aria-label": "Editar foto", title: "Editar foto", onclick: () => editar(i) }), ICONO_LAPIZ),
+          // Papelera: se quita al momento y el aviso deja deshacerlo
+          conIcono(h("button", { type: "button", class: "quitar", "aria-label": "Borrar foto", title: "Borrar foto", onclick: () => {
+            const [quitada] = obj.fotos.splice(i, 1);
             alCambiar();
             pintar();
-          } }, "✕"))),
+            avisar("Foto borrada", { texto: "Deshacer", alPulsar: () => {
+              obj.fotos.splice(Math.min(i, obj.fotos.length), 0, quitada);
+              alCambiar();
+              pintar();
+            } });
+          } }), ICONO_PAPELERA))),
       botonFoto(iconos.el("foto"), "Hacer foto", { capture: "environment" }),
       botonFoto(iconos.el("galeria"), "Galería", { multiple: true }),
     );

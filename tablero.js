@@ -240,6 +240,7 @@ function crearPin(p) {
     el.append(muestra, etiqueta, inventarioTaller.marca(p.esmalte, "punto"));
   } else {
     el.append(img);
+    el.classList.toggle("sin-fondo", Boolean(p.sinFondo)); // recortada: sin marco, se ve el corcho
   }
   if (p.nota) {
     const nota = document.createElement("span");
@@ -323,6 +324,11 @@ function miniatura(pins) {
     } else {
       const h = alto(p);
       const anchoFoto = p.ancho - 2 * MARCO;
+      if (p.sinFondo) { // recortada: solo la figura, con su sombra
+        dibujo.append(svg("image", { href: imagen, x: p.x, y: p.y, width: p.ancho, height: p.ancho * p.proporcion, filter: "url(#sombra-mini)",
+          transform: `rotate(${parseFloat(giro(p.id))} ${p.x + p.ancho / 2} ${p.y + h / 2})` }));
+        continue;
+      }
       const grupo = svg("g", { transform: `rotate(${parseFloat(giro(p.id))} ${p.x + p.ancho / 2} ${p.y + h / 2})` },
         svg("rect", { x: p.x, y: p.y, width: p.ancho, height: h, fill: "#fffdf7", filter: "url(#sombra-mini)" }),
         svg("image", { href: imagen, x: p.x + MARCO, y: p.y + MARCO, width: anchoFoto, height: anchoFoto * p.proporcion, preserveAspectRatio: "xMidYMid slice" }),
@@ -628,11 +634,18 @@ function dibujarPin(ctx, el) {
     ctx.translate(x + ancho / 2, y + alto / 2);
     ctx.rotate(((parseFloat(el.style.getPropertyValue("--giro")) || 0) * Math.PI) / 180);
     ctx.translate(-ancho / 2, -alto / 2);
+    const img = el.querySelector("img");
+    if (el.classList.contains("sin-fondo")) {
+      // Recortada: la figura con su sombra, sin marco ni chincheta
+      sombra(ctx, true);
+      ctx.drawImage(img, img.offsetLeft, img.offsetTop, img.offsetWidth, img.offsetHeight);
+      ctx.restore();
+      return;
+    }
     sombra(ctx, true);
     ctx.fillStyle = "#fffdf7";
     ctx.fillRect(0, 0, ancho, alto);
     sombra(ctx, false);
-    const img = el.querySelector("img");
     ctx.drawImage(img, img.offsetLeft, img.offsetTop, img.offsetWidth, img.offsetHeight);
     const nota = el.querySelector(".nota");
     if (nota) {
@@ -761,7 +774,7 @@ async function subirCompartido() {
     for (const [i, p] of pins.entries()) {
       datos.pins.push({
         imagen: await subir(p.imagen, String(i)), proporcion: p.proporcion, x: p.x, y: p.y, ancho: p.ancho, orden: i,
-        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null,
+        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null, sinFondo: Boolean(p.sinFondo),
       });
     }
     // El mismo enlace para el mismo tablero: si ya estaba compartido, se actualiza
@@ -852,6 +865,7 @@ async function leerDatosAjenos(datos, imagen) {
       nota: typeof p.nota === "string" ? p.nota.slice(0, 500) : "",
       origen: typeof p.origen === "string" && /^https:\/\//.test(p.origen) ? p.origen : null,
       esmalte: p.esmalte && typeof p.esmalte === "object" ? p.esmalte : undefined,
+      sinFondo: p.sinFondo === true,
     });
   }
   const f = datos?.fondo;
@@ -999,7 +1013,7 @@ async function exportarTablero() {
     };
     for (const p of pins) {
       datos.pins.push({ imagen: await aDatoUrl(p.imagen), proporcion: p.proporcion, x: p.x, y: p.y, ancho: p.ancho,
-        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null });
+        nota: p.nota || "", origen: p.origen || null, esmalte: p.esmalte ?? null, sinFondo: Boolean(p.sinFondo) });
     }
     const archivo = new File([JSON.stringify(datos)], `${nombreDeArchivo(tableroActual.nombre) || "tablero"}.tablero.json`, { type: "application/json" });
     if (navigator.canShare?.({ files: [archivo] })) {
@@ -1777,8 +1791,10 @@ $("#hoja-detalle").addEventListener("close", async () => {
 // Editar la foto (recortar, girar, quitar o cambiar el fondo): el mismo editor que en las piezas
 async function editarPin(pin) {
   if (!pin || pin.esmalte) return;
-  const nueva = await editarFoto(pin.imagen);
+  // Al quitar el fondo se queda transparente: la foto recortada sobre el corcho
+  const nueva = await editarFoto(pin.imagen, { alQuitarFondo: "transparente" });
   if (!nueva) return;
+  pin.sinFondo = nueva.type === "image/png";
   const bitmap = await createImageBitmap(nueva);
   pin.proporcion = bitmap.height / bitmap.width; // si se ha recortado, cambia la forma
   bitmap.close();

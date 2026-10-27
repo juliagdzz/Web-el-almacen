@@ -137,10 +137,14 @@
   height: 1.75rem;
   padding: 0;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.55);
-  color: white;
-  font-size: 0.8rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+  background: var(--granate);
+  color: var(--crema);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
 }
+.foto .quitar svg, .foto .editar-foto svg { width: 0.95rem; height: 0.95rem; }
 .anadir-foto {
   display: grid;
   place-content: center;
@@ -354,6 +358,9 @@
   transition: opacity 0.2s;
 }
 .toast.visible { opacity: 1; }
+/* Aviso con «Deshacer»: se puede tocar */
+.toast.con-accion.visible { width: max-content; max-width: calc(100% - 2rem); white-space: nowrap; display: flex; align-items: center; gap: 0.75rem; padding-right: 0.5rem; pointer-events: auto; }
+.toast button, .toast button:hover { padding: 0.3rem 0.8rem; border: 0; border-radius: 999px; background: var(--crema); color: var(--granate); font: 600 0.85rem 'DM Sans', sans-serif; cursor: pointer; }
 
 /* Ficha para ver: carrusel de fotos y detalles */
 .hoja-ver[open] { display: block; overflow-y: auto; padding-top: 0; }
@@ -529,9 +536,12 @@
   height: 1.75rem;
   padding: 0;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.55);
-  color: white;
-  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+  background: var(--verde);
+  color: var(--crema);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
 }
 
 /* Tarjeta de «Añadir pieza»: la taza sobre fondo oliva con un + */

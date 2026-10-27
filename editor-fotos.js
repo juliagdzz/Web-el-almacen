@@ -1,5 +1,6 @@
 // Editor de fotos: recortar, girar, quitar el fondo y poner otro (liso o una foto).
-// editarFoto(blob) abre el editor y devuelve la foto nueva, o null si se cancela.
+// editarFoto(blob, { alQuitarFondo }) abre el editor y devuelve la foto nueva, o null si se cancela.
+// alQuitarFondo: el fondo que se pone al quitarlo ("transparente" en los tableros; crema si no se dice).
 //
 // El fondo se quita en el propio móvil, sin descargar nada: desde los bordes de la foto
 // se van tomando los píxeles de color parecido (va muy bien con fondos lisos), y luego
@@ -26,7 +27,7 @@ function editorEl(etiqueta, props = {}, ...hijos) {
   return el;
 }
 
-async function editarFoto(blob) {
+async function editarFoto(blob, { alQuitarFondo = "#f3e9d8" } = {}) {
   // ---------- Estado ----------
   let lienzo;            // la foto (canvas), como mucho EDITOR_LADO px de lado
   let pixeles;           // sus píxeles, para quitar el fondo
@@ -121,7 +122,7 @@ async function editarFoto(blob) {
     for (let y = 0; y < h; y += 2) borde.push(y * w, y * w + w - 1);
     const cuantos = rellenar(borde);
     quitado = cuantos > 0;
-    if (fondo === "original") fondo = "#f3e9d8";
+    if (fondo === "original") fondo = alQuitarFondo;
     actualizarPrimerPlano();
     pintarControles();
     dibujar();
@@ -302,7 +303,7 @@ async function editarFoto(blob) {
       const cuantos = rellenar([y * pixeles.width + x]);
       if (cuantos) {
         quitado = true;
-        if (fondo === "original") fondo = "#f3e9d8";
+        if (fondo === "original") fondo = alQuitarFondo;
         pintarControles();
       }
       actualizarPrimerPlano();
@@ -311,7 +312,7 @@ async function editarFoto(blob) {
     }
     gesto = { tipo: herramienta };
     quitado = true;
-    if (fondo === "original") { fondo = "#f3e9d8"; pintarControles(); }
+    if (fondo === "original") { fondo = alQuitarFondo; pintarControles(); }
     pintarMascara(p.x, p.y, pincel / vista.escala, herramienta === "borrar" ? 0 : 255);
     actualizarPrimerPlano();
     dibujar();

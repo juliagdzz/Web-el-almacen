@@ -191,6 +191,12 @@ body.en-tablero {
   background: radial-gradient(circle at 35% 35%, #d9d78f, var(--oliva, #9b9a3a) 55%, #3f4c1b);
 }
 .pin img { display: block; width: 100%; height: auto; pointer-events: none; }
+/* Foto con el fondo quitado: sin marco ni chincheta, recortada sobre el corcho */
+.pin.sin-fondo { padding: 0; background: transparent; box-shadow: none; }
+.pin.sin-fondo::before { display: none; }
+.pin.sin-fondo img { filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.25)) drop-shadow(0 6px 8px rgb(40 20 0 / 0.3)); }
+.pin.sin-fondo.arrastrando { box-shadow: none; }
+.pin.sin-fondo .nota { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 4px; background: #fffdf7; }
 .pin .nota {
   display: -webkit-box;
   -webkit-box-orient: vertical;
