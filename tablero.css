@@ -214,23 +214,25 @@ body.en-tablero {
   transform: rotate(var(--giro, 0deg)) scale(1.03);
   box-shadow: 0 2px 2px rgb(0 0 0 / 0.15), 0 16px 28px rgb(40 20 0 / 0.4);
 }
-.pin .editar, .pin .tirador { display: none; }
-.pin.seleccionado .editar,
+.pin .boton-pin, .pin .tirador { display: none; }
+.pin.seleccionado .boton-pin,
 .pin.seleccionado .tirador { display: grid; place-items: center; }
-.pin .editar {
+/* Papelera arriba a la derecha y lápiz arriba a la izquierda */
+.pin .boton-pin {
   position: absolute;
-  top: -14px;
-  right: -14px;
-  width: 2.25rem;
-  height: 2.25rem;
+  top: -16px;
+  width: 2.4rem;
+  height: 2.4rem;
   padding: 0;
   border: 3px solid #fffdf7;
   border-radius: 50%;
-  background: var(--t-oliva);
   color: var(--t-crema);
-  font-size: 1rem;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
+  cursor: pointer;
 }
+.pin .boton-pin svg { width: 1.15rem; height: 1.15rem; }
+.pin .borrar-pin { right: -16px; background: var(--t-granate); }
+.pin .editar-pin { left: -16px; background: var(--t-oliva); }
 .pin .tirador {
   position: absolute;
   right: -16px;
@@ -569,6 +571,9 @@ body.en-tablero {
   z-index: 10;
 }
 .toast.visible { opacity: 1; }
+/* Aviso con «Deshacer»: se puede tocar */
+.toast.con-accion.visible { width: max-content; white-space: nowrap; display: flex; align-items: center; gap: 0.75rem; padding-right: 0.5rem; pointer-events: auto; }
+.toast button, .pagina-tableros .toast button:hover { padding: 0.3rem 0.8rem; border: 0; border-radius: 999px; background: var(--t-crema); color: var(--t-granate); font: 600 0.85rem 'DM Sans', sans-serif; cursor: pointer; }
 
 .cargando { opacity: 0.6; pointer-events: none; }
 
@@ -580,7 +585,8 @@ body.en-tablero {
 .pagina-tableros .tarjeta-nuevo:hover { background: transparent; }
 .pagina-tableros .fila button:hover,
 .pagina-tableros .acciones button:hover { background: var(--t-terracota-oscuro); }
-.pagina-tableros .pin .editar:hover { background: var(--t-oliva); }
+.pagina-tableros .pin .editar-pin:hover { background: var(--t-oliva); }
+.pagina-tableros .pin .borrar-pin:hover { background: var(--t-granate); }
 .pagina-tableros .acciones .peligro:hover { background: white; }
 .pagina-tableros .fab:hover { background: var(--t-oliva); }
 .pagina-tableros .fab-esmalte:hover { background: var(--t-oxido); }

@@ -106,13 +106,25 @@ const limitar = (n, min, max) => Math.min(max, Math.max(min, n));
 // ---------- Avisos ----------
 
 let temporizadorAviso;
-function avisar(texto) {
+// accion: { texto: "Deshacer", alPulsar } pone un botón en el aviso y lo deja más rato
+function avisar(texto, accion) {
   const el = $("#aviso");
-  el.textContent = texto;
+  el.replaceChildren(texto);
+  el.classList.toggle("con-accion", Boolean(accion));
+  if (accion) {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.textContent = accion.texto;
+    boton.addEventListener("click", () => { el.classList.remove("visible"); accion.alPulsar(); });
+    el.append(boton);
+  }
   el.classList.add("visible");
   clearTimeout(temporizadorAviso);
-  temporizadorAviso = setTimeout(() => el.classList.remove("visible"), 3000);
+  temporizadorAviso = setTimeout(() => el.classList.remove("visible"), accion ? 6000 : 3000);
 }
+
+const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg>';
+const ICONO_LAPIZ = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></svg>';
 
 // ---------- Vistas ----------
 
@@ -236,16 +248,26 @@ function crearPin(p) {
     el.append(nota);
   }
 
+  // Con la foto elegida: papelera (borra al momento, con «Deshacer») y lápiz
+  // (edita la foto; en las chapas, que no son fotos, abre su ficha)
+  const borrar = document.createElement("button");
+  borrar.className = "boton-pin borrar-pin";
+  borrar.type = "button";
+  borrar.innerHTML = ICONO_PAPELERA;
+  borrar.setAttribute("aria-label", "Borrar del tablero");
+  borrar.title = "Borrar";
+  borrar.addEventListener("click", () => borrarPin(p.id));
   const editar = document.createElement("button");
-  editar.className = "editar";
+  editar.className = "boton-pin editar-pin";
   editar.type = "button";
-  editar.textContent = "✎";
-  editar.setAttribute("aria-label", "Ver la foto y su nota");
-  editar.addEventListener("click", () => abrirDetalle(p.id));
+  editar.innerHTML = ICONO_LAPIZ;
+  editar.setAttribute("aria-label", p.esmalte ? "Ver la muestra y su nota" : "Editar la foto");
+  editar.title = p.esmalte ? "Ver y anotar" : "Editar foto";
+  editar.addEventListener("click", () => (p.esmalte ? abrirDetalle(p.id) : editarPin(pinsActuales.get(p.id))));
   const tirador = document.createElement("span");
   tirador.className = "tirador";
   tirador.setAttribute("aria-hidden", "true");
-  el.append(editar, tirador);
+  el.append(borrar, editar, tirador);
 
   el.addEventListener("keydown", (e) => e.key === "Enter" && e.target === el && abrirDetalle(p.id));
   return el;
@@ -427,7 +449,7 @@ corcho.addEventListener("pointerdown", (e) => {
     }
     return;
   }
-  if (e.target.closest(".editar") || e.button > 0) return;
+  if (e.target.closest(".boton-pin") || e.button > 0) return;
   const p = pinsActuales.get(el.dataset.id);
   gesto = {
     el,
@@ -1724,6 +1746,7 @@ function abrirDetalle(id) {
   const esmalte = pinAbierto.esmalte;
   $("#detalle-esmalte").hidden = !esmalte;
   $("#detalle-paleta").hidden = Boolean(esmalte); // la paleta tiene sentido en las fotos, no en las chapas
+  $("#detalle-editar").hidden = Boolean(esmalte); // y editar también: las chapas son muestras del catálogo
   if (esmalte) {
     $("#detalle-esmalte-nombre").textContent = nombreEsmalte(esmalte);
     $("#detalle-esmalte-serie").replaceChildren(marcasEsmaltes.etiqueta(esmalte), " ", esmalte.serie);
@@ -1751,6 +1774,44 @@ $("#hoja-detalle").addEventListener("close", async () => {
   pinAbierto = null;
 });
 
+// Editar la foto (recortar, girar, quitar o cambiar el fondo): el mismo editor que en las piezas
+async function editarPin(pin) {
+  if (!pin || pin.esmalte) return;
+  const nueva = await editarFoto(pin.imagen);
+  if (!nueva) return;
+  const bitmap = await createImageBitmap(nueva);
+  pin.proporcion = bitmap.height / bitmap.width; // si se ha recortado, cambia la forma
+  bitmap.close();
+  pin.imagen = nueva;
+  await db.guardarPin(pin);
+  await mostrarTablero(tableroActual.id); // vuelve a pintar el corcho (y libera las fotos de antes)
+  if (pinAbierto === pin) $("#detalle-img").src = urlDe(nueva);
+  seleccionarPorId(pin.id);
+  avisar("Foto editada");
+}
+$("#detalle-editar").addEventListener("click", () => editarPin(pinAbierto));
+
+// Borrar al momento; el aviso deja deshacerlo unos segundos
+async function borrarPin(id) {
+  const pin = pinsActuales.get(id);
+  if (!pin) return;
+  await db.borrarPin(id);
+  if (pinAbierto?.id === id) { pinAbierto = null; $("#hoja-detalle").close(); }
+  await mostrarTablero(tableroActual.id);
+  avisar(pin.esmalte ? "Muestra quitada del tablero" : "Foto borrada del tablero", {
+    texto: "Deshacer",
+    alPulsar: async () => {
+      await db.guardarPin(pin);
+      await mostrarTablero(tableroActual.id);
+      seleccionarPorId(pin.id);
+    },
+  });
+}
+function seleccionarPorId(id) {
+  const el = corcho.querySelector(`.pin[data-id="${CSS.escape(id)}"]`);
+  if (el) seleccionar(el);
+}
+
 $("#detalle-fondo").addEventListener("click", async () => {
   pinAbierto.orden = Math.min(...[...pinsActuales.values()].map((p) => p.orden)) - 1;
   await db.guardarPin(pinAbierto);
@@ -1758,13 +1819,7 @@ $("#detalle-fondo").addEventListener("click", async () => {
   mostrarTablero(tableroActual.id);
 });
 
-$("#detalle-borrar").addEventListener("click", async () => {
-  if (!confirm("¿Borrar esta foto del tablero?")) return;
-  await db.borrarPin(pinAbierto.id);
-  pinAbierto = null;
-  $("#hoja-detalle").close();
-  mostrarTablero(tableroActual.id);
-});
+$("#detalle-borrar").addEventListener("click", () => borrarPin(pinAbierto.id));
 
 // Cerrar las hojas tocando fuera
 document.querySelectorAll("dialog").forEach((d) =>

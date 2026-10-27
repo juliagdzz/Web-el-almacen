@@ -12,6 +12,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="tablero.css">
+  <link rel="stylesheet" href="editor-fotos.css">
 </head>
 <body class="pagina-tableros">
 
@@ -61,7 +62,7 @@
       <button id="btn-opciones" class="icono" aria-label="Opciones del tablero">⋯</button>
     </div>
     <p id="tablero-de" class="tablero-de" hidden></p>
-    <p class="ayuda">Arrastra el corcho para moverte. Toca una foto para elegirla y arrástrala; el círculo de la esquina cambia su tamaño.</p>
+    <p class="ayuda">Arrastra el corcho para moverte. Toca una foto para elegirla y arrástrala: el círculo de abajo cambia su tamaño, el lápiz la edita y la papelera la quita. Tócala otra vez para su nota.</p>
     <div id="corcho-vista" class="corcho-vista">
       <div id="corcho" class="corcho"></div>
     </div>
@@ -141,6 +142,7 @@
     <a id="detalle-origen" class="origen" target="_blank" rel="noopener" hidden></a>
     <button id="detalle-paleta" class="boton-paleta" type="button">Paleta de esta foto</button>
     <div class="acciones">
+      <button id="detalle-editar" type="button">Editar foto</button>
       <button id="detalle-fondo" type="button">Enviar al fondo</button>
       <button id="detalle-borrar" type="button" class="peligro">Borrar foto</button>
     </div>
@@ -205,6 +207,7 @@
   <script src="compartir.js"></script>
   <script src="marcas.js"></script>
   <script src="inventario-esmaltes.js"></script>
+  <script src="editor-fotos.js"></script>
   <script src="tablero.js"></script>
   <script src="cabecera.js"></script>
 </body>
