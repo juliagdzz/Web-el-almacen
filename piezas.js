@@ -786,6 +786,17 @@ async function vistaPieza(id) {
   p.fallo ??= false;
   p.que_paso ??= "";
   const guardar = () => cambiado("piezas", p);
+  // Viene de «¿Qué hago hoy?»: la idea ya rellena el nombre, las técnicas y las notas
+  if (!existente) {
+    let idea = null;
+    try { idea = JSON.parse(sessionStorage.getItem("ideaPieza")); sessionStorage.removeItem("ideaPieza"); } catch {}
+    if (idea) {
+      p.nombre = idea.nombre ?? "";
+      p.notas = idea.notas ?? "";
+      p.tecnicas = (idea.tecnicas ?? []).filter((t) => TECNICAS.includes(t));
+      guardar();
+    }
+  }
   // Pinceles ya usados en otras piezas, para no tener que escribirlos otra vez
   const pincelesUsados = [...new Set(piezas.flatMap((x) => x.capas.map((c) => c.pincel)).filter(Boolean))];
   const otrosUsados = [...new Set(piezas.flatMap((x) => x.capas.filter((c) => c.origen === "otro").map((c) => c.nombre)).filter(Boolean))];

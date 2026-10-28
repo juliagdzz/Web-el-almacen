@@ -1,0 +1,227 @@
+/* ¿Qué hago hoy?: una idea de pieza al azar */
+
+.reto [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .contenedor.reto { padding: 1rem; }
+}
+
+.reto h1 { margin-bottom: 0.25rem; }
+.entradilla { margin-top: 0; }
+
+.bloque {
+  margin: 1.25rem 0;
+  padding: 1rem 1rem 1.25rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.bloque h2 { margin: 0 0 0.75rem; font-size: 1.2rem; }
+.bloque h2::after { display: none; }
+.ayuda { margin: 0 0 0.75rem; color: #6b5a4a; font-size: 0.9rem; }
+
+/* ---------- Opciones ---------- */
+.grupo-reto { margin: 0 0 1.1rem; padding: 0; border: 0; min-width: 0; }
+.grupo-reto legend { padding: 0; margin-bottom: 0.45rem; font-weight: 600; }
+.grupo-reto legend small, .gustos summary small { color: #6b5a4a; font-weight: 400; font-size: 0.85rem; }
+
+/* Radios como botones de una barra */
+.segmentos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+.segmentos label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.6rem;
+  padding: 0.35rem 0.5rem;
+  border: 2px solid var(--verde);
+  border-radius: 12px;
+  color: var(--verde);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.segmentos input { position: absolute; opacity: 0; pointer-events: none; }
+.segmentos label:has(input:checked) { background: var(--verde); color: var(--crema); }
+.segmentos label:has(input:focus-visible) { outline: 2px solid var(--terracota); outline-offset: 2px; }
+
+/* Chips: toca para «me gusta», otra vez para «mejor no» */
+.chips-reto { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-reto,
+.chip-reto:hover {
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid #d6c7bd;
+  border-radius: 999px;
+  background: white;
+  color: var(--tinta);
+  font-size: 0.9rem;
+  line-height: 1.3;
+  text-align: left;
+}
+.chip-reto:hover { border-color: var(--verde); }
+.chip-reto.estado-si,
+.chip-reto.estado-si:hover { border-color: var(--verde); background: var(--verde); color: var(--crema); }
+.chip-reto.estado-si::before { content: "✓ "; }
+.chip-reto.estado-no,
+.chip-reto.estado-no:hover { border-color: var(--granate); background: #f3e3e3; color: var(--granate); text-decoration: line-through; }
+.chip-reto.estado-no::before { content: "✕ "; text-decoration: none; display: inline-block; margin-right: 0.25rem; }
+
+.gustos {
+  margin: 0 0 1.1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #eadbd0;
+  border-radius: 12px;
+  background: #fbf6f1;
+}
+.gustos summary { font-weight: 600; cursor: pointer; }
+.gustos[open] summary { margin-bottom: 0.5rem; }
+.gustos h3 { margin: 0.9rem 0 0.4rem; font-family: 'Fraunces', serif; font-size: 1rem; color: var(--terracota-oscuro); }
+.gustos h3::after { display: none; }
+#borrar-gustos { margin-top: 0.8rem; }
+
+.boton.texto, .boton.texto:hover { padding: 0.3rem 0.5rem; background: none; color: var(--verde); font-size: 0.9rem; text-decoration: underline; }
+
+.boton.generar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.boton.generar svg { width: 1.5rem; height: 1.5rem; flex: none; }
+.boton.generar:active svg { transform: rotate(25deg); }
+
+/* ---------- La idea ---------- */
+.resultado-reto {
+  margin: 1.25rem 0;
+  padding: 1.1rem 1rem 1rem;
+  border-radius: 14px;
+  background: var(--crema);
+  border: 2px solid var(--terracota);
+  scroll-margin-top: 1rem;
+  animation: aparecer 0.3s ease-out;
+}
+@keyframes aparecer { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .resultado-reto { animation: none; } }
+
+.etiqueta-reto {
+  display: inline-block;
+  margin: 0 0 0.25rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--terracota);
+  color: var(--crema);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.resultado-reto h2 { margin: 0.2rem 0 0.8rem; font-size: 1.6rem; color: var(--granate); }
+.resultado-reto h2::after { display: none; }
+
+.partes-reto {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0;
+  margin: 0 0 1rem;
+}
+.partes-reto dt,
+.partes-reto dd {
+  margin: 0;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgb(164 78 38 / 0.2);
+}
+.partes-reto dt { padding-right: 0.9rem; color: var(--terracota-oscuro); font-weight: 600; font-size: 0.9rem; }
+.partes-reto dd { display: flex; align-items: flex-start; gap: 0.5rem; min-width: 0; }
+.valor-reto { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.valor-reto strong { display: block; font-weight: 600; }
+.valor-reto small { display: block; color: #5a4a3e; font-size: 0.88rem; line-height: 1.45; }
+
+.otra-parte,
+.otra-parte:hover {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border-radius: 50%;
+  background: white;
+  color: var(--verde);
+  box-shadow: inset 0 0 0 1.5px var(--verde);
+}
+.otra-parte:hover { background: var(--verde); color: var(--crema); }
+.otra-parte svg { width: 1.2rem; height: 1.2rem; }
+
+@media (max-width: 480px) {
+  .partes-reto { grid-template-columns: 1fr; }
+  .partes-reto dt { padding-bottom: 0; }
+  .partes-reto dd { border-top: 0; padding-top: 0.15rem; }
+}
+
+.acciones-reto { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* ---------- Cronómetro ---------- */
+.cronometro { text-align: center; }
+.cronometro .ayuda { text-align: left; }
+.minutos { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
+.minutos .chip-reto.estado-si::before { content: none; }
+
+.reloj {
+  margin: 0.6rem 0 0.4rem;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3.2rem, 18vw, 5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--verde);
+}
+.barra-tiempo {
+  height: 0.5rem;
+  margin: 0 0 1rem;
+  border-radius: 999px;
+  background: #eadbd0;
+  overflow: hidden;
+}
+.barra-tiempo span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--verde);
+  transition: width 0.25s linear;
+}
+.botones-reloj { display: flex; justify-content: center; gap: 0.5rem; }
+.botones-reloj .boton { min-width: 7.5rem; }
+
+.cronometro.poco-tiempo .reloj { color: var(--terracota); }
+.cronometro.poco-tiempo .barra-tiempo span { background: var(--terracota); }
+.cronometro.terminado { background: var(--granate); color: var(--crema); }
+.cronometro.terminado h2,
+.cronometro.terminado .ayuda,
+.cronometro.terminado .reloj { color: var(--crema); }
+.cronometro.terminado .barra-tiempo span { background: var(--crema); }
+.cronometro.terminado .boton.secundario { color: var(--crema); box-shadow: inset 0 0 0 2px var(--crema); }
+
+/* ---------- Aviso ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(2rem + var(--alto-sello, 0px) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 2rem);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--crema);
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.visible { opacity: 1; }
