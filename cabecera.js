@@ -78,8 +78,8 @@
   };
   pintarPanel(guardado());
   const nube = window.nube;
-  if (nube?.activa) {
-    Promise.resolve(nube.listo).then(async () => {
+  // Al abrir o contestar un encargo, el panel avisa para que se recuente
+  const recontar = () => Promise.resolve(nube.listo).then(async () => {
       if (!nube.usuario) {
         try { localStorage.removeItem("panelTaller"); } catch {}
         return pintarPanel(null);
@@ -95,6 +95,9 @@
       try { localStorage.setItem("panelTaller", JSON.stringify(datos)); } catch {}
       pintarPanel(datos);
     }).catch(() => {});
+  if (nube?.activa) {
+    recontar();
+    window.addEventListener("panel-cambiado", recontar);
   }
 
   const abrir = (abierto) => {

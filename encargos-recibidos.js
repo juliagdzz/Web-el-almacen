@@ -82,15 +82,27 @@ function pintar() {
   pintarFiltros();
   const visibles = encargos.filter((e) => filtro === "todos" || (filtro === "pendientes" ? !CERRADOS.includes(e.estado) : e.estado === filtro));
   $("#lista-encargos").replaceChildren(...(visibles.length ? visibles.map((e) =>
-    h("button", { type: "button", class: `tarjeta-encargo estado-${e.estado}`, onclick: () => abrir(e) },
+    h("button", { type: "button", class: `tarjeta-encargo estado-${e.estado}${sinVer(e) ? " sin-ver" : ""}`, onclick: () => abrir(e) },
       h("span", { class: "linea-1" },
-        h("strong", {}, `${e.tipo || "Pieza"}${e.cantidad > 1 ? ` × ${e.cantidad}` : ""}`),
+        h("strong", {}, sinVer(e) && h("span", { class: "punto-sin-ver", title: "Sin abrir" }), `${e.tipo || "Pieza"}${e.cantidad > 1 ? ` × ${e.cantidad}` : ""}`),
         h("span", { class: `etiqueta-estado estado-${e.estado}` }, ESTADOS[e.estado] ?? e.estado)),
       h("span", { class: "linea-2" }, `${e.nombre} · ${haceCuanto(e.creado)}`, e.fotos?.length || e.tablero ? " · con adjuntos" : ""),
       preferencia(e),
       h("span", { class: "idea-corta" }, e.idea),
       e.precio != null && h("span", { class: "linea-3" }, `${euros.format(e.precio)}${e.plazo ? ` · ${e.plazo}` : ""}`))
   ) : [h("p", { class: "vacio" }, filtro === "pendientes" ? "No tienes encargos pendientes." : "No hay encargos aquí.")]));
+}
+
+// Nuevo y sin abrir: es lo único que cuenta en los globos del panel y del menú
+const sinVer = (e) => e.estado === "nuevo" && !e.visto;
+async function marcarVisto(e) {
+  if (e.visto) return;
+  const ahora = new Date().toISOString();
+  const { error } = await window.nube.cliente.from("encargos").update({ visto: ahora }).eq("id", e.id);
+  if (error) return; // sin la columna (falta volver a pasar el esquema): no pasa nada
+  e.visto = ahora;
+  pintar();
+  window.dispatchEvent(new Event("panel-cambiado"));
 }
 
 async function cargar() {
@@ -137,13 +149,29 @@ async function abrir(e) {
   const estado = h("select", {}, ...Object.entries(ESTADOS).map(([clave, nombre]) => h("option", { value: clave, selected: e.estado === clave }, nombre)));
   const notas = h("textarea", { rows: 3, value: e.notas ?? "", placeholder: "Solo las ves tú: pasta, esmalte, cuándo meterlo en el horno…" });
   const actual = () => ({ precio: precio.value ? Number(precio.value) : null, plazo: plazo.value.trim() });
+  marcarVisto(e);
+
+  // Guarda lo que hay en la ficha; con precio, un encargo nuevo pasa solo a «presupuestado»
+  async function guardar() {
+    const cambios = { ...actual(), plazo: actual().plazo || null, estado: estado.value, notas: notas.value.trim() || null };
+    if (cambios.precio != null && e.estado === "nuevo" && cambios.estado === "nuevo") cambios.estado = "presupuestado";
+    const { error } = await window.nube.cliente.from("encargos").update(cambios).eq("id", e.id);
+    if (error) return false;
+    Object.assign(e, cambios);
+    estado.value = e.estado;
+    pintar();
+    window.dispatchEvent(new Event("panel-cambiado"));
+    return true;
+  }
+  // Al contestar se guarda el presupuesto y el plazo que le mandas
+  const alContestar = () => { if (actual().precio != null || actual().plazo) guardar(); };
 
   const telefono = telefonoWhatsApp(e.telefono);
   const porWhatsApp = telefono && h("a", { class: `boton${e.contestar_por === "whatsapp" ? "" : " secundario"}`, target: "_blank", rel: "noopener", href: `https://wa.me/${telefono}`,
-    onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${telefono}?text=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } },
+    onclick: (ev) => { ev.currentTarget.href = `https://wa.me/${telefono}?text=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; alContestar(); } },
     `Contestar por WhatsApp${e.contestar_por === "whatsapp" ? " (lo prefiere)" : ""}`);
   const porCorreo = e.correo && h("a", { class: `boton${e.contestar_por === "correo" ? "" : " secundario"}`, href: `mailto:${e.correo}`,
-    onclick: (ev) => { ev.currentTarget.href = `mailto:${e.correo}?subject=${encodeURIComponent("Tu encargo en El Almacén")}&body=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; } },
+    onclick: (ev) => { ev.currentTarget.href = `mailto:${e.correo}?subject=${encodeURIComponent("Tu encargo en El Almacén")}&body=${encodeURIComponent(mensajeRespuesta(e, actual()))}`; alContestar(); } },
     `Contestar por correo${e.contestar_por === "correo" ? " (lo prefiere)" : ""}`);
   // El que prefiere, primero
   const contestar = h("div", { class: "contestar" }, ...(e.contestar_por === "whatsapp" ? [porWhatsApp, porCorreo] : [porCorreo, porWhatsApp]));
@@ -173,16 +201,9 @@ async function abrir(e) {
       h("button", { type: "button", class: "guardar", onclick: async (ev) => {
         const boton = ev.currentTarget;
         boton.disabled = true;
-        const cambios = { ...actual(), plazo: actual().plazo || null, estado: estado.value, notas: notas.value.trim() || null };
-        // Si pones precio a un encargo nuevo, pasa solo a «presupuestado»
-        if (cambios.precio != null && e.estado === "nuevo" && cambios.estado === "nuevo") cambios.estado = "presupuestado";
-        const { error } = await window.nube.cliente.from("encargos").update(cambios).eq("id", e.id);
+        const bien = await guardar();
         boton.disabled = false;
-        if (error) return avisar("No se ha podido guardar");
-        Object.assign(e, cambios);
-        estado.value = e.estado;
-        pintar();
-        avisar("Guardado ✓");
+        avisar(bien ? "Guardado ✓" : "No se ha podido guardar");
       } }, "Guardar"),
       contestar),
     h("button", { type: "button", class: "borrar-encargo", onclick: async () => {

@@ -93,11 +93,13 @@ create table if not exists public.encargos (
   constraint con_contacto check (coalesce(correo, '') <> '' or coalesce(telefono, '') <> '')
 );
 create index if not exists encargos_por_fecha on public.encargos (creado desc);
+-- Cuándo lo abriste por primera vez en el panel: ya no cuenta como nuevo
+alter table public.encargos add column if not exists visto timestamptz;
 alter table public.encargos enable row level security;
 
 drop policy if exists "Cualquiera puede enviar un encargo" on public.encargos;
 create policy "Cualquiera puede enviar un encargo" on public.encargos for insert to anon, authenticated
-  with check (estado = 'nuevo' and precio is null and plazo is null and notas is null
+  with check (estado = 'nuevo' and precio is null and plazo is null and notas is null and visto is null
               and (user_id is null or user_id = auth.uid()));
 drop policy if exists "El taller ve los encargos" on public.encargos;
 create policy "El taller ve los encargos" on public.encargos for select to authenticated using (public.es_admin());
@@ -759,11 +761,13 @@ alter table public.horneados add column if not exists recoger date;
 alter table public.horneados add column if not exists recoger_horario text check (length(recoger_horario) <= 40);
 -- Cuándo le avisó el taller de que ya podía pasar a recogerlas
 alter table public.horneados add column if not exists avisado timestamptz;
+-- Cuándo lo abriste por primera vez en el panel: ya no cuenta como nuevo
+alter table public.horneados add column if not exists visto timestamptz;
 alter table public.horneados enable row level security;
 
 drop policy if exists "Cualquiera puede enviar un horneado" on public.horneados;
 create policy "Cualquiera puede enviar un horneado" on public.horneados for insert to anon, authenticated
-  with check (estado = 'nuevo' and precio_final is null and notas_taller is null
+  with check (estado = 'nuevo' and precio_final is null and notas_taller is null and avisado is null and visto is null
               and (user_id is null or user_id = auth.uid()));
 drop policy if exists "El taller ve los horneados" on public.horneados;
 create policy "El taller ve los horneados" on public.horneados for select to authenticated using (public.es_admin());
@@ -826,8 +830,9 @@ language plpgsql stable security definer set search_path = public as $$
 begin
   if not es_admin() then raise exception 'Solo para el taller'; end if;
   return jsonb_build_object(
-    'encargos', (select count(*) from encargos where estado = 'nuevo'),
-    'horneados', (select count(*) from horneados where estado = 'nuevo'),
+    -- nuevos y sin abrir: en cuanto abres uno o le contestas, deja de contar
+    'encargos', (select count(*) from encargos where estado = 'nuevo' and visto is null),
+    'horneados', (select count(*) from horneados where estado = 'nuevo' and visto is null),
     'bonos', (select count(*) from bonos where estado = 'pendiente'),
     'avisos', (select count(distinct publicacion_id) from avisos),
     'clases_hoy', (select count(*) from horarios h where h.activo and h.dia = extract(isodow from hoy_madrid())::int

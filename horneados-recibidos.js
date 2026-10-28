@@ -79,9 +79,9 @@ function pintar() {
   const visibles = horneados.filter((x) => filtro === "todos" || (filtro === "pendientes" ? !CERRADOS.includes(x.estado) : x.estado === filtro));
   $("#lista-encargos").replaceChildren(...(visibles.length ? visibles.map((x) =>
     h("article", { class: `tarjeta-horneado estado-${x.estado}` },
-      h("button", { type: "button", class: `tarjeta-encargo estado-${x.estado}`, onclick: () => abrir(x) },
+      h("button", { type: "button", class: `tarjeta-encargo estado-${x.estado}${sinVer(x) ? " sin-ver" : ""}`, onclick: () => abrir(x) },
         h("span", { class: "linea-1" },
-          h("strong", {}, `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
+          h("strong", {}, sinVer(x) && h("span", { class: "punto-sin-ver", title: "Sin abrir" }), `${piezas(x) === 1 ? "1 pieza" : `${piezas(x)} piezas`} · ${euros.format(x.precio_final ?? x.total)}`),
           h("span", { class: `etiqueta-estado estado-${x.estado}` }, ESTADOS[x.estado])),
         h("span", { class: "linea-2" }, `${x.nombre} · ${haceCuanto(x.creado)}${x.cuando ? ` · trae: ${x.cuando}` : ""}${recogida(x) ? ` · recoge: ${recogida(x)}` : ""}`),
         h("span", { class: "idea-corta" }, x.piezas.map((p) => p.descripcion).join(" · ")),
@@ -102,11 +102,25 @@ function accionesRapidas(x) {
     ...botonesAviso(x, "listo", x.precio_final));
 }
 
+// Nuevo y sin abrir: es lo único que cuenta en los globos del panel y del menú
+const sinVer = (x) => x.estado === "nuevo" && !x.visto;
+async function marcarVisto(x) {
+  if (x.visto) return;
+  const ahora = new Date().toISOString();
+  const { error } = await window.nube.cliente.from("horneados").update({ visto: ahora }).eq("id", x.id);
+  if (error) return; // sin la columna (falta volver a pasar el esquema): no pasa nada
+  x.visto = ahora;
+  pintar();
+  window.dispatchEvent(new Event("panel-cambiado"));
+}
+
 async function marcarHecho(x) {
   const { error } = await window.nube.cliente.from("horneados").update({ estado: "listo" }).eq("id", x.id);
   if (error) return avisar("No se ha podido marcar");
   x.estado = "listo";
   pintar();
+  marcarVisto(x);
+  window.dispatchEvent(new Event("panel-cambiado"));
   avisar("Hecho ✓ Ahora avísale para que pase a recogerlas");
 }
 
@@ -199,6 +213,7 @@ function abrir(x) {
   const estado = h("select", {}, ...Object.entries(ESTADOS).map(([clave, nombre]) => h("option", { value: clave, selected: x.estado === clave }, nombre)));
   const notas = h("textarea", { rows: 3, value: x.notas_taller ?? "", placeholder: "Solo las ves tú: en qué hornada va, en qué placa…" });
   const actual = () => ({ estado: estado.value, precio: precio.value ? Number(precio.value) : null });
+  marcarVisto(x);
   $("#contenido-ficha").replaceChildren(
     h("h2", {}, `Horneado de ${x.nombre}`),
     h("p", { class: "quien" }, `Enviado el ${fecha(x.creado)}`),
@@ -223,6 +238,7 @@ function abrir(x) {
         if (error) return avisar("No se ha podido guardar");
         Object.assign(x, cambios);
         pintar();
+        window.dispatchEvent(new Event("panel-cambiado"));
         avisar("Guardado ✓");
       } }, "Guardar"),
       h("div", { class: "contestar" },
