@@ -51,12 +51,23 @@ const DECORACIONES = [
   { id: "cuerdaseca", nombre: "Cuerda seca", nivel: 3, cuando: "sobre bizcocho", como: "perfila el dibujo con una línea de manganeso y cera, y rellena cada zona con un esmalte" },
 ];
 
+// [nombre, acabado, cómo se pinta la silueta]
 const COLORES = [
-  ["Terracota y crema", "satinado"], ["Verde oliva y miel", "brillo"], ["Azul cobalto sobre blanco", "brillo"],
-  ["Granate con el borde en negro", "mate"], ["Turquesa y óxido de hierro", "brillo"], ["Rosa empolvado y gris piedra", "mate"],
-  ["Mostaza y verde botella", "satinado"], ["Negro mate con interior transparente", "mate y brillo"], ["Celadón (verde agua)", "brillo"],
-  ["Blanco moteado (speckle)", "satinado"], ["Ocre y azul noche", "brillo"], ["Barro visto con un solo color en el interior", "a tu gusto"],
-  ["Tres verdes distintos", "brillo"], ["Blanco y un solo trazo de cobalto", "brillo"], ["Tonos tierra: ocre, siena y marrón", "mate"],
+  ["Terracota y crema", "satinado", { cuerpo: "#b85a2b", interior: "#efe3cf" }],
+  ["Verde oliva y miel", "brillo", { cuerpo: "#6b7a2a", interior: "#d9a441" }],
+  ["Azul cobalto sobre blanco", "brillo", { cuerpo: "#f1eee6", interior: "#2747a3", trazo: "#2747a3" }],
+  ["Granate con el borde en negro", "mate", { cuerpo: "#5c1f2a", interior: "#2a1a1a" }],
+  ["Turquesa y óxido de hierro", "brillo", { cuerpo: "#3f9f9a", interior: "#8a4a22" }],
+  ["Rosa empolvado y gris piedra", "mate", { cuerpo: "#d9a8a0", interior: "#9a958c" }],
+  ["Mostaza y verde botella", "satinado", { cuerpo: "#c9a227", interior: "#1f4d36" }],
+  ["Negro mate con interior transparente", "mate y brillo", { cuerpo: "#2b2626", interior: "#c9875a" }],
+  ["Celadón (verde agua)", "brillo", { cuerpo: "#9fc2ad", interior: "#b7d3c2" }],
+  ["Blanco moteado (speckle)", "satinado", { cuerpo: "#ece6da", interior: "#e2dace", motas: true }],
+  ["Ocre y azul noche", "brillo", { cuerpo: "#c8892f", interior: "#1e2b4a" }],
+  ["Barro visto con un solo color en el interior", "a tu gusto", { cuerpo: "#c9875a", interior: "#3f6f8f" }],
+  ["Tres verdes distintos", "brillo", { cuerpo: "#4a5a23", interior: "#8fae6a", trazo: "#2f5a3a" }],
+  ["Blanco y un solo trazo de cobalto", "brillo", { cuerpo: "#f1eee6", interior: "#f1eee6", trazo: "#2747a3" }],
+  ["Tonos tierra: ocre, siena y marrón", "mate", { cuerpo: "#9b5a2e", interior: "#c8892f", trazo: "#5e3a22" }],
 ];
 
 // En difícil: un reto más
@@ -159,6 +170,7 @@ function generar() {
   const decoracion = sorteo(decoraciones, prefs.esmaltes, (d) => (prefs.practicar.includes("decoracion") && d.nivel === nivel ? 3 : 1));
   actual = {
     tecnica, nivel, pieza, tamano,
+    silueta: siluetas.sortear(pieza.id),
     tamanoTexto: ["Pequeña", "Mediana", "Grande"][tamano],
     colores: azar(COLORES),
     decoracion,
@@ -174,6 +186,7 @@ function otraParte(parte) {
   if (!actual) return;
   if (parte === "tamano") actual.tamano = (actual.tamano + 1 + Math.floor(Math.random() * 2)) % 3;
   if (parte === "tamano") actual.tamanoTexto = ["Pequeña", "Mediana", "Grande"][actual.tamano];
+  if (parte === "silueta") actual.silueta = siluetas.sortear(actual.pieza.id, actual.silueta);
   if (parte === "colores") { let c; do c = azar(COLORES); while (c === actual.colores); actual.colores = c; }
   if (parte === "decoracion") {
     const lista = DECORACIONES.filter((d) => d.nivel <= actual.nivel && d !== actual.decoracion && (d.id !== "agateado" || actual.tecnica === "torno"));
@@ -183,10 +196,14 @@ function otraParte(parte) {
   pintarResultado();
 }
 
+const mayuscula = (t) => t[0].toUpperCase() + t.slice(1);
+
 function pintarResultado() {
-  const { tecnica, nivel, pieza, tamano, tamanoTexto, colores, decoracion, extra } = actual;
+  const { tecnica, nivel, pieza, silueta, tamano, tamanoTexto, colores, decoracion, extra } = actual;
   $("#etiqueta-reto").textContent = `${tecnica === "torno" ? "En el torno" : "A mano"} · ${["", "Fácil", "Medio", "Difícil"][nivel]}`;
   $("#titulo-reto").textContent = pieza.nombre;
+  $("#silueta-reto").innerHTML = siluetas.dibujar(silueta, colores[2]);
+  $("#silueta-reto").hidden = !silueta;
   const fila = (nombre, valor, detalle, parte) => {
     const dt = document.createElement("dt");
     dt.textContent = nombre;
@@ -207,7 +224,7 @@ function pintarResultado() {
       b.type = "button";
       b.className = "otra-parte";
       b.innerHTML = DADO;
-      b.setAttribute("aria-label", `Otro ${nombre.toLowerCase()}`);
+      b.setAttribute("aria-label", `Cambiar ${nombre.toLowerCase()}`);
       b.title = "Cambiar solo esto";
       b.addEventListener("click", () => otraParte(parte));
       dd.append(b);
@@ -216,6 +233,7 @@ function pintarResultado() {
   };
   $("#partes-reto").replaceChildren(
     ...fila("Cómo", tecnica === "torno" ? "Torneada" : `A mano: ${pieza.manual.como}`, null, null),
+    ...(silueta ? fila("Silueta", mayuscula(silueta.nombre), null, "silueta") : []),
     ...fila("Tamaño", tamanoTexto, pieza.tamanos[tamano], "tamano"),
     ...fila("Colores", colores[0], `Acabado ${colores[1]}`, "colores"),
     ...fila("Esmaltado", decoracion.nombre, `${decoracion.cuando[0].toUpperCase()}${decoracion.cuando.slice(1)}: ${decoracion.como}.`, "decoracion"),
@@ -235,9 +253,10 @@ $("#otra-idea").addEventListener("click", generar);
 
 // El texto de la idea, para compartir o apuntar
 function textoIdea() {
-  const { tecnica, pieza, tamano, tamanoTexto, colores, decoracion, extra } = actual;
+  const { tecnica, pieza, silueta, tamano, tamanoTexto, colores, decoracion, extra } = actual;
   return [
     `${pieza.nombre} · ${tecnica === "torno" ? "en el torno" : `a mano (${pieza.manual.como})`}`,
+    silueta && `Silueta: ${silueta.nombre}`,
     `Tamaño: ${tamanoTexto.toLowerCase()}, ${pieza.tamanos[tamano]}`,
     `Colores: ${colores[0].toLowerCase()}, acabado ${colores[1]}`,
     `Esmaltado: ${decoracion.nombre.toLowerCase()} ${decoracion.cuando}: ${decoracion.como}`,

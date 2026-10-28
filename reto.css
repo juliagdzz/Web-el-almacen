@@ -123,6 +123,15 @@
 .resultado-reto h2 { margin: 0.2rem 0 0.8rem; font-size: 1.6rem; color: var(--granate); }
 .resultado-reto h2::after { display: none; }
 
+/* La silueta, con los colores de la idea */
+.silueta-reto {
+  margin: 0 auto 0.9rem;
+  max-width: 17rem;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 45%, #fffaf3 0%, #fffaf3 55%, rgb(255 250 243 / 0) 75%);
+}
+.silueta-reto svg { display: block; width: 100%; height: auto; }
+
 .partes-reto {
   display: grid;
   grid-template-columns: auto 1fr;
